@@ -1,0 +1,102 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  color: #fff;
+}
+
+.content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.gears {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 2rem;
+}
+
+.gear {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 6px solid #ff6b6b;
+  border-radius: 50%;
+  animation: spin 4s linear infinite;
+}
+
+.gear:nth-child(2) {
+  width: 40px;
+  height: 40px;
+  top: 40px;
+  left: 40px;
+  border-color: #4ecdc4;
+  animation-direction: reverse;
+}
+
+.gear::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.message {
+  font-size: 1.2rem;
+  color: #ccc;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.progressBar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+  animation: progress 2s ease-in-out infinite;
+  transform-origin: left;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes progress {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .message {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,78 @@
+.reviews-slider .slick-dots li button:before {
+  font-size: 10px;
+  color: #4B5563;
+}
+
+.reviews-slider .slick-dots li.slick-active button:before {
+  color: #1F2937;
+}
+
+.reviews-slider {
+  padding-bottom: 45px;
+  margin: 0 auto;
+  max-width: 1280px;
+}
+
+.reviews-slider .slick-track {
+  display: flex;
+  align-items: stretch;
+}
+
+.reviews-slider .slick-slide {
+  height: auto;
+}
+
+.reviews-slider .slick-slide > div {
+  height: 100%;
+}
+
+.reviews-slider .slick-dots {
+    bottom: -1rem;
+  width: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex !important;
+  align-items: center;
+  gap: 4px;
+}
+
+.reviews-slider .slick-dots li {
+  margin: 0;
+}
+
+.custom-arrow {
+  position: absolute;
+  bottom: -1.3rem;
+  z-index: 10;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.custom-arrow:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.prev-arrow {
+  left: calc(50% - 90px);
+}
+
+.next-arrow {
+  right: calc(50% - 90px);
+}
+
+@media (max-width: 768px) {
+  .prev-arrow {
+    left: calc(50% - 70px);
+  }
+  .next-arrow {
+    right: calc(50% - 70px);
+  }
+}

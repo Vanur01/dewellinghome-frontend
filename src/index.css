@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Montserrat:wght@400;600;700&family=Poppins:wght@400;500;700&family=Playfair+Display:wght@400;600;700&family=Raleway:wght@400;500;700&family=Roboto&display=swap');
+
+@import "tailwindcss";
+
+.poppins {
+  font-family: 'Poppins', sans-serif;
+}
+.montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+.playfair {
+  font-family: 'Playfair Display', serif;
+}
+.dm-sans {
+  font-family: 'DM Sans', sans-serif;
+}
+.raleway {
+  font-family: 'Raleway', sans-serif;
+}
+.roboto {
+  font-family: 'Roboto', sans-serif;
+}
