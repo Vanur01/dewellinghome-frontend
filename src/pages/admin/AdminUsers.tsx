@@ -1,142 +1,714 @@
-import { useState } from 'react';
-import { Search, Filter, Plus, Edit2, Trash2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useAdminUsersStore } from "../../store/admin/adminUsers.store";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Search,
+  Trash2,
+  UserCog,
+  RefreshCw,
+  UserPlus,
+  Edit,
+  Divide,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'customer' | 'designer' | 'project-manager';
-  status: 'active' | 'inactive';
-  joinedDate: string;
-  lastActive: string;
-}
+const AdminUsersPage = () => {
+  const {
+    users,
+    loading,
+    error,
+    pagination,
+    fetchAllUsers,
+    fetchUserById,
+    deleteUser,
+    createUser,
+    updateUser,
+    selectedUser,
+  } = useAdminUsersStore();
 
-const AdminUsers = () => {
-  const [users] = useState<User[]>([
-    {
-      id: 'USR001',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      role: 'customer',
-      status: 'active',
-      joinedDate: '2024-01-15',
-      lastActive: '2024-04-10'
-    },
-    {
-      id: 'USR002',
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@example.com',
-      role: 'designer',
-      status: 'active',
-      joinedDate: '2024-02-01',
-      lastActive: '2024-04-11'
-    },
-  ]);
+  const [filterType, setFilterType] = useState("name");
+  const [filterValue, setFilterValue] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  const getRoleColor = (role: User['role']) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-800';
-      case 'customer':
-        return 'bg-blue-100 text-blue-800';
-      case 'designer':
-        return 'bg-green-100 text-green-800';
-      case 'project-manager':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  // Form states
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    address: "",
+    role: "client",
+  });
+
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+
+  useEffect(() => {
+    if(users.length === 0){
+    fetchAllUsers();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedUser && editDialogOpen) {
+      setEditFormData({
+        name: selectedUser.name,
+        email: selectedUser.email,
+        phone: selectedUser.phone,
+        address: selectedUser.address,
+      });
+    }
+  }, [selectedUser, editDialogOpen]);
+
+  const handlePageChange = (page: number) => {
+    const searchParams = buildSearchParams();
+    fetchAllUsers(page, pagination.limit, searchParams);
+  };
+
+  const buildSearchParams = () => {
+    const searchParams: {
+      name?: string;
+      email?: string;
+      phone?: string;
+    } = {};
+
+    if (filterValue) {
+      searchParams[filterType as keyof typeof searchParams] = filterValue;
+    }
+
+    return searchParams;
+  };
+
+  const handleSearch = () => {
+    const searchParams = buildSearchParams();
+    fetchAllUsers(1, pagination.limit, searchParams);
+  };
+
+  const handleReset = () => {
+    setFilterType("name");
+    setFilterValue("");
+    fetchAllUsers();
+  };
+
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
+      await deleteUser(userToDelete);
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+      toast.success("User deleted successfully");
     }
   };
 
-  const getStatusColor = (status: User['status']) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
-      : 'bg-red-100 text-red-800';
+  const viewUserDetails = async (userId: string) => {
+    await fetchUserById(userId);
+    setViewDialogOpen(true);
+  };
+
+  const handleEditClick = async (userId: string) => {
+    await fetchUserById(userId);
+    setEditDialogOpen(true);
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await createUser(formData);
+      setCreateDialogOpen(false);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        phone: "",
+        address: "",
+        role: "client",
+      });
+      toast.success("User created successfully");
+      fetchAllUsers(1, pagination.limit);
+    } catch (error) {
+      toast.error("Failed to create user");
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedUser) {
+      try {
+        await updateUser(selectedUser._id, editFormData);
+        setEditDialogOpen(false);
+        toast.success("User updated successfully");
+        fetchAllUsers(pagination.currentPage, pagination.limit);
+      } catch (error) {
+        toast.error("Failed to update user");
+      }
+    }
+  };
+
+  const renderPagination = () => {
+    const { currentPage, totalPages } = pagination;
+    const pageItems = [];
+
+    // Always show first page
+    pageItems.push(
+      <PaginationItem key="first">
+        <PaginationLink
+          onClick={() => handlePageChange(1)}
+          isActive={currentPage === 1}
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>
+    );
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      pageItems.push(
+        <PaginationItem key="ellipsis1">
+          <span className="px-2">...</span>
+        </PaginationItem>
+      );
+    }
+
+    // Show pages around current page
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
+      if (i <= totalPages && i > 1) {
+        pageItems.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      pageItems.push(
+        <PaginationItem key="ellipsis2">
+          <span className="px-2">...</span>
+        </PaginationItem>
+      );
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      pageItems.push(
+        <PaginationItem key="last">
+          <PaginationLink
+            onClick={() => handlePageChange(totalPages)}
+            isActive={currentPage === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return pageItems;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-          <Plus className="w-5 h-5" />
-          Add User
-        </button>
-      </div>
+    <div className="container mx-auto p-4">
+      <Card className="w-full mb-8">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="py-2 text-xl">Users Management</CardTitle>
+            <CardDescription>
+              View, filter, and manage all users in the system
+            </CardDescription>
+          </div>
+          <Button
+          variant="default"
+            onClick={() => setCreateDialogOpen(true)}
+            className="flex items-center gap-2 bg-red-500"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add User
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Filter by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="phone">Phone</SelectItem>
+                </SelectContent>
+              </Select>
 
-      {/* Search and Filter Bar */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          />
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-          <Filter className="w-5 h-5" />
-          Filter
-        </button>
-      </div>
+              <div className="relative flex-1">
+                <Input
+                  type="text"
+                  placeholder={`Search by ${filterType}...`}
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  className="pl-10"
+                />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(user.status)}`}>
-                      {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.joinedDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(user.lastActive).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-3">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              <Button className="bg-red-500" onClick={handleSearch} variant="default">
+                Search
+              </Button>
+
+              <Button
+                onClick={handleReset}
+                variant="outline"
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Reset
+              </Button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">
+              {error}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        No users found. Try adjusting your search criteria.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    users.map((user) => (
+                      <TableRow key={user._id}>
+                        <TableCell className="font-medium">
+                          {user.name}
+                        </TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{user.phone}</TableCell>
+                        <TableCell>
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => viewUserDetails(user._id)}
+                            >
+                              <UserCog className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEditClick(user._id)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => handleDeleteClick(user._id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {!loading && users.length > 0 && (
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-gray-500">
+                Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+                {Math.min(
+                  pagination.currentPage * pagination.limit,
+                  pagination.totalRecords
+                )}{" "}
+                of {pagination.totalRecords} users
+              </div>
+
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() =>
+                        pagination.currentPage > 1 &&
+                        handlePageChange(pagination.currentPage - 1)
+                      }
+                      className={
+                        pagination.currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+
+                  {renderPagination()}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        pagination.currentPage < pagination.totalPages &&
+                        handlePageChange(pagination.currentPage + 1)
+                      }
+                      className={
+                        pagination.currentPage === pagination.totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* View User Dialog */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+          </DialogHeader>
+          {selectedUser ? (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium">Name:</div>
+                <div className="col-span-3">{selectedUser.name}</div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium">Email:</div>
+                <div className="col-span-3">{selectedUser.email}</div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium">Phone:</div>
+                <div className="col-span-3">{selectedUser.phone}</div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium">Address:</div>
+                <div className="col-span-3">{selectedUser.address}</div>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="font-medium">Created At:</div>
+                <div className="col-span-3">
+                  {new Date(selectedUser.createdAt).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-500">Error fetching the user</div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">
+                  Role
+                </Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      role: value as "client" | "admin",
+                    })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="client">Client</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Create User</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-phone" className="text-right">
+                  Phone
+                </Label>
+                <Input
+                  id="edit-phone"
+                  value={editFormData.phone}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, phone: e.target.value })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-address" className="text-right">
+                  Address
+                </Label>
+                <Input
+                  id="edit-address"
+                  value={editFormData.address}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      address: e.target.value,
+                    })
+                  }
+                  className="col-span-3"
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Update User</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              user and remove their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-export default AdminUsers;
+export default AdminUsersPage;

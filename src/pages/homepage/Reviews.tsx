@@ -1,47 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Slider from 'react-slick';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useTestimonialsStore } from '../../store/public/Testimonials.store';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './Reviews.css';
-
-interface Review {
-  id: number;
-  customerNames: string;
-  location: string;
-  review: string;
-  image: string;
-}
 
 interface ArrowProps {
   onClick?: () => void;
 }
 
-const reviews: Review[] = [
-  {
-    id: 1,
-    customerNames: 'Avinash & Anshu',
-    location: 'Orchid Blues, Ahmedabad',
-    review: 'HomeLane understood in detail the requirements of the family and involved them in every step of the process. Avinash & Anshu were happy about the quality materials that HomeLane provided that too at a fair price.',
-    image: 'https://super.homelane.com/testimonial/testimonials-3_chennai4%20(1)-172361603050372a6b0a5fcbd.jpg',
-  },
-  {
-    id: 2,
-    customerNames: 'Abhishek & Sradha',
-    location: 'Elite Golf Greens, Noida',
-    review: 'HomeLane created a home for Abhishek & Sradha that\'s a reflection of themselves and a reflection of their journey so far together. The promise of 45-day delivery and the superior aesthetics that matched their style were two things that attracted them to HomeLane.',
-    image: 'https://super.homelane.com/testimonial/testimonials_13-171594642478481694326e2d3.jpg',
-  },
-  {
-    id: 3,
-    customerNames: 'Atul & Arti',
-    location: 'Riddhi Siddhi Heights, Mumbai',
-    review: 'Atul & Arti were elated to see that they got the house exactly the way they wanted and the way it was promised to them by HomeLane. The HomeLane team kept every family member in mind during the whole process and delivered on their requirements within 45 days.',
-    image: 'https://super.homelane.com/testimonial/testimonials_14-1715946354607a98b329634c9.jpg',
-  },
-];
-
 const Reviews: React.FC = () => {
+  const { testimonials, loading, fetchPublishedTestimonials } = useTestimonialsStore();
+
+  useEffect(() => {
+    fetchPublishedTestimonials();
+  }, [fetchPublishedTestimonials]);
+
   const CustomPrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
     return (
       <button
@@ -95,35 +70,53 @@ const Reviews: React.FC = () => {
     ],
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center bg-gray-50">
       <div className="container mx-auto">
         <h2 className="text-3xl font-semibold text-center text-gray-800 mb-16">
-        Topi Nahi Pehenaya. Bas Ghar Sajaya.
+          Topi Nahi Pehenaya. Bas Ghar Sajaya.
         </h2>
         
         <div className="relative">
           <Slider {...settings} className="reviews-slider">
-            {reviews.map((review) => (
-              <div key={review.id} className="px-3 h-full">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial._id} className="px-3 h-full">
                 <div className="overflow-hidden h-full flex flex-col">
                   <div className="aspect-w-16 aspect-h-9 flex-shrink-0">
                     <img
-                      src={review.image}
-                      alt={review.customerNames}
+                      src={testimonial.image || 'https://via.placeholder.com/400x300?text=No+Image'}
+                      alt={testimonial.name}
                       className="w-full h-48 object-cover rounded-lg"
                     />
                   </div>
                   <div className="flex-grow flex flex-col py-2">
                     <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                      {review.customerNames}
+                      {testimonial.name}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {review.location}
+                      {testimonial.address || 'Happy Customer'}
                     </p>
                     <p className="text-sm leading-relaxed flex-grow">
-                      "{review.review}""
+                      "{testimonial.feedback}"
                     </p>
+                    {testimonial.youtubeLink && (
+                      <a
+                        href={testimonial.youtubeLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 text-sm text-red-600 hover:text-red-700"
+                      >
+                        Watch Video Review
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

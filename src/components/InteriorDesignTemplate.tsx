@@ -143,8 +143,8 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
       </div>
 
       {/* Mobile Form Popup */}
-      {showMobileForm && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 transform transition-transform duration-300 ease-out translate-y-0 z-10">
+      {/* {showMobileForm && (
+        <div className="hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 transform transition-transform duration-300 ease-out translate-y-0 z-10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-medium text-gray-800">Meet a designer</h2>
             <button
@@ -167,18 +167,15 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
             </button>
           </div>
           <div className="max-h-[70vh] overflow-y-auto">
-            <ContactForm onSubmit={handleSubmit} />
+            <ContactForm />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Desktop Form Section */}
-      <div className="hidden md:flex absolute md:right-24  md:bottom-0 bg-white p-4 md:px-6 md:py-8 items-center justify-center w-full md:w-[25%] min-w-[280px] z-10 rounded-lg shadow-lg">
+      <div className="hidden md: md:flex absolute md:right-24  md:top-96 bg-white p-4 md:px-6 md:py-8 items-center justify-center w-full md:w-[25%] min-w-[280px] z-10 rounded-lg shadow-lg">
         <div className="w-full max-w-md md:max-w-none">
-          <h2 className="text-xl md:text-2xl font-medium text-gray-800 mb-4">
-            Meet a designer
-          </h2>
-          <ContactForm onSubmit={handleSubmit} />
+          <ContactForm />
         </div>
       </div>
     </div>

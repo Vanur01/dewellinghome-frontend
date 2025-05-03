@@ -1,0 +1,250 @@
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { usePaymentStore } from '@/store/user/PaymentStore';
+import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+export default function PaymentScheduleDetails() {
+  const { projectId } = useParams();
+  const { currentSchedule, loading, getPaymentScheduleByProject } = usePaymentStore();
+
+  useEffect(() => {
+    if (projectId) {
+      getPaymentScheduleByProject(projectId);
+    }
+  }, [projectId]);
+
+  // Format currency to Indian Rupee format
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount).replace('₹', '₹ ');
+  };
+
+  const getPaymentStatusColor = (paid: number, total: number) => {
+    const percentage = (paid / total) * 100;
+    if (percentage >= 100) return 'bg-green-100 text-green-700';
+    if (percentage > 0) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-gray-100 text-gray-700';
+  };
+
+  const getMilestoneStatus = (milestone: any) => {
+    if (milestone.effectivePaid >= milestone.amount) {
+      return { label: 'Completed', icon: CheckCircle2, className: 'text-green-600' };
+    }
+    if (milestone.effectivePaid > 0) {
+      return { label: 'Partial', icon: Clock, className: 'text-yellow-600' };
+    }
+    return { label: 'Pending', icon: AlertCircle, className: 'text-gray-500' };
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!currentSchedule) {
+    return (
+      <div className="text-center py-8">
+        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-800">Payment Schedule Not Found</h2>
+        <p className="text-gray-600 mt-2">The requested payment schedule could not be found.</p>
+      </div>
+    );
+  }
+
+  const completionPercentage = (currentSchedule.totalPaid / currentSchedule.totalProjectValue) * 100;
+
+  return (
+    <div className="max-w-6xl mx-auto p-4 space-y-6">
+      {/* Clean Header Section */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="p-6">
+          {/* Navigation */}
+          <div className="flex items-center gap-3 mb-8">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hover:bg-gray-100 text-gray-600 p-0"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2 text-gray-600">
+              <Building className="h-5 w-5" />
+              <span className="text-lg font-medium">Project Payment Details</span>
+            </div>
+          </div>
+
+          {/* Project Info */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                {currentSchedule.projectId.title}
+              </h1>
+              <div className="flex gap-3">
+                <Badge variant="secondary" className="py-1.5 px-3">
+                  Project ID: {currentSchedule.projectId._id.slice(-8).toUpperCase()}
+                </Badge>
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "py-1.5 px-3",
+                    completionPercentage >= 100 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  )}
+                >
+                  {completionPercentage >= 100 ? 'Payment Completed' : 'Payment In Progress'}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Payment Stats */}
+            <div className="grid grid-cols-3 gap-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 mb-1">Total Value</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                   {formatCurrency(currentSchedule.totalProjectValue)}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 mb-1">Paid Amount</p>
+                <p className="text-2xl font-semibold text-green-600">
+                   {formatCurrency(currentSchedule.totalPaid)}
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 mb-1">Remaining</p>
+                <p className="text-2xl font-semibold text-blue-600">
+                   {formatCurrency(currentSchedule.totalRemaining)}
+                </p>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-gray-600">
+                <span>Overall Progress</span>
+                <span>{Math.round(completionPercentage)}% Complete</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    completionPercentage >= 100 ? "bg-green-500" : "bg-blue-500"
+                  )}
+                  style={{ width: `${completionPercentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Milestones Table Card */}
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Payment Milestones</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Milestone</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Status</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Percentage</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Amount</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Paid</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Remaining</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {currentSchedule.milestones.map((milestone) => {
+                  const status = getMilestoneStatus(milestone);
+                  const StatusIcon = status.icon;
+                  
+                  return (
+                    <tr key={milestone.slNo} className="hover:bg-gray-50">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">#{milestone.slNo}</span>
+                          <Separator orientation="vertical" className="h-4" />
+                          <span className="text-gray-600">{milestone.timeline}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <StatusIcon className={cn("h-4 w-4", status.className)} />
+                          <span className={cn("text-sm font-medium", status.className)}>
+                            {status.label}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-center text-gray-600">{milestone.percentage}%</td>
+                      <td className="px-4 py-4 text-right font-medium text-gray-900">
+                        {formatCurrency(milestone.amount)}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <div>
+                          <span className="font-medium text-green-600">
+                            {milestone.effectivePaid > 0 ? formatCurrency(Math.min(milestone.effectivePaid, milestone.amount)) : '-'}
+                          </span>
+                          {milestone.overpayment > 0 && (
+                            <span className="text-green-600 text-sm block">
+                              +{formatCurrency(milestone.overpayment)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className={cn(
+                          "font-medium",
+                          milestone.toBePaid > 0 ? "text-blue-600" : "text-green-600"
+                        )}>
+                          {milestone.toBePaid > 0 ? formatCurrency(milestone.toBePaid) : 'Paid'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Instructions Card */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <IndianRupee className="h-6 w-6 text-gray-400 mt-1" />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Instructions</h3>
+              <p className="text-gray-600">
+                Please ensure timely payments according to the schedule above to avoid any delay in project completion.
+                For any payment-related queries, contact our finance department.
+              </p>
+              {currentSchedule.totalOverpayment > 0 && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-green-700 font-medium">
+                    Your advance payment of {formatCurrency(currentSchedule.totalOverpayment)} has been applied to future milestones as shown in the table above.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

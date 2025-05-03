@@ -13,7 +13,7 @@ const sliderData = [
       'https://images.unsplash.com/photo-1600607687939-05c0f3536f81?auto=format&fit=crop&w=800&h=600&q=80',
       'https://images.unsplash.com/photo-1600607687920-456c82854ad1?auto=format&fit=crop&w=800&h=600&q=80'
     ],
-    link: '/end-to-end-offerings'
+    link: '/design-gallary'
   },
   {
     title: 'Modular Kitchen Designs',

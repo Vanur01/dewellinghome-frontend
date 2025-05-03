@@ -1,4 +1,4 @@
-import { IoMdClose } from 'react-icons/io';
+import { IoMdClose } from "react-icons/io";
 import {
   MdKitchen,
   MdChair,
@@ -14,29 +14,34 @@ import {
   MdBed,
   MdOutlineBedroomParent,
   MdRoofing,
-} from 'react-icons/md';
-import ContactForm from '../../components/Forms/ContactForm';
-import { useState } from 'react';
+} from "react-icons/md";
+import ContactForm from "../../components/Forms/ContactForm";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function InteriorSolutionsGrid() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const solutionItems = [
-    { icon: MdKitchen, title: 'Modular Kitchen', accent: true },
-    { icon: MdOutlineBedroomParent, title: 'Storage and Wardrobe', accent: true },
-    { icon: MdKitchen, title: 'Crockery Units', accent: true },
-    { icon: MdChair, title: 'Space Saving Furniture', accent: true },
-    { icon: MdTv, title: 'TV Units', accent: true },
-    { icon: MdDesk, title: 'Study Tables', accent: true },
-    { icon: MdRoofing, title: 'False Ceiling', accent: true },
-    { icon: MdLightbulb, title: 'Lights', accent: true },
-    { icon: MdWallpaper, title: 'Wallpaper', accent: true },
-    { icon: MdBrush, title: 'Wall Paint', accent: true },
-    { icon: MdBathtub, title: 'Bathroom', accent: true },
-    { icon: MdTempleHindu, title: 'Pooja Unit', accent: true },
-    { icon: MdDoorFront, title: 'Foyer Designs', accent: true },
-    { icon: MdChairAlt, title: 'Movable Furniture', accent: true },
-    { icon: MdBed, title: 'Kids Bedroom', accent: true },
+    { icon: MdKitchen, title: "Modular Kitchen", accent: true },
+    {
+      icon: MdOutlineBedroomParent,
+      title: "Storage and Wardrobe",
+      accent: true,
+    },
+    { icon: MdKitchen, title: "Crockery Units", accent: true },
+    { icon: MdChair, title: "Space Saving Furniture", accent: true },
+    { icon: MdTv, title: "TV Units", accent: true },
+    { icon: MdDesk, title: "Study Tables", accent: true },
+    { icon: MdRoofing, title: "False Ceiling", accent: true },
+    { icon: MdLightbulb, title: "Lights", accent: true },
+    { icon: MdWallpaper, title: "Wallpaper", accent: true },
+    { icon: MdBrush, title: "Wall Paint", accent: true },
+    { icon: MdBathtub, title: "Bathroom", accent: true },
+    { icon: MdTempleHindu, title: "Pooja Unit", accent: true },
+    { icon: MdDoorFront, title: "Foyer Designs", accent: true },
+    { icon: MdChairAlt, title: "Movable Furniture", accent: true },
+    { icon: MdBed, title: "Kids Bedroom", accent: true },
   ];
 
   const addAccent = (iconElement: React.ReactElement) => (
@@ -51,16 +56,19 @@ export default function InteriorSolutionsGrid() {
   return (
     <div className="w-full bg-white py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-semibold text-center mb-16">End-to-end interior solutions</h2>
+        <h2 className="text-3xl font-semibold text-center mb-16">
+          End-to-end interior solutions
+        </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 py-8">
           {solutionItems.map((item, index) => (
             <div key={index} className="flex flex-col items-center">
               <div className="mb-4 text-[#656564]">
-                {item.accent
-                  ? addAccent(<item.icon size={40} />)
-                  : <item.icon size={40} />
-                }
+                {item.accent ? (
+                  addAccent(<item.icon size={40} />)
+                ) : (
+                  <item.icon size={40} />
+                )}
               </div>
               <p className="text-center font-medium">{item.title}</p>
             </div>
@@ -68,7 +76,10 @@ export default function InteriorSolutionsGrid() {
         </div>
 
         <div className="mt-16 flex justify-center">
-          <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-md uppercase">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-md uppercase"
+          >
             Book Free Design Session
           </button>
         </div>
@@ -83,7 +94,12 @@ export default function InteriorSolutionsGrid() {
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.5 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 flex items-center justify-center p-4"
+          >
             <div className="relative bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out">
               <button
                 onClick={() => setModalOpen(false)}
@@ -94,13 +110,7 @@ export default function InteriorSolutionsGrid() {
               </button>
 
               <div className="p-6">
-                <p className="text-xl mb-6 text-gray-900">Meet a Designer</p>
-
-                <ContactForm
-                  onSubmit={() => {
-                    setModalOpen(false);
-                  }}
-                />
+                <ContactForm />
               </div>
               <button
                 onClick={() => setModalOpen(false)}
@@ -109,7 +119,7 @@ export default function InteriorSolutionsGrid() {
                 close
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

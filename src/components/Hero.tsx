@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ContactForm from "./Forms/ContactForm";
+import { X } from "lucide-react";
 
 interface HeroSectionProps {
   imageUrl: string;
@@ -14,10 +15,6 @@ const HeroSection = ({
 }: HeroSectionProps) => {
   const [showMobileForm, setShowMobileForm] = useState(false);
 
-  const handleSubmit = (formData: any) => {
-    console.log("Form submitted:", formData);
-    
-  };
 
   return (
     <div className="relative flex flex-col md:flex-row md:min-h-screen w-full">
@@ -56,29 +53,16 @@ const HeroSection = ({
       {/* Mobile Form Popup */}
       {showMobileForm && (
         <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 transform transition-transform duration-300 ease-out translate-y-0 z-10">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-medium text-gray-800">Meet a designer</h2>
+          <div className="flex justify-center items-center relative mb-4">
             <button
               onClick={() => setShowMobileForm(false)}
               className="text-gray-500"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X className="absolute right-0 top-0 w-6 h-6"/>
             </button>
           </div>
           <div className="max-h-[70vh] overflow-y-auto">
-            <ContactForm onSubmit={handleSubmit} />
+            <ContactForm/>
           </div>
         </div>
       )}
@@ -86,10 +70,7 @@ const HeroSection = ({
       {/* Desktop Form Section */}
       <div className="hidden md:flex md:absolute relative right-0 md:right-24 top-0 md:top-16 bg-white p-4 md:px-6 md:py-8 items-center justify-center w-full md:w-[25%] min-w-[280px] z-10 rounded-lg">
         <div className="w-full max-w-md md:max-w-none">
-          <h2 className="text-xl md:text-2xl font-medium text-gray-800 mb-4">
-            Meet a designer
-          </h2>
-          <ContactForm onSubmit={handleSubmit} />
+          <ContactForm />
         </div>
       </div>
     </div>

@@ -2,6 +2,9 @@ module.exports = {
   // ...existing code...
   theme: {
     extend: {
+      fontFamily: {
+        montserrat: ['Montserrat', 'sans-serif'],
+      },
       keyframes: {
         'slide-up': {
           '0%': { transform: 'translateY(100%)' },

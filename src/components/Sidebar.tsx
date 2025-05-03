@@ -1,76 +1,94 @@
-import { MenuIcon, ShoppingCart, Shield, User, Send } from 'lucide-react';
-import { useState } from 'react';
+import {
+  ShoppingCart,
+  Shield,
+  Target,
+  Users,
+  User,
+  Send,
+  CreditCard,
+  MessageSquare,
+  Image,
+  Star,
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuthStore } from '../store/auth.store';
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
+  const { logout, user  } = useAuthStore();
 
-  const menuItems = [
-    { name: 'Order Management', path: '/dashboard/orders', icon: <ShoppingCart className="w-5 h-5" /> },
-    { name: 'Warranty Claim', path: '/dashboard/warranty', icon: <Shield className="w-5 h-5" /> },
-    { name: 'Refer & Earn', path: '/dashboard/refer&earn', icon: <Send className="w-5 h-5" /> },
+  const isAdmin = location.pathname.includes('/admin');
+
+  const userMenuItems = [
+    { name: 'Profile', path: '/dashboard/profile', icon: User },
+    { name: 'Projects', path: '/dashboard/projects', icon: ShoppingCart },
+    { name: 'Warranty Claim', path: '/dashboard/warranty', icon: Shield },
+    { name: 'Refer & Earn', path: '/dashboard/refer&earn', icon: Send },
+    { name: 'Payment', path: '/dashboard/payment', icon: CreditCard },
   ];
 
-  return (
-    <>
-      {/* Mobile menu button */}
-      {!isOpen && <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-white shadow-lg hover:bg-gray-50 transition-colors duration-200"
-        aria-label="Toggle Menu"
-      >
-         <MenuIcon className="w-5 h-5 text-gray-700" />
-      </button>}
+  const adminMenuItems = [
+    { name: 'Warranty Claims', path: '/admin/warranty', icon: Shield },
+    { name: 'Orders', path: '/admin/projects', icon: Target },
+    { name: 'Users', path: '/admin/users', icon: Users },
+    { name: 'Referrals', path: '/admin/referral', icon: Send },
+    { name: 'Payment', path: '/admin/payments', icon: CreditCard },
+    { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
+    { name: 'Gallery', path: '/admin/gallery', icon: Image },
+    { name: 'Testimonials', path: '/admin/testimonials', icon: Star },
+  ];
 
-      {/* Sidebar */}
-      <div
-        className={`fixed md:static md:translate-x-0 transform ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-all duration-300 ease-in-out w-64 bg-white h-full border-r border-gray-200 z-40 flex flex-col`}
-      >
-        <div className="flex-none px-3 py-4">
-          <div className="flex items-center gap-3 px-3 py-2 mb-6">
-            <div className="w-10 h-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center">
-              <User className="w-6 h-6 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-gray-800 font-medium">John Doe</h3>
-              <p className="text-gray-500 text-sm">Admin</p>
-            </div>
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
+  return (
+    <div className="w-64 bg-white h-full border-r border-gray-200 flex flex-col">
+      {/* Profile */}
+      <div className="px-4 py-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+            <User className="w-5 h-5 text-red-500" />
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-800">{user?.name || 'Admin'}</h4>
+            <p className="text-xs text-gray-500">{isAdmin ? 'Admin' : 'User'}</p>
           </div>
         </div>
+      </div>
 
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => (
+      {/* Nav */}
+      <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          const Icon = item.icon;
+
+          return (
             <Link
               key={item.path}
               to={item.path}
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 
-                ${location.pathname === item.path 
-                  ? 'border border-red-100 bg-red-50 text-red-600 ' 
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-red-600 border border-white'
-                }`}
+              className={`flex items-center px-3 py-2 rounded-md transition-colors duration-150
+                ${isActive
+                  ? 'bg-red-50 text-red-600 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-red-600'}
+              `}
             >
-              <span className="inline-flex items-center justify-center w-8">
-                {item.icon}
-              </span>
-              <span className="ml-3 font-medium">{item.name}</span>
+              <Icon className="w-5 h-5 mr-3" />
+              <span>{item.name}</span>
             </Link>
-          ))}
-        </nav>
-      </div>
+          );
+        })}
+      </nav>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden transition-all duration-300"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </>
+      {/* Logout */}
+      <div className="px-4 py-6 mt-auto">
+        <button
+          onClick={logout}
+          className="w-full text-sm bg-red-500 hover:bg-red-600 text-white py-2 rounded-md transition"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

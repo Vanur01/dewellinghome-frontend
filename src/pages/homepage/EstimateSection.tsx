@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 const EstimateSection = () => {
   return (
     <>
@@ -100,9 +101,11 @@ const EstimateSection = () => {
             </div>
 
             {/* Button */}
+            <Link to={'/get-estimate'}>
             <button className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 sm:px-5 rounded text-xs sm:text-sm transition duration-300 w-full sm:w-auto">
               Get Free Estimate
             </button>
+            </Link>
           </div>
 
           {/* Kitchen Card */}
@@ -165,9 +168,11 @@ const EstimateSection = () => {
             </div>
 
             {/* Button */}
+            <Link to={'/kitchen-estimate'}>
             <button className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 sm:px-5 rounded text-xs sm:text-sm transition duration-300 w-full sm:w-auto">
               Get Free Estimate
             </button>
+            </Link>
           </div>
         </div>
       </div>

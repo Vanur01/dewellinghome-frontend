@@ -1,12 +1,12 @@
 'use client';
 
 import { useReducedMotion } from 'framer-motion';
-import { MapPin, Home, Store, Shield, CreditCard, Banknote, Clock3 } from 'lucide-react';
+import { MapPin, Home, Store, ShieldCheckIcon, CreditCard, Banknote, Clock3 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const features = [
   {
-    icon: <Shield strokeWidth={1} width={64} height={64} className="text-red-500" />,
+    icon: <ShieldCheckIcon strokeWidth={1} width={64} height={64} className="text-red-500" />,
     title: 'Flat 10 Year Warranty',
     subtitle: '',
   },

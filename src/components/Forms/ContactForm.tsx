@@ -1,5 +1,8 @@
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import InquiryStore from "../../store/InquiryStore";
+import { useNavigate } from "react-router-dom";
+import { UserDetails } from "../../../src/types/enquiry";
 
 const countries = [
   { code: "IN", dial: "+91", name: "India" },
@@ -12,22 +15,28 @@ const countries = [
 ];
 
 interface ContactFormProps {
-  onSubmit: (formData: any) => void;
   className?: string;
+  onComplete?: () => void;
+  initialData?: UserDetails;
+  isEditing?: boolean;
 }
 
-const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    mobile: "",
-    pincode: "",
-    receiveUpdates: true,
-    countryCode: "+91",
+const ContactForm = ({ className = "", onComplete, initialData, isEditing = false }: ContactFormProps) => {
+  const [formData, setFormData] = useState<UserDetails>(() => {
+    return initialData || {
+      name: "",
+      email: "",
+      phone: "",
+      pincode: "",
+      countryCode: "+91",
+      message: "",
+    };
   });
   const [showCountryList, setShowCountryList] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
+  const { setUserDetails, userDetails } = InquiryStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -36,6 +45,8 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
         setSearchQuery("");
       }
     };
+
+    console.log(userDetails);
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -51,7 +62,13 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setUserDetails(formData);
+    
+    if (onComplete) {
+      onComplete();
+    } else if (!isEditing) {
+      navigate("/get-estimate");
+    }
   };
 
   const selectCountry = (dial: string) => {
@@ -65,8 +82,65 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
       country.dial.includes(searchQuery)
   );
 
+  // Show thank you message if user details exist but project details don't
+  if (userDetails.name ) {
+    return (
+      <div className={`text-center ${className}`}>
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="text-green-500 mb-4">
+            <svg
+              className="w-16 h-16 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-gray-800">Thank You, {userDetails.name}!</h3>
+            <p className="text-gray-600 max-w-sm mx-auto">
+              We've received your contact information. Let's proceed with your design requirements.
+            </p>
+          </div>
+
+          <div className="w-full max-w-sm pt-6">
+            <button
+              onClick={() => navigate('/get-estimate')}
+              className="w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 transition-colors text-sm flex items-center justify-center group"
+            >
+              Continue to Design Requirements
+              <svg
+                className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className={`flex flex-col justfiy-between space-y-3 ${className}`}>
+      <div>
+        <h2 className="text-medium text-xl">{isEditing ? "Edit Contact Information" : "Meet a Designer"}</h2>
+      </div>
       <div>
         <input
           type="text"
@@ -74,6 +148,18 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
           value={formData.name}
           onChange={handleChange}
           placeholder="Enter your name"
+          className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
+          required
+        />
+      </div>
+
+      <div>
+        <input
+          type="text"
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Enter your address"
           className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
           required
         />
@@ -136,35 +222,12 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
           </div>
           <input
             type="tel"
-            name="mobile"
-            value={formData.mobile}
+            name="phone"
+            value={formData.phone}
             onChange={handleChange}
-            placeholder="Enter your mobile number"
+            placeholder="Enter your phone number"
             className="flex-1 border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
             required
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between py-1">
-        <label className="text-gray-600 text-sm">
-          Send me updates on WhatsApp
-        </label>
-        <div
-          className={`w-10 h-5 flex items-center rounded-full p-1 cursor-pointer ${
-            formData.receiveUpdates ? "bg-red-500" : "bg-gray-300"
-          }`}
-          onClick={() =>
-            setFormData({
-              ...formData,
-              receiveUpdates: !formData.receiveUpdates,
-            })
-          }
-        >
-          <div
-            className={`bg-white w-3 h-3 rounded-full shadow-md transform transition-transform duration-300 ${
-              formData.receiveUpdates ? "translate-x-5" : "translate-x-0"
-            }`}
           />
         </div>
       </div>
@@ -181,27 +244,42 @@ const ContactForm = ({ onSubmit, className = ""}: ContactFormProps) => {
         />
       </div>
 
+      <div>
+        <textarea
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          placeholder="Additional notes or requirements (optional)"
+          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-green-500 text-sm resize-y"
+          rows={2}
+        />
+      </div>
+
       <button
         type="submit"
         className="w-full bg-red-600 text-white py-2 px-4 rounded-md mt-4 hover:bg-red-700 transition-colors text-sm"
       >
-        Enquiry{" "}
-        <span className="bg-yellow-400 text-black text-xs px-1.5 py-0.5 ml-1 rounded">
-          FREE
-        </span>
+        {isEditing ? "Update Contact Info" : "Continue"}{" "}
+        {!isEditing && (
+          <span className="bg-yellow-400 text-black text-xs px-1.5 py-0.5 ml-1 rounded">
+            FREE
+          </span>
+        )}
       </button>
 
-      <p className="text-xs text-gray-600 mt-2">
-        By submitting, you agree to our{" "}
-        <a href="#" className="text-red-600">
-          privacy policy
-        </a>{" "}
-        and{" "}
-        <a href="#" className="text-red-600">
-          terms of use
-        </a>
-        , allowing us to use your information as outlined.
-      </p>
+      {!isEditing && (
+        <p className="text-xs text-gray-600 mt-2">
+          By submitting, you agree to our{" "}
+          <a href="#" className="text-red-600">
+            privacy policy
+          </a>{" "}
+          and{" "}
+          <a href="#" className="text-red-600">
+            terms of use
+          </a>
+          , allowing us to use your information as outlined.
+        </p>
+      )}
     </form>
   );
 };

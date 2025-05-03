@@ -1,13 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import enquiryStore from '../../store/InquiryStore';
+import { Plus, Trash2 } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-interface Item {
+export interface Item {
   category: string;
   name: string;
   units: number;
   size: string;
+  height?: string;
+  width?: string;
 }
 
-export default function SimpleInteriorDesignForm() {
+interface RequirementFormProps {
+  onValidationChange: (isValid: boolean) => void;
+}
+
+export default function RequirementForm({ onValidationChange }: RequirementFormProps) {
   const FullMenuItems = [
     { name: "Design Gallery", href: "design-gallary" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
@@ -16,6 +43,19 @@ export default function SimpleInteriorDesignForm() {
     { name: "Living Room", href: "living-room" },
     { name: "Bathroom", href: "bathroom" },
     { name: "Space Saving Furniture", href: "space-saving-furniture" },
+  ];
+
+  const HomeTypes = [
+    "1 BHK",
+    "2 BHK",
+    "3 BHK",
+    "3+ BHK"
+  ];
+
+  const Purposes = [
+    "Move In",
+    "Rent Out",
+    "Renovate"
   ];
 
   const CategoryItems = {
@@ -81,13 +121,44 @@ export default function SimpleInteriorDesignForm() {
   };
 
   const [items, setItems] = useState<Item[]>([]);
-  const [showSummary, setShowSummary] = useState(false);
   const [currentItem, setCurrentItem] = useState({
     category: "",
     name: "",
     units: 1,
-    size: ""
+    size: "",
+    height: "",
+    width: ""
   });
+  const { setProjectDetails, projectDetails } = enquiryStore();
+
+  useEffect(() => {
+    if (projectDetails) {
+      if (projectDetails.items?.length > 0) {
+        const processedItems = projectDetails.items.map(item => {
+          if (item.size) {
+            const [width, height] = item.size.split('x').map(s => s.trim());
+            return { ...item, height, width };
+          }
+          return item;
+        });
+        setItems(processedItems);
+      }
+      setProjectDetails({
+        ...projectDetails,
+        homeType: projectDetails.homeType || '',
+        purpose: projectDetails.purpose || ''
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const isValid = 
+      items.length > 0 && 
+      Boolean(projectDetails?.homeType) && 
+      Boolean(projectDetails?.purpose);
+    
+    onValidationChange(isValid);
+  }, [items, projectDetails?.homeType, projectDetails?.purpose, onValidationChange]);
 
   const handleAddItem = () => {
     if (!currentItem.category || !currentItem.name.trim()) {
@@ -95,28 +166,33 @@ export default function SimpleInteriorDesignForm() {
       return;
     }
 
-    setItems([...items, {...currentItem}]);
+    const size = currentItem.width && currentItem.height 
+      ? `${currentItem.width}x${currentItem.height}`
+      : "";
+
+    const itemToAdd = {
+      ...currentItem,
+      size
+    };
+
+    const newItems = [...items, itemToAdd];
+    setItems(newItems);
+    setProjectDetails({ ...projectDetails, items: newItems });
     setCurrentItem({
-      category: currentItem.category, // Keep the same category for convenience
+      category: currentItem.category,
       name: "",
       units: 1,
-      size: ""
+      size: "",
+      height: "",
+      width: ""
     });
   };
 
-  const handleRemoveItem = (index) => {
+  const handleRemoveItem = (index: number) => {
     const updatedItems = [...items];
     updatedItems.splice(index, 1);
     setItems(updatedItems);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (items.length === 0) {
-      alert("Please add at least one item to your requirements");
-      return;
-    }
-    setShowSummary(true);
+    setProjectDetails({ ...projectDetails, items: updatedItems });
   };
 
   const resetForm = () => {
@@ -125,186 +201,205 @@ export default function SimpleInteriorDesignForm() {
       category: "",
       name: "",
       units: 1,
-      size: ""
+      size: "",
+      height: "",
+      width: ""
     });
-    setShowSummary(false);
+    setProjectDetails({ ...projectDetails, items: [] });
   };
 
-  // Group items by category for the summary
-  const groupedItems = items.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {});
-
   return (
-    <div className="w-full max-w-3xl mx-auto p-3 sm:p-6 bg-white rounded-lg shadow-lg">
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Interior Design Requirements</h1>
-      
-      {!showSummary ? (
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-            <h2 className="text-base sm:text-lg font-medium text-gray-800 mb-3 sm:mb-4">Add Items to Your Requirements</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select 
-                  value={currentItem.category}
-                  onChange={(e) => setCurrentItem({
-                    ...currentItem,
-                    category: e.target.value,
-                    name: "" 
-                  })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a category</option>
-                  {FullMenuItems.map((item) => (
-                    <option key={item.href} value={item.name}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                <select
-                  value={currentItem.name}
-                  onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={!currentItem.category}
-                >
-                  <option value="">Select an item</option>
-                  {currentItem.category && CategoryItems[currentItem.category]?.map((item, index) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+    <div className="w-full max-w-3xl mx-auto">
+      <div className="p-6">
+        <h2 className="text-2xl mb-6 font-semibold">Interior Design Requirements</h2>
+        
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-medium mb-4">Project Details</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-2">
+                  <Label>Home Type</Label>
+                  <Select
+                    value={projectDetails?.homeType || ''}
+                    onValueChange={(value) => setProjectDetails({ ...projectDetails, homeType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select home type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HomeTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Units</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={currentItem.units}
-                  onChange={(e) => setCurrentItem({...currentItem, units: parseInt(e.target.value) || 1})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="space-y-2">
+                  <Label>Purpose</Label>
+                  <Select
+                    value={projectDetails?.purpose || ''}
+                    onValueChange={(value) => setProjectDetails({ ...projectDetails, purpose: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select purpose" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Purposes.map((purpose) => (
+                        <SelectItem key={purpose} value={purpose}>
+                          {purpose}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Size/Dimensions</label>
-                <input
-                  type="text"
-                  value={currentItem.size}
-                  onChange={(e) => setCurrentItem({...currentItem, size: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g. 2x3 ft"
-                />
-              </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={handleAddItem}
-              disabled={!currentItem.category || !currentItem.name.trim()}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-300"
-            >
-              Add Item
-            </button>
-          </div>
+              <h2 className="text-lg font-medium mb-4">Add Items to Your Requirements</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select
+                    value={currentItem.category}
+                    onValueChange={(value) => setCurrentItem({
+                      ...currentItem,
+                      category: value,
+                      name: "" 
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FullMenuItems.map((item) => (
+                        <SelectItem key={item.href} value={item.name}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Item Name</Label>
+                  <Select
+                    value={currentItem.name}
+                    onValueChange={(value) => setCurrentItem({...currentItem, name: value})}
+                    disabled={!currentItem.category}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an item" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentItem.category && CategoryItems[currentItem.category]?.map((item, index) => (
+                        <SelectItem key={index} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <Label>Units</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={currentItem.units}
+                    onChange={(e) => setCurrentItem({...currentItem, units: parseInt(e.target.value) || 1})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Dimensions</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Input
+                        type="text"
+                        value={currentItem.width}
+                        onChange={(e) => setCurrentItem({...currentItem, width: e.target.value})}
+                        placeholder="Width (ft)"
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="text"
+                        value={currentItem.height}
+                        onChange={(e) => setCurrentItem({...currentItem, height: e.target.value})}
+                        placeholder="Height (ft)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleAddItem}
+                disabled={!currentItem.category || !currentItem.name.trim()}
+                className="w-full bg-red-500 hover:bg-red-600"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Item
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Items List */}
           {items.length > 0 && (
-            <div className="border border-gray-200 rounded-lg overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units</th>
-                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Size</th>
-                    <th className="px-3 sm:px-6 py-2 sm:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {items.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">{item.category}</td>
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{item.name}</td>
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">{item.units}</td>
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500 hidden sm:table-cell">{item.size || '-'}</td>
-                      <td className="px-3 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
-                        <button 
-                          type="button" 
-                          onClick={() => handleRemoveItem(index)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Item</TableHead>
+                      <TableHead>Units</TableHead>
+                      <TableHead className="hidden sm:table-cell">Dimensions (W×H)</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{item.category}</TableCell>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.units}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{item.size || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(index)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
 
-          <button
-            type="submit"
-            disabled={items.length === 0}
-            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-green-300"
-          >
-            Generate Summary
-          </button>
-        </form>
-      ) : (
-        <div className="bg-gray-50 p-3 sm:p-6 rounded-lg">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">Requirements Summary</h2>
-          
-          <div className="grid gap-4 sm:gap-6">
-            {Object.keys(groupedItems).map((category) => (
-              <div key={category} className="bg-white p-3 sm:p-4 rounded-md shadow-sm">
-                <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-2 sm:mb-3">{category}</h3>
-                <ul className="pl-4 sm:pl-5 space-y-1 sm:space-y-2">
-                  {groupedItems[category].map((item, index) => (
-                    <li key={index} className="text-sm sm:text-base text-gray-700">
-                      <span className="font-medium">{item.name}</span>: {item.units} unit(s)
-                      {item.size && <span className="block sm:inline sm:ml-1">Size: {item.size}</span>}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4 sm:mt-6">
-            <button
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
               onClick={resetForm}
-              className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-[120px]"
             >
-              Create New Requirements
-            </button>
-            <button
-              onClick={() => setShowSummary(false)}
-              className="w-full sm:w-auto px-4 py-2 bg-yellow-600 text-white text-sm sm:text-base rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            >
-              Edit Requirements
-            </button>
-            <button
-              onClick={() => {console.log('Requirements submitted:', items)}}
-              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white text-sm sm:text-base rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              Submit Requirements
-            </button>
+              Reset Form
+            </Button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
