@@ -489,20 +489,7 @@ export const progressApi = {
 };
 
 export const galleryApi = {
-  // Public endpoints
-  getAllGalleries: () => 
-    api.get('/gallery'),
-
-  getGalleryByCategory: (category: string) =>
-    api.get(`/gallery/category/${category}`),
-
-  getDesignsByGalleryId: (galleryId: string) =>
-    api.get(`/gallery/${galleryId}/designs`),
-
-  getSpecificDesign: (galleryId: string, designId: string) =>
-    api.get(`/gallery/${galleryId}/designs/${designId}`),
-
-  // Admin endpoints
+  // Admin endpoints only
   createGallery: (data: {
     title: string;
     category: string;
@@ -559,10 +546,6 @@ export const testimonialApi = {
 
   deleteTestimonial: (id: string) =>
     api.delete(`/testimonials/${id}`),
-
-  // Public endpoint to get published testimonials
-  getPublishedTestimonials: () =>
-    api.get('/testimonials/published'),
 };
 
 export const paymentApi = {

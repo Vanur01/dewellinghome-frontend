@@ -12,7 +12,7 @@ import {
   type CarouselApi
 } from "@/components/ui/carousel";
 import ContactKitchenForm from '@/components/Forms/ContactStepForm';
-import InquiryStore from '@/store/InquiryStore';
+import InquiryStore from '@/store/public/InquiryStore';
 import { inquiryApi } from '@/utils/api';
 import { toast } from 'sonner';
 

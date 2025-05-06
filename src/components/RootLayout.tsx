@@ -54,10 +54,13 @@ const RootLayout = () => {
       </header>
 
       {/* Mobile Sidebar */}
+      <div>
       <MobileSidebar
         isOpen={isMobileSidebarOpen}
         onClose={handleCloseSidebar}
       />
+      </div>
+      
 
       {/* Desktop Navigation Components */}
       <div className="hidden md:block">

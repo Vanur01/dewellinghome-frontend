@@ -20,9 +20,8 @@ const Home = () => {
         imageAlt="Modern Interior Design"
         headingLines={["Hassle-free interiors", "from start to finish"]}
       />
-      <ScrollReveal>
+
         <Why />
-      </ScrollReveal>
       <ScrollReveal>
         <VideoSlider />
       </ScrollReveal>

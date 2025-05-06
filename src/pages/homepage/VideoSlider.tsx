@@ -34,7 +34,7 @@ const NextArrow = (props: ArrowProps) => {
   const { onClick } = props;
   return (
     <button
-      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full z-10 bg-white/80 p-3 rounded-full shadow-lg hover:bg-white mr-4"
+      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full z-10 bg-white/80 p-3 rounded-full shadow-lg hover:bg-white mr-9"
       onClick={onClick}
     >
      <ArrowRight size={20}/>
@@ -46,7 +46,7 @@ const PrevArrow = (props: ArrowProps) => {
   const { onClick } = props;
   return (
     <button
-      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-10 bg-white/80 p-3 rounded-full shadow-lg hover:bg-white ml-4"
+      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full z-10 bg-white/80 p-3 rounded-full shadow-lg hover:bg-white ml-9"
       onClick={onClick}
     >
       <ArrowLeft size={20}/>
@@ -68,7 +68,7 @@ const VideoSlider: React.FC = () => {
   };
 
   return (
-    <section className="video-slider-section relative">
+    <section className="video-slider-section">
       <div className="w-full py-8 px-4 md:px-10">
         <Slider {...settings}>
           {videos.map((video) => (

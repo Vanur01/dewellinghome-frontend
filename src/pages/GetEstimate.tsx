@@ -1,6 +1,6 @@
 import RequirementForm from '../components/Forms/RequirementForm';
 import ContactStepForm from '../components/Forms/ContactStepForm';
-import enquiryStore from '../store/InquiryStore';
+import enquiryStore from '../store/public/InquiryStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { CheckCircle2, Calendar, PhoneCall, ClipboardList, User, Mail, Phone, MapPin, ChevronRight, ChevronLeft } from 'lucide-react';

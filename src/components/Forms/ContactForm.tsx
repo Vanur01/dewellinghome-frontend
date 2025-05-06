@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import InquiryStore from "../../store/InquiryStore";
+import InquiryStore from "../../store/public/InquiryStore";
 import { useNavigate } from "react-router-dom";
 import { UserDetails } from "../../../src/types/enquiry";
 

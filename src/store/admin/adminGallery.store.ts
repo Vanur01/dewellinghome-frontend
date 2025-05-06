@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { galleryApi } from '../../utils/api';
+import { publicGalleryApi } from '../../utils/publicApi';
 import { AxiosError } from 'axios';
 
 interface Image {
@@ -65,7 +66,7 @@ export const useAdminGalleryStore = create<AdminGalleryState>((set) => ({
   fetchGalleries: async () => {
     try {
       set({ loading: true, error: null });
-      const response = await galleryApi.getAllGalleries();
+      const response = await publicGalleryApi.getAllGalleries();
       set({ galleries: response.data.data, loading: false });
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -140,7 +141,7 @@ export const useAdminGalleryStore = create<AdminGalleryState>((set) => ({
   fetchDesigns: async (galleryId) => {
     try {
       set({ loading: true, error: null });
-      const response = await galleryApi.getDesignsByGalleryId(galleryId);
+      const response = await publicGalleryApi.getDesignsByGalleryId(galleryId);
       set(state => ({
         designs: { 
           ...state.designs, 

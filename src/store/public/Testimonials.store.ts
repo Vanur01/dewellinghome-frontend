@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { testimonialApi, Testimonial } from "../../utils/api";
+import { publicTestimonialApi, Testimonial } from "../../utils/publicApi";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 interface TestimonialsState {
   testimonials: Testimonial[];
@@ -19,10 +20,11 @@ export const useTestimonialsStore = create<TestimonialsState>((set) => ({
   fetchPublishedTestimonials: async () => {
     try {
       set({ loading: true, error: null });
-      const response = await testimonialApi.getPublishedTestimonials();
+      const response = await publicTestimonialApi.getPublishedTestimonials();
       set({ testimonials: response.data.data });
     } catch (error) {
-      const message = "Failed to fetch testimonials";
+      const axiosError = error as AxiosError<{ message: string }>;
+      const message = axiosError.response?.data?.message || "Failed to fetch testimonials";
       set({ error: message });
       toast.error(message);
     } finally {

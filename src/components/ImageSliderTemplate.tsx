@@ -2,23 +2,36 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import DesignModal from './DesignModal';
 import { Link } from 'react-router-dom';
+import useGalleryStore from '../store/public/gallery.store';
+import { Design } from '../utils/publicApi';
 
 interface ImageSliderTemplateProps {
-  images: string[];
+  galleryId: string;
   title: string;
   link?: string;  // Optional link for See All button
 }
 
 const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
-  images,
+  galleryId,
   title,
   link
 }) => {
   const [startIndex, setStartIndex] = useState(0);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedDesign, setSelectedDesign] = useState<Design | null>(null);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [isLoading, setIsLoading] = useState<boolean[]>(new Array(images.length).fill(true));
+  const { galleryDesigns, getDesignsByGalleryId } = useGalleryStore();
+  const [isLoading, setIsLoading] = useState<boolean[]>([]);
+
+  useEffect(() => {
+    getDesignsByGalleryId(galleryId);
+  }, [galleryId, getDesignsByGalleryId]);
+
+  console.log('galleryId', galleryId);
+  const designs = galleryDesigns[galleryId] || [];
+  console.log("designs", designs);
+  const images = designs.map(design => design.images[0]?.url).filter(Boolean);
+  console.log(images);
 
   const handleNext = useCallback(() => {
     setStartIndex(prev => Math.min(prev + 4, images.length - 4));
@@ -66,6 +79,10 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
       newState[index] = false;
       return newState;
     });
+  };
+
+  const handleRelatedDesignClick = (design: Design) => {
+    setSelectedDesign(design);
   };
 
   return (
@@ -123,7 +140,7 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
                 width: '100%'
               }}
             >
-              {images.map((image, index) => (
+              {designs.map((design, index) => (
                 <div 
                   key={index} 
                   className="w-1/4 aspect-video overflow-hidden rounded-lg cursor-pointer relative"
@@ -131,17 +148,17 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
                     width: 'calc(25% - 12px)',
                     flex: '0 0 calc(25% - 12px)'
                   }}
-                  onClick={() => setSelectedImage(image)}
+                  onClick={() => handleRelatedDesignClick(design)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`View image ${index + 1} of ${images.length}`}
+                  aria-label={`View design ${index + 1} of ${designs.length}`}
                 >
                   {isLoading[index] && (
                     <div className="absolute inset-0 bg-gray-100 animate-pulse" />
                   )}
                   <img 
-                    src={image} 
-                    alt={`Image ${index + 1}`} 
+                    src={design.images[0]?.url} 
+                    alt={design.title || `Design ${index + 1}`} 
                     loading="lazy"
                     onLoad={() => handleImageLoad(index)}
                     className={`w-full h-full object-cover transition-all duration-300 
@@ -154,20 +171,25 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
         </div>
       </div>
 
-      {selectedImage && (
+      {selectedDesign && (
         <DesignModal 
-          isOpen={!!selectedImage}
-          onClose={() => setSelectedImage(null)}
+          isOpen={!!selectedDesign}
+          onClose={() => setSelectedDesign(null)}
+          onRelatedDesignClick={handleRelatedDesignClick}
           kitchenData={{
-            title: title,
-            description: "Beautiful kitchen design that blends style with functionality",
-            imgSrc: selectedImage,
-            images: images, // Add this line to pass the images array
+            title: selectedDesign.title,
+            description: selectedDesign.description,
+            imgSrc: selectedDesign.images[0]?.url,
+            images: selectedDesign.images.map(img => img.url),
             shape: "Straight",
-            relatedDesigns: images.slice(0, 3).map((img, idx) => ({
-              id: idx + 1,
-              imgSrc: img
-            }))
+            relatedDesigns: designs
+              .filter(d => d._id !== selectedDesign._id)
+              .slice(0, 9)
+              .map((design, index) => ({
+                id: index + 1,
+                imgSrc: design.images[0]?.url,
+                design: design
+              }))
           }}
         />
       )}

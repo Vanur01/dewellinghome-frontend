@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import enquiryStore from '../../store/InquiryStore';
+import enquiryStore from '../../store/public/InquiryStore';
 import { Plus, Trash2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
