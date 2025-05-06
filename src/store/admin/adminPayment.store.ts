@@ -34,6 +34,7 @@ export interface PaymentSchedule {
   projectId: Project;
   totalProjectValue: number;
   milestones: PaymentMilestone[];
+  currentMilestone: number;
   totalPaid: number;
   totalRemaining: number;
   totalOverpayment: number;
@@ -61,15 +62,7 @@ interface AdminPaymentState {
     id: string,
     milestones: Array<{ timeline: string; percentage: number }>
   ) => Promise<PaymentSchedule>;
-  updateMilestonePayment: (
-    scheduleId: string,
-    milestoneId: string,
-    data: {
-      amount: number;
-      paymentMethod?: string;
-      paymentReference?: string;
-    }
-  ) => Promise<PaymentSchedule>;
+  updateCurrentMilestone: (id: string, currentMilestone: number) => Promise<PaymentSchedule>;
   resetStore: () => void;
 }
 
@@ -180,26 +173,23 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
         }
       },
 
-      updateMilestonePayment: async (scheduleId, milestoneId, data) => {
+      updateCurrentMilestone: async (id: string, currentMilestone: number) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.put(
-            `/payments/${scheduleId}/milestone/${milestoneId}`,
-            data
-          );
+          const response = await api.put(`/payments/${id}/current-milestone`, { currentMilestone });
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
-              schedule._id === scheduleId ? updatedSchedule : schedule
+              schedule._id === id ? updatedSchedule : schedule
             ),
             currentSchedule: updatedSchedule
           }));
-          toast.success('Payment recorded successfully');
+          toast.success('Current milestone updated successfully');
           return updatedSchedule;
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to record payment');
+          toast.error('Failed to update current milestone');
           throw err;
         } finally {
           set({ loading: false });

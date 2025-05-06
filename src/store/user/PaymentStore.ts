@@ -13,6 +13,7 @@ interface PopulatedPaymentSchedule extends Omit<PaymentSchedule, 'projectId'> {
     startDate: string;
     estimatedEndDate: string;
   };
+  currentMilestone: number;
 }
 
 interface PaymentStore {

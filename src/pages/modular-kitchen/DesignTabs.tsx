@@ -1,9 +1,12 @@
+import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DesignTabs() {
   const [activeTab, setActiveTab] = useState('All');
   const [displayCount, setDisplayCount] = useState(6);
+  const navigate = useNavigate();
   
   // Kitchen designs data
   const kitchenDesigns = [
@@ -120,9 +123,9 @@ export default function DesignTabs() {
          {/* Title & Button */}
          <div className="p-4 flex items-center justify-between">
            <h3 className="text-sm font-medium text-gray-800">{design.title}</h3>
-           <button className="text-sm px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-500 hover:text-white  transition">
+           <Button onClick={() => navigate('/get-estimate')} variant="default" className="text-sm px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-500 hover:text-white  transition">
              Get Quote
-           </button>
+           </Button>
          </div>
        </div>
        

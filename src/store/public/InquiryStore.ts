@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { InquiryItem, KitchenConfiguration, WallDimension } from '../utils/api';
+import { InquiryItem, KitchenConfiguration, WallDimension } from '../../utils/api';
 
 interface UserDetails {
   name: string;

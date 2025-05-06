@@ -8,6 +8,7 @@ import {  WarrantyIcon,
 import ServiceSection from "../modular-kitchen/ServiceSection";
 import GoogleReview from "./GoogleReview";
 import { ScrollReveal } from "../../components/ScrollReveal";
+import { Link } from "react-router-dom";
 
 const estimateCards = [
   {
@@ -108,9 +109,11 @@ const DesignGallary = () => {
                     {card.title}
                   </h3>
                   <p className="text-gray-600 mb-4">{card.description}</p>
+                  <Link to="/get-estimate">
                   <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
                     Get Free Estimate
                   </button>
+                  </Link>
                 </div>
               </div>
             </ScrollReveal>

@@ -589,6 +589,12 @@ export const paymentApi = {
     milestones
   }),
 
+  // Update current milestone
+  updateCurrentMilestone: (id: string, currentMilestone: number) =>
+    api.put<{ data: PaymentSchedule }>(`/payments/${id}/current-milestone`, {
+      currentMilestone
+    }),
+
   // Update milestone payment
   updateMilestonePayment: (
     scheduleId: string,

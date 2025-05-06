@@ -24,13 +24,15 @@ export default function PaymentDetails() {
     loading,
     fetchScheduleById,
     updateProjectValue,
-    updateMilestonePayment 
+    updatePaymentStructure,
+    updateCurrentMilestone
   } = useAdminPaymentStore();
 
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({
     projectValue: 0,
-    payments: {}
+    milestones: [] as Array<{ timeline: string; percentage: number }>,
+    currentMilestone: 1
   });
 
   // Fetch payment schedule on mount
@@ -45,9 +47,11 @@ export default function PaymentDetails() {
     if (currentSchedule) {
       setEditedValues({
         projectValue: currentSchedule.totalProjectValue,
-        payments: Object.fromEntries(
-          currentSchedule.milestones.map(m => [m._id, m.actualPaid])
-        )
+        milestones: currentSchedule.milestones.map(m => ({
+          timeline: m.timeline,
+          percentage: m.percentage
+        })),
+        currentMilestone: currentSchedule.currentMilestone || 1
       });
     }
   }, [currentSchedule]);
@@ -69,35 +73,58 @@ export default function PaymentDetails() {
     }));
   };
 
-  // Handle payment update
-  const handlePaymentUpdate = (milestoneId: string, value: string) => {
+  // Handle milestone update
+  const handleMilestoneUpdate = (index: number, field: 'timeline' | 'percentage', value: string) => {
     setEditedValues(prev => ({
       ...prev,
-      payments: {
-        ...prev.payments,
-        [milestoneId]: parseFloat(value) || 0
-      }
+      milestones: prev.milestones.map((m, i) => 
+        i === index 
+          ? { ...m, [field]: field === 'percentage' ? parseFloat(value) || 0 : value }
+          : m
+      )
+    }));
+  };
+
+  // Handle current milestone update
+  const handleCurrentMilestoneUpdate = (value: string) => {
+    const milestone = parseInt(value);
+    if (!currentSchedule) return;
+    
+    // Allow any input but validate before saving
+    setEditedValues(prev => ({
+      ...prev,
+      currentMilestone: milestone || 1
     }));
   };
 
   // Save changes
   const handleSaveChanges = async () => {
     try {
+      // Validate total percentage equals 100
+      const totalPercentage = editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0);
+      if (Math.abs(totalPercentage - 100) >= 0.01) {
+        toast.error('Total milestone percentages must equal 100%');
+        return;
+      }
+
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
         await updateProjectValue(scheduleId!, editedValues.projectValue);
       }
 
-      // Update milestone payments if changed
-      for (const [milestoneId, amount] of Object.entries(editedValues.payments)) {
-        const milestone = currentSchedule?.milestones.find(m => m._id === milestoneId);
-        if (milestone && amount !== milestone.actualPaid) {
-          await updateMilestonePayment(scheduleId!, milestoneId, {
-            amount: amount as number,
-            paymentMethod: milestone.paymentMethod || 'cash',
-            paymentReference: milestone.paymentReference
-          });
-        }
+      // Update milestone structure if changed
+      const structureChanged = editedValues.milestones.some((m, i) => 
+        m.timeline !== currentSchedule?.milestones[i].timeline ||
+        m.percentage !== currentSchedule?.milestones[i].percentage
+      );
+
+      if (structureChanged) {
+        await updatePaymentStructure(scheduleId!, editedValues.milestones);
+      }
+
+      // Update current milestone if changed
+      if (editedValues.currentMilestone !== currentSchedule?.currentMilestone) {
+        await updateCurrentMilestone(scheduleId!, editedValues.currentMilestone);
       }
 
       setEditMode(false);
@@ -224,6 +251,30 @@ export default function PaymentDetails() {
                   )}
                 </div>
               </div>
+              {editMode && (
+                <div>
+                  <label className="text-sm text-muted-foreground">Current Milestone</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-32">
+                      <Input 
+                        type="number"
+                        min={1}
+                        max={currentSchedule.milestones.length}
+                        value={editedValues.currentMilestone}
+                        onChange={(e) => handleCurrentMilestoneUpdate(e.target.value)}
+                        className="w-full pr-12"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                        / {currentSchedule.milestones.length}
+                      </div>
+                    </div>
+                    <div className="text-sm">
+                      <span className="font-medium">Timeline:</span>{' '}
+                      {currentSchedule.milestones.find(m => m.slNo === editedValues.currentMilestone)?.timeline || 'Invalid milestone'}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -269,30 +320,55 @@ export default function PaymentDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentSchedule.milestones.map((milestone) => (
-                  <TableRow key={milestone._id} className="hover:bg-gray-50/50 transition-colors">
-                    <TableCell className="font-medium">{milestone.slNo}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{milestone.timeline}</div>
+                {currentSchedule?.milestones.map((milestone, index) => (
+                  <TableRow 
+                    key={milestone._id} 
+                    className={cn(
+                      "hover:bg-gray-50/50 transition-colors relative",
+                      milestone.slNo === currentSchedule.currentMilestone && "bg-red-100 hover:bg-red-100"
+                    )}
+                  >
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {milestone.slNo === currentSchedule.currentMilestone && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs rounded-full">
+                            Current
+                          </div>
+                        )}
+                        {milestone.slNo}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-center">{milestone.percentage}%</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(milestone.amount)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
                       {editMode ? (
                         <Input 
-                          type="number" 
-                          value={editedValues.payments[milestone._id]}
-                          onChange={(e) => handlePaymentUpdate(milestone._id, e.target.value)}
-                          className="w-32 text-right"
+                          value={editedValues.milestones[index]?.timeline}
+                          onChange={(e) => handleMilestoneUpdate(index, 'timeline', e.target.value)}
+                          className="w-full"
                         />
                       ) : (
-                        <span className={cn(
-                          "font-medium",
-                          milestone.actualPaid > 0 ? "text-green-600" : "text-muted-foreground"
-                        )}>
-                          {milestone.actualPaid > 0 ? formatCurrency(milestone.actualPaid) : '-'}
-                        </span>
+                        <div className="font-medium">{milestone.timeline}</div>
                       )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {editMode ? (
+                        <Input 
+                          type="number"
+                          value={editedValues.milestones[index]?.percentage}
+                          onChange={(e) => handleMilestoneUpdate(index, 'percentage', e.target.value)}
+                          className="w-20 text-center mx-auto"
+                        />
+                      ) : (
+                        `${milestone.percentage}%`
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(milestone.amount)}</TableCell>
+                    <TableCell className="text-right">
+                      <span className={cn(
+                        "font-medium",
+                        milestone.actualPaid > 0 ? "text-green-600" : "text-muted-foreground"
+                      )}>
+                        {milestone.actualPaid > 0 ? formatCurrency(milestone.actualPaid) : '-'}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       {milestone.effectivePaid > 0 ? (
@@ -321,6 +397,26 @@ export default function PaymentDetails() {
                   </TableRow>
                 ))}
               </TableBody>
+              {editMode && (
+                <tfoot>
+                  <tr className="border-t">
+                    <td colSpan={2} className="px-4 py-3 text-right font-medium">
+                      Total Percentage:
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={cn(
+                        "font-bold",
+                        Math.abs(editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0) - 100) < 0.01
+                          ? "text-green-600"
+                          : "text-red-600"
+                      )}>
+                        {editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0).toFixed(2)}%
+                      </span>
+                    </td>
+                    <td colSpan={4}></td>
+                  </tr>
+                </tfoot>
+              )}
             </Table>
           </div>
 

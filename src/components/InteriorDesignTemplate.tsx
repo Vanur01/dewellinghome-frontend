@@ -1,6 +1,8 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, ArrowRight, Clock, Sparkles, CheckCircle2 } from 'lucide-react';
 import ContactForm from './Forms/ContactForm';
+import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface GalleryItem {
   image?: string;
@@ -8,6 +10,8 @@ interface GalleryItem {
   size?: string;
   special?: boolean;
   days?: number;
+  specialDescription?: string;
+  specialFeatures?: string[];
 }
 
 interface ServiceFeature {
@@ -35,6 +39,7 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
   estimateCardTitle
 }) => {
   const [showMobileForm, setShowMobileForm] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (formData: any) => {
     console.log("Form submitted:", formData);
@@ -113,6 +118,7 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
                         <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                         <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                       </div>
+
                     </div>
                     <div className="p-4 bg-white">
                       <h3 className="font-medium text-lg text-gray-800">{item.title}</h3>
@@ -120,20 +126,46 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
                     </div>
                   </>
                 ) : (
-                  <div className="bg-gray-100 p-6 flex flex-col h-full justify-center">
-                    <div className="flex items-start">
-                      <div className="w-16 h-16 border-t-2 border-r-2 border-red-500 flex justify-center items-center">
-                        <span className="text-4xl font-bold text-blue-600">{item.days}</span>
+                  <div className="bg-white p-6 flex flex-col h-full justify-between min-h-[320px] border border-gray-200 rounded-lg hover:border-red-300 transition-all duration-300">
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="w-6 h-6 text-red-500 mt-1" />
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-800">
+                            {item.title || estimateCardTitle || "Get Your Dream Design"}
+                          </h3>
+                          <p className="text-gray-600 mt-2">
+                            {item.specialDescription || "Transform your space with our expert design team. Get started with a free consultation."}
+                          </p>
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <p className="text-gray-800 font-medium">
-                          {estimateCardTitle || `Personalized design delivered in just ${item.days} days`}
-                        </p>
-                        <button className="mt-4 bg-red-600 text-white px-4 py-2 rounded">
-                          Get Free Estimate
-                        </button>
-                      </div>
+                      
+                      {item.specialFeatures && (
+                        <ul className="space-y-3 ml-9">
+                          {item.specialFeatures.map((feature, idx) => (
+                            <li key={idx} className="flex items-center text-gray-700">
+                              <CheckCircle2 className="w-4 h-4 text-red-500 mr-2 flex-shrink-0" />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
+
+                    {item.days && (
+                      <div className="flex items-center gap-2 text-gray-600 ml-9 mb-4">
+                        <Clock className="w-4 h-4" />
+                        <span>Completed in {item.days} days</span>
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={() => navigate('/get-estimate')} 
+                      className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-2 py-3 rounded-md"
+                    >
+                      Get Free Consultation
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
               </div>

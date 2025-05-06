@@ -29,6 +29,8 @@ import { Loader2 } from "lucide-react";
 
 export default function GalleryList() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingGallery, setEditingGallery] = useState<null | { _id: string; title: string; category: string; description: string }>(null);
   const navigate = useNavigate();
   
   const { 
@@ -37,7 +39,8 @@ export default function GalleryList() {
     error,
     fetchGalleries, 
     createGallery, 
-    deleteGallery 
+    deleteGallery,
+    updateGallery 
   } = useAdminGalleryStore();
 
   useEffect(() => {
@@ -57,6 +60,25 @@ export default function GalleryList() {
 
   const handleDeleteGallery = async (id: string) => {
     await deleteGallery(id);
+  };
+
+  const handleEditGallery = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingGallery) return;
+
+    const formData = new FormData(e.currentTarget);
+    await updateGallery(editingGallery._id, {
+      title: formData.get("title") as string,
+      category: formData.get("category") as string,
+      description: formData.get("description") as string,
+    });
+    setIsEditDialogOpen(false);
+    setEditingGallery(null);
+  };
+
+  const openEditDialog = (gallery: typeof editingGallery) => {
+    setEditingGallery(gallery);
+    setIsEditDialogOpen(true);
   };
 
   const navigateToDesigns = (galleryId: string) => {
@@ -140,6 +162,58 @@ export default function GalleryList() {
         </Dialog>
       </div>
 
+      {/* Add Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Gallery Category</DialogTitle>
+            <DialogDescription>
+              Update the details of this gallery category.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditGallery}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  name="title"
+                  defaultValue={editingGallery?.title}
+                  placeholder="e.g., Modern Bedrooms"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Input
+                  id="edit-category"
+                  name="category"
+                  defaultValue={editingGallery?.category}
+                  placeholder="e.g., Bedroom"
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  name="description"
+                  defaultValue={editingGallery?.description}
+                  placeholder="Describe this gallery category..."
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button className="bg-red-500 hover:bg-red-600" type="submit" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Update Category
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {loading && !galleries.length ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -152,7 +226,11 @@ export default function GalleryList() {
                 <CardTitle className="flex justify-between items-center">
                   <span>{gallery.title}</span>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => openEditDialog(gallery)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button

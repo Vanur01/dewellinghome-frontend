@@ -16,7 +16,7 @@ const ImageSlider = () => {
           key={gallery._id}
           galleryId={gallery._id}
           title={gallery.title}
-          link={`/gallery/${gallery._id}`}
+          link={`/${gallery.category}`}
         />
       ))}
     </>

@@ -64,6 +64,7 @@ export default function PaymentScheduleDetails() {
   }
 
   const completionPercentage = (currentSchedule.totalPaid / currentSchedule.totalProjectValue) * 100;
+  const currentMilestone = currentSchedule?.milestones.find(m => m.slNo === currentSchedule.currentMilestone);
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -107,6 +108,57 @@ export default function PaymentScheduleDetails() {
                 </Badge>
               </div>
             </div>
+
+            {/* Current Milestone Info */}
+            {currentMilestone && (
+              <div className="bg-red-50 rounded-lg p-6 border border-red-100">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+                  <h3 className="text-lg font-semibold text-gray-900">Current Stage</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Timeline</p>
+                    <p className="text-lg font-medium text-gray-900">{currentMilestone.timeline}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Payment Status</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-medium text-gray-900">
+                        {formatCurrency(currentMilestone.effectivePaid)} / {formatCurrency(currentMilestone.amount)}
+                      </span>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "py-1 px-2",
+                          currentMilestone.toBePaid === 0 
+                            ? "bg-green-100 text-green-700" 
+                            : currentMilestone.effectivePaid > 0 
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
+                        )}
+                      >
+                        {currentMilestone.toBePaid === 0 
+                          ? 'Paid' 
+                          : currentMilestone.effectivePaid > 0 
+                            ? 'Partially Paid'
+                            : 'Pending'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-red-500 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${(currentMilestone.effectivePaid / currentMilestone.amount) * 100}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Payment Stats */}
             <div className="grid grid-cols-3 gap-6">
@@ -172,11 +224,23 @@ export default function PaymentScheduleDetails() {
                 {currentSchedule.milestones.map((milestone) => {
                   const status = getMilestoneStatus(milestone);
                   const StatusIcon = status.icon;
+                  const isCurrent = milestone.slNo === currentSchedule.currentMilestone;
                   
                   return (
-                    <tr key={milestone.slNo} className="hover:bg-gray-50">
+                    <tr 
+                      key={milestone.slNo} 
+                      className={cn(
+                        "hover:bg-gray-50/50 transition-colors",
+                        isCurrent && "bg-red-50/80 hover:bg-red-50/80"
+                      )}
+                    >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
+                          {isCurrent && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">
+                              Current
+                            </div>
+                          )}
                           <span className="font-medium text-gray-900">#{milestone.slNo}</span>
                           <Separator orientation="vertical" className="h-4" />
                           <span className="text-gray-600">{milestone.timeline}</span>
