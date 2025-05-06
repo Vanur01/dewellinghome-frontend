@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePaymentStore } from '@/store/user/PaymentStore';
 import { Card } from '@/components/ui/card';
 import { Loader2, IndianRupee, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
 
 export default function Payment() {
   const navigate = useNavigate();

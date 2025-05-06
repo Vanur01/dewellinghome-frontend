@@ -5,6 +5,7 @@ import { authApi } from '../utils/api';
 
 // Initial state with proper typing
 const initialState: AuthState = {
+  userId: '',
   user: null,
   accessToken: '',
   isAuthenticated: false,

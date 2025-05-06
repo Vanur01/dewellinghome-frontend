@@ -1,5 +1,5 @@
 export interface AuthUser {
-  id: string;
+  _id: string;
   email: string;
   name: string;
   role: string;
@@ -12,6 +12,7 @@ export interface AuthTokens {
 }
 
 export interface AuthState {
+  userId: string;
   user: AuthUser | null;
   accessToken: string;
   isAuthenticated: boolean;

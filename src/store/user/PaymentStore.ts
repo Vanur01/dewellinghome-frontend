@@ -1,19 +1,11 @@
 import { create } from 'zustand';
-import { PaymentSchedule, paymentApi } from '@/utils/api';
+import { PaymentSchedule, Project, paymentScheduleApi } from '@/utils/api';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 
 // Extended type for populated project
 interface PopulatedPaymentSchedule extends Omit<PaymentSchedule, 'projectId'> {
-  projectId: {
-    _id: string;
-    title: string;
-    clientId: string;
-    status: string;
-    startDate: string;
-    estimatedEndDate: string;
-  };
-  currentMilestone: number;
+  projectId: Project;
 }
 
 interface PaymentStore {
@@ -41,8 +33,8 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   getPaymentScheduleByProject: async (projectId: string) => {
     try {
       set({ loading: true, error: null });
-      const response = await paymentApi.getPaymentScheduleByProjectId(projectId);
-      set({ currentSchedule: response.data.data as unknown as PopulatedPaymentSchedule });
+      const response = await paymentScheduleApi.getPaymentScheduleByProjectId(projectId);
+      set({ currentSchedule: response.data.data as PopulatedPaymentSchedule });
     } catch (error) {
       const message = error instanceof AxiosError 
         ? error.response?.data?.message 
@@ -57,8 +49,8 @@ export const usePaymentStore = create<PaymentStore>((set) => ({
   getUserPaymentSchedules: async () => {
     try {
       set({ loading: true, error: null });
-      const response = await paymentApi.getUserPaymentSchedules();
-      set({ userSchedules: response.data.data as unknown as PopulatedPaymentSchedule[] });
+      const response = await paymentScheduleApi.getUserPaymentSchedules();
+      set({ userSchedules: response.data.data as PopulatedPaymentSchedule[] });
     } catch (error) {
       const message = error instanceof AxiosError 
         ? error.response?.data?.message 

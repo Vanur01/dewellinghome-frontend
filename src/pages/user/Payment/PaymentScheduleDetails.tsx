@@ -1,17 +1,33 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePaymentStore } from '@/store/user/PaymentStore';
 import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import PaymentModal from '@/components/admin/payment/PaymentModal';
+
+interface Milestone {
+  slNo: number;
+  timeline: string;
+  percentage: number;
+  amount: number;
+  effectivePaid: number;
+  actualPaid: number;
+  overpayment: number;
+  toBePaid: number;
+  paymentDate?: Date;
+  paymentMethod?: string;
+  paymentReference?: string;
+  status: 'pending' | 'partially_paid' | 'paid';
+}
 
 export default function PaymentScheduleDetails() {
   const { projectId } = useParams();
   const { currentSchedule, loading, getPaymentScheduleByProject } = usePaymentStore();
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -35,7 +51,7 @@ export default function PaymentScheduleDetails() {
     return 'bg-gray-100 text-gray-700';
   };
 
-  const getMilestoneStatus = (milestone: any) => {
+  const getMilestoneStatus = (milestone: Milestone) => {
     if (milestone.effectivePaid >= milestone.amount) {
       return { label: 'Completed', icon: CheckCircle2, className: 'text-green-600' };
     }
@@ -72,19 +88,30 @@ export default function PaymentScheduleDetails() {
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="p-6">
           {/* Navigation */}
-          <div className="flex items-center gap-3 mb-8">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-gray-100 text-gray-600 p-0"
-              onClick={() => window.history.back()}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Building className="h-5 w-5" />
-              <span className="text-lg font-medium">Project Payment Details</span>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-gray-100 text-gray-600 p-0"
+                onClick={() => window.history.back()}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center gap-2 text-gray-600">
+                <Building className="h-5 w-5" />
+                <span className="text-lg font-medium">Project Payment Details</span>
+              </div>
             </div>
+            {currentSchedule?.totalRemaining > 0 && (
+              <Button 
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                <IndianRupee className="h-4 w-4 mr-2" />
+                Pay Now
+              </Button>
+            )}
           </div>
 
           {/* Project Info */}
@@ -309,6 +336,17 @@ export default function PaymentScheduleDetails() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Modal */}
+      {currentSchedule && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          projectId={projectId!}
+          projectTitle={currentSchedule.projectId.title}
+          totalRemaining={currentSchedule.totalRemaining}
+        />
+      )}
     </div>
   );
 }

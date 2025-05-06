@@ -1,47 +1,14 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import api from '@/utils/api';
+import { paymentScheduleApi, PaymentMilestone as ApiPaymentMilestone, PaymentSchedule } from '@/utils/api';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 
-export interface PaymentMilestone {
-  _id: string;
-  slNo: number;
-  timeline: string;
-  percentage: number;
-  amount: number;
-  actualPaid: number;
-  effectivePaid: number;
-  overpayment: number;
-  toBePaid: number;
-  paymentDate?: Date;
-  paymentMethod?: string;
-  paymentReference?: string;
-  status: 'pending' | 'partially_paid' | 'paid';
-}
+// Remove duplicate PaymentMilestone interface since we're importing it
+export type { ApiPaymentMilestone as PaymentMilestone };
 
-interface Project {
-  _id: string;
-  title: string;
-  clientId: {
-    _id: string;
-    name: string;
-  };
-}
-
-export interface PaymentSchedule {
-  _id: string;
-  projectId: Project;
-  totalProjectValue: number;
-  milestones: PaymentMilestone[];
-  currentMilestone: number;
-  totalPaid: number;
-  totalRemaining: number;
-  totalOverpayment: number;
-  lastUpdated: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Remove duplicate PaymentSchedule interface since we're importing it
+export type { PaymentSchedule };
 
 interface AdminPaymentState {
   paymentSchedules: PaymentSchedule[];
@@ -79,7 +46,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       fetchAllSchedules: async () => {
         try {
           set({ loading: true, error: null });
-          const response = await api.get('/payments');
+          const response = await paymentScheduleApi.getAllPaymentSchedules();
           set({ paymentSchedules: response.data.data });
         } catch (err) {
           const error = err as AxiosError;
@@ -93,7 +60,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       fetchScheduleById: async (id: string) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.get(`/payments/${id}`);
+          const response = await paymentScheduleApi.getPaymentScheduleById(id);
           set({ currentSchedule: response.data.data });
         } catch (err) {
           const error = err as AxiosError;
@@ -107,7 +74,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       createSchedule: async (data) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.post('/payments', data);
+          const response = await paymentScheduleApi.createPaymentSchedule(data);
           const newSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: [...state.paymentSchedules, newSchedule],
@@ -128,9 +95,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       updateProjectValue: async (id: string, totalProjectValue: number) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.put(`/payments/${id}/project-value`, {
-            totalProjectValue
-          });
+          const response = await paymentScheduleApi.updateProjectValue(id, totalProjectValue);
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
@@ -153,7 +118,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       updatePaymentStructure: async (id: string, milestones) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.put(`/payments/${id}/structure`, { milestones });
+          const response = await paymentScheduleApi.updatePaymentStructure(id, milestones);
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
@@ -176,7 +141,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       updateCurrentMilestone: async (id: string, currentMilestone: number) => {
         try {
           set({ loading: true, error: null });
-          const response = await api.put(`/payments/${id}/current-milestone`, { currentMilestone });
+          const response = await paymentScheduleApi.updateCurrentMilestone(id, currentMilestone);
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>

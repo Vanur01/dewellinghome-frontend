@@ -89,6 +89,7 @@ export interface Project {
 export interface PaymentSchedule {
   _id: string;
   projectId: string | Project;
+  currentMilestone: number;
   totalProjectValue: number;
   milestones: PaymentMilestone[];
   totalPaid: number;
@@ -548,24 +549,69 @@ export const testimonialApi = {
     api.delete(`/testimonials/${id}`),
 };
 
-export const paymentApi = {
-  // Get all payment schedules
+// Payment Transaction Types
+export interface RazorpayOrder {
+  id: string;
+  amount: number;
+  currency: string;
+  receipt: string;
+  status: string;
+  notes: {
+    projectId: string;
+    userId: string;
+  };
+  amount_due: number;
+  amount_paid: number;
+  attempts: number;
+  created_at: number;
+  entity: string;
+  offer_id: null;
+}
+
+export interface RazorpayOrderResponse {
+  success: boolean;
+  order: RazorpayOrder;
+}
+
+export interface PaymentTransaction {
+  _id: string;
+  userId: string;
+  projectId: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  amount: number;
+  status: 'success' | 'failed';
+  method: string;
+  paidAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaymentVerifyResponse {
+  success: boolean;
+  message: string;
+  transaction: PaymentTransaction;
+}
+
+// Separate payment schedule and transaction APIs
+export const paymentScheduleApi = {
+  // Get all payment schedules (admin)
   getAllPaymentSchedules: () => 
-    api.get<{ data: PaymentSchedule[] }>('/payments'),
+    api.get<{ data: PaymentSchedule[] }>('/payments/schedules'),
 
   // Get user's payment schedules
   getUserPaymentSchedules: () =>
-    api.get<{ data: (PaymentSchedule & { projectId: Project })[] }>('/payments/my-schedules'),
+    api.get<{ data: (PaymentSchedule & { projectId: Project })[] }>('/payments/schedules/my-schedules'),
 
   // Get specific payment schedule
   getPaymentScheduleById: (id: string) =>
-    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/${id}`),
+    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/schedules/${id}`),
 
   // Get payment schedule by project ID
   getPaymentScheduleByProjectId: (projectId: string) =>
-    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/project/${projectId}`),
+    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/schedules/project/${projectId}`),
 
-  // Create new payment schedule
+  // Create new payment schedule (admin)
   createPaymentSchedule: (data: {
     projectId: string;
     totalProjectValue: number;
@@ -573,25 +619,25 @@ export const paymentApi = {
       timeline: string;
       percentage: number;
     }>;
-  }) => api.post<{ data: PaymentSchedule }>('/payments', data),
+  }) => api.post<{ data: PaymentSchedule }>('/payments/schedules', data),
 
-  // Update project value
+  // Update project value (admin)
   updateProjectValue: (id: string, totalProjectValue: number) =>
-    api.put<{ data: PaymentSchedule }>(`/payments/${id}/project-value`, {
+    api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/project-value`, {
       totalProjectValue
     }),
 
-  // Update payment structure (milestones)
+  // Update payment structure/milestones (admin)
   updatePaymentStructure: (id: string, milestones: Array<{
     timeline: string;
     percentage: number;
-  }>) => api.put<{ data: PaymentSchedule }>(`/payments/${id}/structure`, {
+  }>) => api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/structure`, {
     milestones
   }),
 
-  // Update current milestone
+  // Update current milestone (admin)
   updateCurrentMilestone: (id: string, currentMilestone: number) =>
-    api.put<{ data: PaymentSchedule }>(`/payments/${id}/current-milestone`, {
+    api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/current-milestone`, {
       currentMilestone
     }),
 
@@ -605,9 +651,58 @@ export const paymentApi = {
       paymentReference?: string;
     }
   ) => api.put<{ data: PaymentSchedule }>(
-    `/payments/${scheduleId}/milestone/${milestoneId}`,
+    `/payments/schedules/${scheduleId}/milestone/${milestoneId}`,
     data
   ),
+};
+
+export const paymentTransactionApi = {
+  // Create new payment order
+  createOrder: (data: {
+    amount: number;
+    projectId: string;
+    userId: string;
+  }) => api.post<RazorpayOrderResponse>('/payments/transactions/create-order', data),
+
+  // Verify payment after successful payment
+  verifyPayment: (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    amount: number;
+    projectId: string;
+    userId: string;
+  }) => api.post<PaymentVerifyResponse>('/payments/transactions/verify-payment', data),
+
+  // Get user's payment transactions
+  getUserTransactions: (params?: {
+    page?: number;
+    limit?: number;
+    projectId?: string;
+  }) => api.get<{ 
+    data: PaymentTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+  }>('/payments/transactions/my-transactions', { params }),
+
+  // Get all transactions (admin)
+  getAllTransactions: (params?: {
+    page?: number;
+    limit?: number;
+    projectId?: string;
+    userId?: string;
+    status?: 'success' | 'failed';
+  }) => api.get<{
+    data: PaymentTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+  }>('/payments/transactions', { params }),
+
+  // Get transaction by ID
+  getTransactionById: (id: string) =>
+    api.get<{ data: PaymentTransaction }>(`/payments/transactions/${id}`),
 };
 
 export default api;
