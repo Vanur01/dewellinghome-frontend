@@ -27,11 +27,8 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
     getDesignsByGalleryId(galleryId);
   }, [galleryId, getDesignsByGalleryId]);
 
-  console.log('galleryId', galleryId);
   const designs = galleryDesigns[galleryId] || [];
-  console.log("designs", designs);
   const images = designs.map(design => design.images[0]?.url).filter(Boolean);
-  console.log(images);
 
   const handleNext = useCallback(() => {
     setStartIndex(prev => Math.min(prev + 4, images.length - 4));

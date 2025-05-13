@@ -20,7 +20,7 @@ export interface CreateProjectData {
   clientId: string;
   title: string;
   location: string;
-  status: 'planning' | 'designing' | 'in_progress' | 'completed' | 'on_hold';
+  status: "planning" | "designing" | "in_progress" | "completed" | "on_hold";
   startDate: Date;
   estimatedEndDate: Date;
   budget: number;
@@ -73,14 +73,14 @@ export interface PaymentMilestone {
   paymentDate?: Date;
   paymentMethod?: string;
   paymentReference?: string;
-  status: 'pending' | 'partially_paid' | 'paid';
+  status: "pending" | "partially_paid" | "paid";
 }
 
 // Update PaymentSchedule type to handle both populated and unpopulated versions
 export interface Project {
   _id: string;
   title: string;
-  clientId: string;
+  clientId: { _id: string; name: string };
   status: string;
   startDate: string;
   estimatedEndDate: string;
@@ -88,7 +88,7 @@ export interface Project {
 
 export interface PaymentSchedule {
   _id: string;
-  projectId: string | Project;
+  projectId: Project;
   currentMilestone: number;
   totalProjectValue: number;
   milestones: PaymentMilestone[];
@@ -144,9 +144,9 @@ const refreshTokenSafely = async (): Promise<string | null> => {
 api.interceptors.request.use(
   (config: CustomInternalAxiosRequestConfig) => {
     const { accessToken } = useAuthStore.getState();
-    
+
     // Skip auth header for refresh token requests
-    if (config.url?.includes('/auth/refresh')) {
+    if (config.url?.includes("/auth/refresh")) {
       config._isRefreshRequest = true;
       return config;
     }
@@ -154,7 +154,7 @@ api.interceptors.request.use(
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -173,12 +173,17 @@ api.interceptors.response.use(
     }
 
     // Skip refresh for auth endpoints (login, register, refresh)
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
-                          originalRequest.url?.includes('/auth/register') ||
-                          originalRequest.url?.includes('/auth/refresh');
+    const isAuthEndpoint =
+      originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/refresh");
 
     // Don't retry refresh token requests, already retried requests, or auth endpoints
-    if (originalRequest._isRefreshRequest || originalRequest._retry || isAuthEndpoint) {
+    if (
+      originalRequest._isRefreshRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint
+    ) {
       return Promise.reject(error);
     }
 
@@ -190,14 +195,14 @@ api.interceptors.response.use(
     try {
       originalRequest._retry = true;
       const accessToken = await refreshTokenSafely();
-      
+
       if (!accessToken) {
-        throw new Error('Failed to refresh access token');
+        throw new Error("Failed to refresh access token");
       }
 
       // Update the auth store with the new access token
       useAuthStore.getState().setAccessToken(accessToken);
-      
+
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       return api(originalRequest);
     } catch (error) {
@@ -341,12 +346,12 @@ export const userApi = {
     phone: string;
   }) => api.get("/users", { params }),
 
-  searchUser:(params: {
+  searchUser: (params: {
     page: number;
     limit: number;
     name: string;
     phone: string;
-  })=> api.get(`/users/search`,{params}),
+  }) => api.get(`/users/search`, { params }),
 
   getUserById: (userId: string) => api.get(`/users/${userId}`),
 
@@ -358,93 +363,104 @@ export const userApi = {
     password: string;
     phone: string;
     address: string;
-    role:'admin' | 'client';
+    role: "admin" | "client";
   }) => api.post("/users", data),
 
-  updateUser: (userId: string, data: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-  }) => api.put(`/users/${userId}`, data),
+  updateUser: (
+    userId: string,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+    }
+  ) => api.put(`/users/${userId}`, data),
 
   // New profile endpoints
-  getProfile: () => api.get('/users/profile'),
+  getProfile: () => api.get("/users/profile"),
 
-  updateProfile: (data: FormData) => 
-    api.put('/users/profile', data, {
+  updateProfile: (data: FormData) =>
+    api.put("/users/profile", data, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        "Content-Type": "multipart/form-data",
+      },
     }),
 };
 
 export const warrantyApi = {
-  createWarrantyClaim: (formData: FormData) => 
+  createWarrantyClaim: (formData: FormData) =>
     api.post("/warranty", formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  getUserClaims: () => 
-    api.get("/warranty/my-claims"),
+  getUserClaims: () => api.get("/warranty/my-claims"),
 
   getAllClaims: (params?: {
     page?: number;
     limit?: number;
-    status?: 'pending' | 'in-review' | 'approved' | 'rejected' | 'resolved';
+    status?: "pending" | "in-review" | "approved" | "rejected" | "resolved";
   }) => api.get("/warranty", { params }),
 
-  getClaimById: (id: string) => 
-    api.get(`/warranty/${id}`),
+  getClaimById: (id: string) => api.get(`/warranty/${id}`),
 
-  updateClaimStatus: (id: string, data: {
-    status: 'pending' | 'in-review' | 'approved' | 'rejected' | 'resolved';
-    adminNotes?: string;
-  }) => api.patch(`/warranty/${id}/status`, data),
+  updateClaimStatus: (
+    id: string,
+    data: {
+      status: "pending" | "in-review" | "approved" | "rejected" | "resolved";
+      adminNotes?: string;
+    }
+  ) => api.patch(`/warranty/${id}/status`, data),
 
-  deleteClaim: (id: string) => 
-    api.delete(`/warranty/${id}`)
+  deleteClaim: (id: string) => api.delete(`/warranty/${id}`),
 };
 
 export const projectApi = {
-  getProjects: (params: { page?: number; limit?: number; status?: string; search?: string }) =>
-    api.get('/projects', { params }),
+  getProjects: (params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }) => api.get("/projects", { params }),
 
   searchProjects: (query: string) =>
-    api.get('/projects/search', { params: { search: query } }),
+    api.get("/projects/search", { params: { search: query } }),
 
-  getUserProjects: (params?: { 
-    page?: number; 
-    limit?: number; 
-    status?: 'planning' | 'designing' | 'in_progress' | 'completed' | 'on_hold';
+  getUserProjects: (params?: {
+    page?: number;
+    limit?: number;
+    status?: "planning" | "designing" | "in_progress" | "completed" | "on_hold";
     search?: string;
-  }) => api.get('/projects/my-projects', { params }),
+  }) => api.get("/projects/my-projects", { params }),
 
-  getProjectById: (id: string) =>
-    api.get(`/projects/${id}`),
+  getProjectById: (id: string) => api.get(`/projects/${id}`),
 
   createProject: (data: CreateProjectData | FormData) =>
-    api.post('/projects', data, {
-      headers: data instanceof FormData ? {
-        'Content-Type': 'multipart/form-data',
-      } : {
-        'Content-Type': 'application/json',
-      },
+    api.post("/projects", data, {
+      headers:
+        data instanceof FormData
+          ? {
+              "Content-Type": "multipart/form-data",
+            }
+          : {
+              "Content-Type": "application/json",
+            },
     }),
 
   updateProject: (id: string, data: UpdateProjectData | FormData) =>
     api.put(`/projects/${id}`, data, {
-      headers: data instanceof FormData ? {
-        'Content-Type': 'multipart/form-data'
-      } : {
-        'Content-Type': 'application/json'
-      }
+      headers:
+        data instanceof FormData
+          ? {
+              "Content-Type": "multipart/form-data",
+            }
+          : {
+              "Content-Type": "application/json",
+            },
     }),
 
-  deleteProject: (id: string) =>
-    api.delete(`/projects/${id}`),
+  deleteProject: (id: string) => api.delete(`/projects/${id}`),
 
-  addProjectItem: (projectId: string, item: Omit<ProjectItem, '_id'>) =>
+  addProjectItem: (projectId: string, item: Omit<ProjectItem, "_id">) =>
     api.post(`/projects/${projectId}/items`, item),
 
   removeProjectItem: (projectId: string, itemId: string) =>
@@ -453,7 +469,7 @@ export const projectApi = {
   uploadProjectImages: (projectId: string, images: FormData) =>
     api.post(`/projects/${projectId}/gallery`, images, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
@@ -463,30 +479,30 @@ export const projectApi = {
 
 export const progressApi = {
   getAllProgress: (params?: { page?: number; limit?: number }) =>
-    api.get('/progress', { params }),
+    api.get("/progress", { params }),
 
-  getProjectProgress: (projectId: string, params?: { page?: number; limit?: number }) =>
-    api.get(`/progress/project/${projectId}`, { params }),
+  getProjectProgress: (
+    projectId: string,
+    params?: { page?: number; limit?: number }
+  ) => api.get(`/progress/project/${projectId}`, { params }),
 
-  getProgressById: (id: string) =>
-    api.get(`/progress/${id}`),
+  getProgressById: (id: string) => api.get(`/progress/${id}`),
 
   createProgress: (data: FormData) =>
-    api.post('/progress', data, {
+    api.post("/progress", data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
   updateProgress: (id: string, data: FormData) =>
     api.put(`/progress/${id}`, data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
-  deleteProgress: (id: string) =>
-    api.delete(`/progress/${id}`),
+  deleteProgress: (id: string) => api.delete(`/progress/${id}`),
 };
 
 export const galleryApi = {
@@ -495,28 +511,30 @@ export const galleryApi = {
     title: string;
     category: string;
     description: string;
-  }) => api.post('/gallery', data),
+  }) => api.post("/gallery", data),
 
-  updateGallery: (galleryId: string, data: {
-    title?: string;
-    category?: string;
-    description?: string;
-  }) => api.put(`/gallery/${galleryId}`, data),
+  updateGallery: (
+    galleryId: string,
+    data: {
+      title?: string;
+      category?: string;
+      description?: string;
+    }
+  ) => api.put(`/gallery/${galleryId}`, data),
 
-  deleteGallery: (galleryId: string) =>
-    api.delete(`/gallery/${galleryId}`),
+  deleteGallery: (galleryId: string) => api.delete(`/gallery/${galleryId}`),
 
   addDesignToGallery: (galleryId: string, data: FormData) =>
     api.post(`/gallery/${galleryId}/designs`, data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
   updateDesign: (galleryId: string, designId: string, data: FormData) =>
     api.put(`/gallery/${galleryId}/designs/${designId}`, data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
@@ -526,90 +544,50 @@ export const galleryApi = {
 
 export const testimonialApi = {
   getAllTestimonials: (params?: { page?: number; limit?: number }) =>
-    api.get('/testimonials', { params }),
+    api.get("/testimonials", { params }),
 
-  getTestimonialById: (id: string) =>
-    api.get(`/testimonials/${id}`),
+  getTestimonialById: (id: string) => api.get(`/testimonials/${id}`),
 
   createTestimonial: (data: FormData) =>
-    api.post('/testimonials', data, {
+    api.post("/testimonials", data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
   updateTestimonial: (id: string, data: FormData) =>
     api.put(`/testimonials/${id}`, data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     }),
 
-  deleteTestimonial: (id: string) =>
-    api.delete(`/testimonials/${id}`),
+  deleteTestimonial: (id: string) => api.delete(`/testimonials/${id}`),
 };
-
-// Payment Transaction Types
-export interface RazorpayOrder {
-  id: string;
-  amount: number;
-  currency: string;
-  receipt: string;
-  status: string;
-  notes: {
-    projectId: string;
-    userId: string;
-  };
-  amount_due: number;
-  amount_paid: number;
-  attempts: number;
-  created_at: number;
-  entity: string;
-  offer_id: null;
-}
-
-export interface RazorpayOrderResponse {
-  success: boolean;
-  order: RazorpayOrder;
-}
-
-export interface PaymentTransaction {
-  _id: string;
-  userId: string;
-  projectId: string;
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  amount: number;
-  status: 'success' | 'failed';
-  method: string;
-  paidAt: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface PaymentVerifyResponse {
-  success: boolean;
-  message: string;
-  transaction: PaymentTransaction;
-}
 
 // Separate payment schedule and transaction APIs
 export const paymentScheduleApi = {
   // Get all payment schedules (admin)
-  getAllPaymentSchedules: () => 
-    api.get<{ data: PaymentSchedule[] }>('/payments/schedules'),
+  getAllPaymentSchedules: () =>
+    api.get<{ data: PaymentSchedule[] }>("/payments/schedules"),
 
   // Get user's payment schedules
   getUserPaymentSchedules: () =>
-    api.get<{ data: (PaymentSchedule & { projectId: Project })[] }>('/payments/schedules/my-schedules'),
+    api.get<{ data: (PaymentSchedule & { projectId: Project })[] }>(
+      "/payments/schedules/my-schedules"
+    ),
 
   // Get specific payment schedule
   getPaymentScheduleById: (id: string) =>
-    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/schedules/${id}`),
+    api.get<{ data: PaymentSchedule & { projectId: Project } }>(
+      `/payments/schedules/${id}`
+    ),
 
   // Get payment schedule by project ID
   getPaymentScheduleByProjectId: (projectId: string) =>
-    api.get<{ data: PaymentSchedule & { projectId: Project } }>(`/payments/schedules/project/${projectId}`),
+    api.get<{ data: PaymentSchedule & { projectId: Project } }>(
+      `/payments/schedules/project/${projectId}`
+    ),
 
   // Create new payment schedule (admin)
   createPaymentSchedule: (data: {
@@ -619,27 +597,37 @@ export const paymentScheduleApi = {
       timeline: string;
       percentage: number;
     }>;
-  }) => api.post<{ data: PaymentSchedule }>('/payments/schedules', data),
+  }) => api.post<{ data: PaymentSchedule }>("/payments/schedules", data),
 
   // Update project value (admin)
   updateProjectValue: (id: string, totalProjectValue: number) =>
-    api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/project-value`, {
-      totalProjectValue
-    }),
+    api.put<{ data: PaymentSchedule }>(
+      `/payments/schedules/${id}/project-value`,
+      {
+        totalProjectValue,
+      }
+    ),
 
   // Update payment structure/milestones (admin)
-  updatePaymentStructure: (id: string, milestones: Array<{
-    timeline: string;
-    percentage: number;
-  }>) => api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/structure`, {
-    milestones
-  }),
+  updatePaymentStructure: (
+    id: string,
+    milestones: Array<{
+      timeline: string;
+      percentage: number;
+    }>
+  ) =>
+    api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/structure`, {
+      milestones,
+    }),
 
   // Update current milestone (admin)
   updateCurrentMilestone: (id: string, currentMilestone: number) =>
-    api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/current-milestone`, {
-      currentMilestone
-    }),
+    api.put<{ data: PaymentSchedule }>(
+      `/payments/schedules/${id}/current-milestone`,
+      {
+        currentMilestone,
+      }
+    ),
 
   // Update milestone payment
   updateMilestonePayment: (
@@ -650,19 +638,17 @@ export const paymentScheduleApi = {
       paymentMethod?: string;
       paymentReference?: string;
     }
-  ) => api.put<{ data: PaymentSchedule }>(
-    `/payments/schedules/${scheduleId}/milestone/${milestoneId}`,
-    data
-  ),
+  ) =>
+    api.put<{ data: PaymentSchedule }>(
+      `/payments/schedules/${scheduleId}/milestone/${milestoneId}`,
+      data
+    ),
 };
 
-export const paymentTransactionApi = {
+export const paymentApi = {
   // Create new payment order
-  createOrder: (data: {
-    amount: number;
-    projectId: string;
-    userId: string;
-  }) => api.post<RazorpayOrderResponse>('/payments/transactions/create-order', data),
+  createOrder: (data: { amount: number; projectId: string; userId: string }) =>
+    api.post("/payments/create-order", data),
 
   // Verify payment after successful payment
   verifyPayment: (data: {
@@ -672,37 +658,67 @@ export const paymentTransactionApi = {
     amount: number;
     projectId: string;
     userId: string;
-  }) => api.post<PaymentVerifyResponse>('/payments/transactions/verify-payment', data),
+  }) => api.post("/payments/verify-payment", data),
+};
 
-  // Get user's payment transactions
-  getUserTransactions: (params?: {
-    page?: number;
-    limit?: number;
-    projectId?: string;
-  }) => api.get<{ 
-    data: PaymentTransaction[];
-    total: number;
-    page: number;
-    limit: number;
-  }>('/payments/transactions/my-transactions', { params }),
+export interface Transaction {
+  _id: string;
+  method: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+  };
+  projectId: {
+    _id: string;
+    title: string;
+  };
+  amount: number;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  status: string;
+  paidAt: string;
+}
 
-  // Get all transactions (admin)
+export const transactionApi = {
+  // Get all transactions (admin only)
   getAllTransactions: (params?: {
     page?: number;
     limit?: number;
-    projectId?: string;
-    userId?: string;
-    status?: 'success' | 'failed';
-  }) => api.get<{
-    data: PaymentTransaction[];
-    total: number;
-    page: number;
-    limit: number;
-  }>('/payments/transactions', { params }),
+    status?: string;
+    paymentId?: string;
+    orderId?: string;
+  }) =>
+    api.get<{data:{
+      transactions: Transaction[];
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalTransactions: number;
+        limit: number;
+     } };
+    }>("/transactions", { params }),
 
-  // Get transaction by ID
+  // Get user's transactions
+  getUserTransactions: (params?: { page?: number; limit?: number }) =>
+    api.get<{
+      data: {
+        transactions: Transaction[];
+        pagination: {
+          currentPage: number;
+          totalPages: number;
+          totalTransactions: number;
+          limit: number;
+        };
+      };
+    }>("/transactions/my-transactions", { params }),
+
+  // Get transaction by ID (admin only)
   getTransactionById: (id: string) =>
-    api.get<{ data: PaymentTransaction }>(`/payments/transactions/${id}`),
+    api.get<{ transaction: Transaction }>(`/transactions/${id}`),
 };
+
+// Get transaction by ID
 
 export default api;

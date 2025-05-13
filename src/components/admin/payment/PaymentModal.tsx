@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IndianRupee, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { paymentTransactionApi, RazorpayOrderResponse, PaymentVerifyResponse } from '@/utils/api';
+import { paymentApi } from '@/utils/api';
 import { useAuthStore } from '@/store/auth.store';
 
 interface PaymentModalProps {
@@ -26,6 +26,9 @@ interface RazorpayResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
+  amount: number;
+  projectId: string;
+  userId: string;
 }
 
 interface RazorpayOrder {
@@ -44,34 +47,6 @@ interface RazorpayOrder {
   created_at: number;
   entity: string;
   offer_id: null;
-}
-
-interface RazorpayOrderResponse {
-  success: boolean;
-  message: string;
-  data: {
-    order: RazorpayOrder;
-  };
-}
-
-interface PaymentVerifyResponse {
-  success: boolean;
-  message: string;
-  data: {
-    transaction: {
-      _id: string;
-      userId: string;
-      projectId: string;
-      razorpay_order_id: string;
-      razorpay_payment_id: string;
-      amount: number;
-      status: 'success' | 'failed';
-      method: string;
-      paidAt: string;
-      createdAt: string;
-      updatedAt: string;
-    };
-  };
 }
 
 // Define Razorpay interface
@@ -181,13 +156,14 @@ export default function PaymentModal({
       setLoading(true);
       
       // Create order using our API instance
-      const response = await paymentTransactionApi.createOrder({
+      const response = await paymentApi.createOrder({
         amount: parseInt(amount),
         projectId,
         userId: user?._id || ""
       });
 
       const orderResponse = response.data;
+      console.log(orderResponse)
       if (!orderResponse.success || !orderResponse.data.order) {
         throw new Error('Failed to create order');
       }
@@ -205,7 +181,7 @@ export default function PaymentModal({
         handler: async function (response: RazorpayResponse) {
           try {
             // Verify payment using our API instance
-            const verifyResponse = await paymentTransactionApi.verifyPayment({
+            const verifyResponse = await paymentApi.verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
@@ -215,6 +191,7 @@ export default function PaymentModal({
             });
             
             const verifyResult = verifyResponse.data;
+            console.log(verifyResponse)
             if (verifyResult.success) {
               toast.success('Payment successful!');
               onClose();

@@ -44,6 +44,8 @@ import ViewInquiry from "./pages/admin/Inquiry/VeiwInquiry";
 import ScrollToTop from "./components/ScrollToTop";
 import PaymentDetails from "./pages/admin/Payment/PaymentDetails";
 import PaymentScheduleDetails from "./pages/user/Payment/PaymentScheduleDetails";
+import Transactions from "./pages/user/Transactions/Transactions";
+import AdminTransactionsTable from "./pages/admin/AdminTransactions";
 
 function App() {
   const { restoreSession, isLoading } = useAuthStore();
@@ -101,6 +103,7 @@ function App() {
               <Route path="refer&earn" element={<ReferEarn />} />
               <Route path="payment" element={<Payment />} />
               <Route path="payment/:projectId" element={<PaymentScheduleDetails />} />
+              <Route path="transactions" element={<Transactions />} />
             </Route>
           </Route>
 
@@ -129,6 +132,7 @@ function App() {
                 path="/admin/gallery/:galleryId/designs"
                 element={<Designs />}
               />
+              <Route path="transactions" element= {<AdminTransactionsTable />} />
               <Route path="testimonials" element={<AdminTestimonial />} />
             </Route>
           </Route>

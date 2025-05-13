@@ -1,45 +1,36 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { referralApi } from "../../utils/api";
 import { toast } from "sonner";
 
-const ReferralForm = () => {
-  const [formData, setFormData] = useState({
-    referralName: "",
-    referralEmail: "",
-    referralPhone: "",
-    referralAddress: "",
-    relationship: "",
-    notes: "",
-  });
+type FormData = {
+  referralName: string;
+  referralEmail: string;
+  referralPhone: string;
+  referralAddress: string;
+  relationship: string;
+  notes: string;
+};
 
-  const [submitted, setSubmitted] = useState(false);
+const ReferralForm = ({ onSuccess }) => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: FormData) => {
     try {
-      await referralApi.createReferral(formData);
-      setSubmitted(true);
-      setFormData({
-        referralName: "",
-        referralEmail: "",
-        referralPhone: "",
-        referralAddress: "",
-        relationship: "",
-        notes: "",
-      });
+      await referralApi.createReferral(data);
       toast("Referral sent!", {
         description: "Your referral has been submitted successfully.",
       });
+      reset();
+      onSuccess?.();
     } catch (error) {
       console.error("Failed to submit referral:", error);
-      toast("Submission failed",
-        {description:
+      toast("Submission failed", {
+        description:
           "There was an error submitting your referral. Please try again.",
       });
     }
@@ -50,60 +41,79 @@ const ReferralForm = () => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
         Refer Someone
       </h2>
-      {submitted && (
-        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
-          Referral submitted successfully!
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Full Name</label>
             <input
               type="text"
-              name="referralName"
-              value={formData.referralName}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded"
+              {...register("referralName", {
+                required: "Name is required",
+                minLength: {
+                  value: 2,
+                  message: "Name must be at least 2 characters long",
+                },
+              })}
+              className={`w-full px-3 py-2 border rounded ${errors.referralName ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.referralName && (
+              <p className="text-red-500 text-xs mt-1">{errors.referralName.message}</p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Email Address
-            </label>
+            <label className="block text-sm font-medium mb-1">Email Address</label>
             <input
               type="email"
-              name="referralEmail"
-              value={formData.referralEmail}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded"
+              {...register("referralEmail", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Please enter a valid email address",
+                },
+              })}
+              className={`w-full px-3 py-2 border rounded ${errors.referralEmail ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.referralEmail && (
+              <p className="text-red-500 text-xs mt-1">{errors.referralEmail.message}</p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Phone Number
-            </label>
+            <label className="block text-sm font-medium mb-1">Phone Number</label>
             <input
               type="tel"
-              name="referralPhone"
-              value={formData.referralPhone}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded"
+              {...register("referralPhone", {
+                required: "Phone number is required",
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: "Phone number must be 10 digits",
+                },
+                onChange: (e) => {
+                  e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                },
+              })}
+              placeholder="10 digits only"
+              className={`w-full px-3 py-2 border rounded ${errors.referralPhone ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.referralPhone && (
+              <p className="text-red-500 text-xs mt-1">{errors.referralPhone.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Address</label>
             <input
               type="text"
-              name="referralAddress"
-              value={formData.referralAddress}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded"
+              {...register("referralAddress", {
+                required: "Address is required",
+                minLength: {
+                  value: 5,
+                  message: "Please enter a valid address",
+                },
+              })}
+              className={`w-full px-3 py-2 border rounded ${errors.referralAddress ? 'border-red-500' : 'border-gray-300'}`}
             />
+            {errors.referralAddress && (
+              <p className="text-red-500 text-xs mt-1">{errors.referralAddress.message}</p>
+            )}
           </div>
         </div>
 
@@ -111,21 +121,16 @@ const ReferralForm = () => {
           <label className="block text-sm font-medium mb-1">Relationship</label>
           <input
             type="text"
-            name="relationship"
-            value={formData.relationship}
-            onChange={handleChange}
+            {...register("relationship")}
+            placeholder="e.g. Friend, Colleague etc."
             className="w-full px-3 py-2 border border-gray-300 rounded"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">
-            Notes (optional)
-          </label>
+          <label className="block text-sm font-medium mb-1">Notes (optional)</label>
           <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
+            {...register("notes")}
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded"
           />

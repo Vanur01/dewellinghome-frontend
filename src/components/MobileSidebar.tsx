@@ -11,7 +11,8 @@ import {
   Image,
   Star,
   Headphones,
-  ChevronRight
+  ChevronRight,
+  Wallet
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
@@ -34,6 +35,8 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     { name: 'Warranty Claim', path: '/dashboard/warranty', icon: <Shield className="w-5 h-5" /> },
     { name: 'Refer & Earn', path: '/dashboard/refer&earn', icon: <Send className="w-5 h-5" /> },
     { name: 'Payment', path: '/dashboard/payment', icon: <CreditCard className="w-5 h-5" /> },
+    { name: 'Transactions', path: '/dashboard/transactions', icon:  Wallet},
+
   ];
 
   const adminMenuItems = [
@@ -45,6 +48,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     { name: 'Inquiries', path: '/admin/inquiries', icon: <MessageSquare className="w-5 h-5" /> },
     { name: 'Gallery', path: '/admin/gallery', icon: <Image className="w-5 h-5" /> },
     { name: 'Testimonials', path: '/admin/testimonials', icon: <Star className="w-5 h-5" /> },
+    { name: 'Transactions', path: '/admin/transactions', icon:  Wallet},
   ];
 
   const mainMenuItems = [

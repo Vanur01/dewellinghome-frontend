@@ -63,7 +63,6 @@ const useGalleryStore = create<GalleryState>((set) => ({
         loading: false 
       }
     ))
-    console.log(response.data.data);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       set({ 

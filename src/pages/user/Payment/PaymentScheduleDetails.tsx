@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { usePaymentStore } from '@/store/user/PaymentStore';
-import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building } from 'lucide-react';
+import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -28,12 +28,33 @@ export default function PaymentScheduleDetails() {
   const { projectId } = useParams();
   const { currentSchedule, loading, getPaymentScheduleByProject } = usePaymentStore();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [milestonesWithPreviousDues, setMilestonesWithPreviousDues] = useState<Array<Milestone & { previousDues: number }>>([]);
 
   useEffect(() => {
     if (projectId) {
       getPaymentScheduleByProject(projectId);
     }
   }, [projectId]);
+
+  // Calculate previous dues for each milestone
+  useEffect(() => {
+    if (currentSchedule) {
+      const enrichedMilestones = currentSchedule.milestones.map((milestone, index) => {
+        // Calculate total dues from all previous milestones
+        let previousDues = 0;
+        for (let i = 0; i < index; i++) {
+          previousDues += currentSchedule.milestones[i].toBePaid;
+        }
+        
+        return {
+          ...milestone,
+          previousDues
+        };
+      });
+      
+      setMilestonesWithPreviousDues(enrichedMilestones);
+    }
+  }, [currentSchedule]);
 
   // Format currency to Indian Rupee format
   const formatCurrency = (amount: number) => {
@@ -44,13 +65,6 @@ export default function PaymentScheduleDetails() {
     }).format(amount).replace('₹', '₹ ');
   };
 
-  const getPaymentStatusColor = (paid: number, total: number) => {
-    const percentage = (paid / total) * 100;
-    if (percentage >= 100) return 'bg-green-100 text-green-700';
-    if (percentage > 0) return 'bg-yellow-100 text-yellow-700';
-    return 'bg-gray-100 text-gray-700';
-  };
-
   const getMilestoneStatus = (milestone: Milestone) => {
     if (milestone.effectivePaid >= milestone.amount) {
       return { label: 'Completed', icon: CheckCircle2, className: 'text-green-600' };
@@ -59,6 +73,16 @@ export default function PaymentScheduleDetails() {
       return { label: 'Partial', icon: Clock, className: 'text-yellow-600' };
     }
     return { label: 'Pending', icon: AlertCircle, className: 'text-gray-500' };
+  };
+
+  const getStatusBadge = (milestone: Milestone) => {
+    if (milestone.effectivePaid >= milestone.amount) {
+      return <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Paid</Badge>;
+    }
+    if (milestone.effectivePaid > 0) {
+      return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Partially Paid</Badge>;
+    }
+    return <Badge variant="outline" className="text-gray-700">Pending</Badge>;
   };
 
   if (loading) {
@@ -241,17 +265,21 @@ export default function PaymentScheduleDetails() {
                 <tr className="bg-gray-50 border-b">
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Milestone</th>
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Status</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Payment Status</th>
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Percentage</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Amount</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Paid</th>
                   <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Remaining</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Previous Dues</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Total To Pay</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {currentSchedule.milestones.map((milestone) => {
+                {milestonesWithPreviousDues.map((milestone) => {
                   const status = getMilestoneStatus(milestone);
                   const StatusIcon = status.icon;
                   const isCurrent = milestone.slNo === currentSchedule.currentMilestone;
+                  const totalToPay = milestone.toBePaid + milestone.previousDues;
                   
                   return (
                     <tr 
@@ -265,12 +293,12 @@ export default function PaymentScheduleDetails() {
                         <div className="flex items-center gap-2">
                           {isCurrent && (
                             <div className="flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">
-                              Current
+                              C
                             </div>
                           )}
-                          <span className="font-medium text-gray-900">#{milestone.slNo}</span>
+                          <span className="font-medium text-gray-900">{milestone.slNo}</span>
                           <Separator orientation="vertical" className="h-4" />
-                          <span className="text-gray-600">{milestone.timeline}</span>
+                          <span className="text-gray-600">{milestone.timeline.length> 10? milestone.timeline.slice(0,10):milestone.timeline}</span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -280,6 +308,9 @@ export default function PaymentScheduleDetails() {
                             {status.label}
                           </span>
                         </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {getStatusBadge(milestone)}
                       </td>
                       <td className="px-4 py-4 text-center text-gray-600">{milestone.percentage}%</td>
                       <td className="px-4 py-4 text-right font-medium text-gray-900">
@@ -302,8 +333,36 @@ export default function PaymentScheduleDetails() {
                           "font-medium",
                           milestone.toBePaid > 0 ? "text-blue-600" : "text-green-600"
                         )}>
-                          {milestone.toBePaid > 0 ? formatCurrency(milestone.toBePaid) : 'Paid'}
+                        {formatCurrency(milestone.toBePaid)} 
                         </span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        {milestone.previousDues > 0 ? (
+                          <span className="font-medium text-red-600">
+                            {formatCurrency(milestone.previousDues)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-600">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        {totalToPay > 0 ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="font-semibold text-red-600">
+                              {formatCurrency(totalToPay)}
+                            </span>
+                            {milestone.previousDues > 0 && (
+                              <div className="group relative">
+                                <AlertTriangle className="h-4 w-4 text-red-500 cursor-help" />
+                                <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-white shadow-lg rounded-md border border-gray-200 text-xs text-gray-700 invisible group-hover:visible z-10">
+                                  Includes ₹{milestone.previousDues.toLocaleString('en-IN')} from previous unpaid milestones
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="font-medium text-green-600">Paid</span>
+                        )}
                       </td>
                     </tr>
                   );

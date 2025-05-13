@@ -1,0 +1,133 @@
+"use client";
+
+import { useEffect } from "react";
+import { useTransactionStore } from "../../../store/user/TransactionStore";
+import { format } from "date-fns";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../components/ui/card";
+
+import { Button } from "../../../components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table";
+import { Loader2 } from "lucide-react";
+
+export default function Transactions() {
+  const { transactions, isLoading, total, page, limit, getUserTransactions } =
+    useTransactionStore();
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = (pageNum = page) => {
+    getUserTransactions({
+      page: pageNum,
+      limit,
+    });
+  };
+
+  return (
+    <div className="container mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>My Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Payment ID</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Payment Method</TableHead>
+                  <TableHead>Paid On</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      <div className="flex justify-center items-center">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        Loading transactions...
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : transactions.length ? (
+                  transactions.map((transaction) => (
+                    <TableRow key={transaction.razorpay_payment_id}>
+                      <TableCell>{transaction.razorpay_payment_id}</TableCell>
+                      <TableCell className="text-right">
+                        {new Intl.NumberFormat("en-IN", {
+                          style: "currency",
+                          currency: "INR",
+                        }).format(transaction.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${{
+                            'success': 'bg-green-100 text-green-800',
+                            'processing': 'bg-yellow-100 text-yellow-800',
+                            'failed': 'bg-red-100 text-red-800'
+                          }[transaction.status]}`}
+                        >
+                          {transaction.status.charAt(0).toUpperCase() +
+                            transaction.status.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{transaction.method}</TableCell>
+                      <TableCell>
+                        {format(new Date(transaction.paidAt), "PPP")}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                      No transactions found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {Math.ceil(total / limit)}
+            </span>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadTransactions(page - 1)}
+                disabled={page === 1 || isLoading}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadTransactions(page + 1)}
+                disabled={page * limit >= total || isLoading}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

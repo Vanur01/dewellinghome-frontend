@@ -7,18 +7,19 @@ const ReferEarn = () => {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchReferrals = async () => {
+    try {
+      const res = await referralApi.getReferrals();
+      // If using axios, data is in res.data
+      setReferrals(res.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch referrals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReferrals = async () => {
-      try {
-        const res = await referralApi.getReferrals();
-        // If using axios, data is in res.data
-        setReferrals(res.data.data || []);
-      } catch (error) {
-        console.error('Failed to fetch referrals:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchReferrals();
   }, []);
 
@@ -76,7 +77,7 @@ const ReferEarn = () => {
               </div>
               <div className="text-left">
                 <p className="text-xs text-red-500 font-medium">Step 2</p>
-                <p className="text-sm text-gray-600">They sign up</p>
+                <p className="text-sm text-gray-600">They Book an Order</p>
               </div>
             </div>
             
@@ -93,7 +94,7 @@ const ReferEarn = () => {
         </div>
         
         <div className="mt-6">
-          <ReferralForm />
+          <ReferralForm onSuccess={fetchReferrals} />
         </div>
       </div>
 

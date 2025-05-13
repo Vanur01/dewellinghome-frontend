@@ -313,7 +313,7 @@ const Profile: React.FC = () => {
           />
           <QuickLinkCard
             icon={<CreditCard className="w-5 h-5 text-red-500" />}
-            title="Payments & EMI"
+            title="Payments"
             description="View payment history and manage EMI details"
             link="/dashboard/payment"
           />

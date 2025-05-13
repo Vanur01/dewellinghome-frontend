@@ -116,7 +116,7 @@ export default function AdminPayment() {
                     {schedule.projectId.title}
                   </TableCell>
                   <TableCell>
-                    {schedule.projectId.clientId.name}
+                    {schedule.projectId?.clientId?.name || 'N/A'}
                   </TableCell>
                   <TableCell>
                     {formatCurrency(schedule.totalProjectValue)}

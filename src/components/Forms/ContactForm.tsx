@@ -1,8 +1,14 @@
 import { ChevronDown } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import InquiryStore from "../../store/public/InquiryStore";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import InquiryStore from "../../store/public/InquiryStore";
 import { UserDetails } from "../../../src/types/enquiry";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 const countries = [
   { code: "IN", dial: "+91", name: "India" },
@@ -14,6 +20,21 @@ const countries = [
   { code: "CA", dial: "+1", name: "Canada" },
 ];
 
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  phone: z.string()
+    .min(7, "Invalid phone number")
+    .max(15, "Phone number is too long")
+    .regex(/^[0-9]+$/, "Only numbers are allowed"),
+  address: z.string().min(1, "Address is required"),
+  pincode: z.string().min(5, "Invalid pincode").regex(/^[0-9]+$/, "Only numbers are allowed"),
+  countryCode: z.string().min(1),
+  message: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
 interface ContactFormProps {
   className?: string;
   onComplete?: () => void;
@@ -21,60 +42,52 @@ interface ContactFormProps {
   isEditing?: boolean;
 }
 
-const ContactForm = ({ className = "", onComplete, initialData, isEditing = false }: ContactFormProps) => {
-  const [formData, setFormData] = useState<UserDetails>(() => {
-    return initialData || {
+const ContactForm = ({
+  className = "",
+  onComplete,
+  initialData,
+  isEditing = false,
+}: ContactFormProps) => {
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: initialData || {
       name: "",
       email: "",
       phone: "",
+      address: "",
       pincode: "",
       countryCode: "+91",
       message: "",
-    };
+    },
   });
+
+  const { setUserDetails, userDetails } = InquiryStore();
+  const navigate = useNavigate();
   const [showCountryList, setShowCountryList] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
-  const { setUserDetails, userDetails } = InquiryStore();
-  const navigate = useNavigate();
+
+  const countryCode = watch("countryCode");
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !(dropdownRef.current as any).contains(event.target)
+      ) {
         setShowCountryList(false);
         setSearchQuery("");
       }
     };
-
-    console.log(userDetails);
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setUserDetails(formData);
-    
-    if (onComplete) {
-      onComplete();
-    } else if (!isEditing) {
-      navigate("/get-estimate");
-    }
-  };
-
-  const selectCountry = (dial: string) => {
-    setFormData({ ...formData, countryCode: dial });
-    setShowCountryList(false);
-  };
 
   const filteredCountries = countries.filter(
     (country) =>
@@ -82,8 +95,16 @@ const ContactForm = ({ className = "", onComplete, initialData, isEditing = fals
       country.dial.includes(searchQuery)
   );
 
-  // Show thank you message if user details exist but project details don't
-  if (userDetails.name ) {
+  const onSubmit = (data: FormData) => {
+    setUserDetails(data);
+    if (onComplete) {
+      onComplete();
+    } else if (!isEditing) {
+      navigate("/get-estimate");
+    }
+  };
+
+  if (userDetails.name) {
     return (
       <div className={`text-center ${className}`}>
         <div className="flex flex-col items-center justify-center space-y-4">
@@ -102,34 +123,22 @@ const ContactForm = ({ className = "", onComplete, initialData, isEditing = fals
               />
             </svg>
           </div>
-          
           <div className="space-y-2">
-            <h3 className="text-2xl font-bold text-gray-800">Thank You, {userDetails.name}!</h3>
+            <h3 className="text-2xl font-bold text-gray-800">
+              Thank You, {userDetails.name}!
+            </h3>
             <p className="text-gray-600 max-w-sm mx-auto">
-              We've received your contact information. Let's proceed with your design requirements.
+              We've received your contact information. Let's proceed with your
+              design requirements.
             </p>
           </div>
-
           <div className="w-full max-w-sm pt-6">
-            <button
-              onClick={() => navigate('/get-estimate')}
-              className="w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 transition-colors text-sm flex items-center justify-center group"
+            <Button
+              onClick={() => navigate("/get-estimate")}
+              className="w-full text-sm bg-red-600 hover:bg-red-700 text-white "
             >
               Continue to Design Requirements
-              <svg
-                className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
-              </svg>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -137,127 +146,151 @@ const ContactForm = ({ className = "", onComplete, initialData, isEditing = fals
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`flex flex-col justfiy-between space-y-3 ${className}`}>
-      <div>
-        <h2 className="text-medium text-xl">{isEditing ? "Edit Contact Information" : "Meet a Designer"}</h2>
-      </div>
-      <div>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Enter your name"
-          className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
-          required
-        />
-      </div>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className={`flex flex-col space-y-3 ${className}`}
+    >
+      <h2 className="text-medium text-xl">
+        {isEditing ? "Edit Contact Information" : "Meet a Designer"}
+      </h2>
 
-      <div>
-        <input
-          type="text"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          placeholder="Enter your address"
-          className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
-          required
-        />
-      </div>
+      <Controller
+        name="name"
+        control={control}
+        render={({ field }) => (
+          <Input {...field} placeholder="Enter your name" className="text-sm" />
+        )}
+      />
+      {errors.name && (
+        <p className="text-sm text-red-500">{errors.name.message}</p>
+      )}
 
-      <div>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Enter your email"
-          className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
-          required
-        />
-      </div>
+      <Controller
+        name="address"
+        control={control}
+        render={({ field }) => (
+          <Input
+            {...field}
+            placeholder="Enter your address"
+            className="text-sm"
+          />
+        )}
+      />
+      {errors.address && (
+        <p className="text-sm text-red-500">{errors.address.message}</p>
+      )}
 
-      {/* Phone input with country selector */}
+      <Controller
+        name="email"
+        control={control}
+        render={({ field }) => (
+          <Input
+            {...field}
+            type="email"
+            placeholder="Enter your email"
+            className="text-sm"
+          />
+        )}
+      />
+      {errors.email && (
+        <p className="text-sm text-red-500">{errors.email.message}</p>
+      )}
+
+      {/* Phone input */}
       <div className="relative" ref={dropdownRef}>
         <div className="flex">
-          <div className="relative">
-            <button
-              type="button"
-              className="flex items-center border-b border-gray-300 py-1.5 px-2 focus:outline-none text-sm hover:bg-gray-50 rounded-t"
-              onClick={() => setShowCountryList(!showCountryList)}
-            >
-              {formData.countryCode}
-              <ChevronDown className={`ml-2 transition-transform duration-200 ${showCountryList ? 'rotate-180' : ''}`} size={16}/>
-            </button>
-            {showCountryList && (
-              <div className="absolute z-10 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg animate-in fade-in duration-200">
-                <div className="p-2 border-b">
-                  <input
-                    type="text"
-                    placeholder="Search country..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full p-2 text-sm border rounded-md focus:outline-none focus:border-red-500"
-                    autoFocus
-                  />
-                </div>
-                <div className="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-50">
-                  {filteredCountries.length === 0 ? (
-                    <div className="px-4 py-2 text-sm text-gray-500">No countries found</div>
-                  ) : (
-                    filteredCountries.map((country) => (
-                      <div
-                        key={country.code}
-                        className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-sm flex items-center"
-                        onClick={() => selectCountry(country.dial)}
-                      >
-                        <span className="w-16 text-gray-600">{country.dial}</span>
-                        <span className="font-medium">{country.name}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          <input
-            type="tel"
+          <button
+            type="button"
+            className="flex items-center border py-1.5 px-2 text-sm rounded-l"
+            onClick={() => setShowCountryList(!showCountryList)}
+          >
+            {countryCode}
+            <ChevronDown
+              className={`ml-2 transition-transform duration-200 ${
+                showCountryList ? "rotate-180" : ""
+              }`}
+              size={16}
+            />
+          </button>
+
+          <Controller
             name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Enter your phone number"
-            className="flex-1 border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
-            required
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="Enter your phone number"
+                className="flex-1 text-sm rounded-l-none"
+                type="tel"
+              />
+            )}
           />
         </div>
-      </div>
 
-      <div>
-        <input
-          type="text"
-          name="pincode"
-          value={formData.pincode}
-          onChange={handleChange}
-          placeholder="Enter your current residence pincode"
-          className="w-full border-b border-gray-300 py-1.5 focus:outline-none focus:border-green-500 text-sm"
-          required
-        />
+        {showCountryList && (
+          <div className="absolute z-10 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg">
+            <div className="p-2 border-b">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search country..."
+                className="text-sm"
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              {filteredCountries.map((country) => (
+                <div
+                  key={country.code}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                  onClick={() => {
+                    setValue("countryCode", country.dial);
+                    setShowCountryList(false);
+                    setSearchQuery("");
+                  }}
+                >
+                  <span className="w-16 inline-block">{country.dial}</span>
+                  <span>{country.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+      {errors.phone && (
+        <p className="text-sm text-red-500">{errors.phone.message}</p>
+      )}
 
-      <div>
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          placeholder="Additional notes or requirements (optional)"
-          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-green-500 text-sm resize-y"
-          rows={2}
-        />
-      </div>
+      <Controller
+        name="pincode"
+        control={control}
+        render={({ field }) => (
+          <Input
+            {...field}
+            placeholder="Enter your pincode"
+            className="text-sm"
+          />
+        )}
+      />
+      {errors.pincode && (
+        <p className="text-sm text-red-500">{errors.pincode.message}</p>
+      )}
 
-      <button
+      <Controller
+        name="message"
+        control={control}
+        render={({ field }) => (
+          <Textarea
+            {...field}
+            placeholder="Additional notes or requirements (optional)"
+            className="text-sm"
+            rows={2}
+          />
+        )}
+      />
+
+      <Button
         type="submit"
-        className="w-full bg-red-600 text-white py-2 px-4 rounded-md mt-4 hover:bg-red-700 transition-colors text-sm"
+        className="bg-red-600 hover:bg-red-700 text-white text-sm"
       >
         {isEditing ? "Update Contact Info" : "Continue"}{" "}
         {!isEditing && (
@@ -265,7 +298,7 @@ const ContactForm = ({ className = "", onComplete, initialData, isEditing = fals
             FREE
           </span>
         )}
-      </button>
+      </Button>
 
       {!isEditing && (
         <p className="text-xs text-gray-600 mt-2">

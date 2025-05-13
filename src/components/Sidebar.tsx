@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Image,
   Star,
+  Wallet
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
@@ -25,6 +26,7 @@ const Sidebar = () => {
     { name: 'Warranty Claim', path: '/dashboard/warranty', icon: Shield },
     { name: 'Refer & Earn', path: '/dashboard/refer&earn', icon: Send },
     { name: 'Payment', path: '/dashboard/payment', icon: CreditCard },
+    { name: 'Transactions', path: '/dashboard/transactions', icon:  Wallet},
   ];
 
   const adminMenuItems = [
@@ -36,6 +38,7 @@ const Sidebar = () => {
     { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
     { name: 'Gallery', path: '/admin/gallery', icon: Image },
     { name: 'Testimonials', path: '/admin/testimonials', icon: Star },
+    {name: 'Transactions', path: '/admin/transactions', icon: Wallet},
   ];
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;

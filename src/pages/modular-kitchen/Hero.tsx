@@ -58,9 +58,6 @@ const HeroSection = () => {
       {/* Desktop Form Section */}
       <div className="hidden md:flex md:absolute relative right-0 md:right-24 top-0 md:top-16 bg-white p-4 md:px-6 md:py-8 items-center justify-center w-full md:w-[25%] min-w-[280px] z-10 rounded-lg">
         <div className="w-full max-w-md md:max-w-none">
-          <h2 className="text-xl md:text-2xl font-medium text-gray-800 mb-4">
-            Meet a designer
-          </h2>
           <ContactForm />
         </div>
       </div>
