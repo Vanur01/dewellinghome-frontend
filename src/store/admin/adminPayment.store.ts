@@ -64,7 +64,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
           set({ currentSchedule: response.data.data });
         } catch (err) {
           const error = err as AxiosError;
-          set({ error: error.message });
+          set({ currentSchedule:null ,error: error.message });
           toast.error('Failed to fetch payment schedule');
         } finally {
           set({ loading: false });

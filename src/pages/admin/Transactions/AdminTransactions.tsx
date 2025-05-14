@@ -40,6 +40,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { TransactionDetailsModal } from './TransactionDetails'
 
 export default function AdminTransactionsTable() {
   const [filterValue, setFilterValue] = useState("")
@@ -246,6 +247,7 @@ export default function AdminTransactionsTable() {
           </div>
         </div>
       </CardContent>
+      <TransactionDetailsModal />
     </Card>
   )
 }

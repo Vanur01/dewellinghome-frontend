@@ -427,6 +427,9 @@ const ViewProject = () => {
               <Button variant="outline" className="w-full" onClick={() => navigate(`/admin/payments/new?projectId=${currentProject._id}`)}>
                 Create Payment Schedule
               </Button>
+              <Button variant="outline" className="w-full" onClick={() => navigate(`/admin/payments/${currentProject._id}`)}>
+                View Payments
+              </Button>
             </CardContent>
           </Card>
         </div>

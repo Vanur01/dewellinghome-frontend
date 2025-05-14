@@ -1,6 +1,5 @@
-"use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTransactionStore } from "../../../store/user/TransactionStore";
 import { format } from "date-fns";
 
@@ -20,11 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye } from "lucide-react";
+import { ViewTransaction } from './ViewTransaction';
 
 export default function Transactions() {
-  const { transactions, isLoading, total, page, limit, getUserTransactions } =
-    useTransactionStore();
+  const { transactions, isLoading, total, page, limit, getUserTransactions } = useTransactionStore();
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
   useEffect(() => {
     loadTransactions();
@@ -53,12 +53,13 @@ export default function Transactions() {
                   <TableHead>Status</TableHead>
                   <TableHead>Payment Method</TableHead>
                   <TableHead>Paid On</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       <div className="flex justify-center items-center">
                         <Loader2 className="h-6 w-6 animate-spin mr-2" />
                         Loading transactions...
@@ -67,7 +68,10 @@ export default function Transactions() {
                   </TableRow>
                 ) : transactions.length ? (
                   transactions.map((transaction) => (
-                    <TableRow key={transaction.razorpay_payment_id}>
+                    <TableRow 
+                      key={transaction._id}
+                      className="hover:bg-muted/50"
+                    >
                       <TableCell>{transaction.razorpay_payment_id}</TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat("en-IN", {
@@ -77,11 +81,13 @@ export default function Transactions() {
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${{
-                            'success': 'bg-green-100 text-green-800',
-                            'processing': 'bg-yellow-100 text-yellow-800',
-                            'failed': 'bg-red-100 text-red-800'
-                          }[transaction.status]}`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            {
+                              'success': 'bg-green-100 text-green-800',
+                              'processing': 'bg-yellow-100 text-yellow-800',
+                              'failed': 'bg-red-100 text-red-800'
+                            }[transaction.status]
+                          }`}
                         >
                           {transaction.status.charAt(0).toUpperCase() +
                             transaction.status.slice(1)}
@@ -91,11 +97,20 @@ export default function Transactions() {
                       <TableCell>
                         {format(new Date(transaction.paidAt), "PPP")}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedTransactionId(transaction._id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       No transactions found.
                     </TableCell>
                   </TableRow>
@@ -128,6 +143,14 @@ export default function Transactions() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedTransactionId && (
+        <ViewTransaction
+          isOpen={!!selectedTransactionId}
+          onClose={() => setSelectedTransactionId(null)}
+          transactionId={selectedTransactionId}
+        />
+      )}
     </div>
   );
 }

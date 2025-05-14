@@ -151,10 +151,10 @@ export default function PaymentDetails() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] space-y-4">
         <AlertCircle className="h-12 w-12 text-muted-foreground" />
-        <h2 className="text-2xl font-semibold text-gray-800">Payment Schedule Not Found</h2>
-        <p className="text-muted-foreground mb-4">The requested payment schedule could not be found.</p>
+        <h2 className="text-2xl font-semibold text-gray-800">No Schedule Exists</h2>
+        <p className="text-muted-foreground mb-4">The requested payment schedule does not exist.</p>
         <Button
-          onClick={() => navigate('/admin/payments')}
+          onClick={() => navigate(-1)}
           variant="outline"
           className="flex items-center gap-2"
         >
@@ -179,7 +179,7 @@ export default function PaymentDetails() {
               <Button
                 variant="outline"
                 className="border-red-200 text-red-600 hover:bg-red-50"
-                onClick={() => navigate('/admin/payments')}
+                onClick={() => navigate(-1)}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Payments
@@ -322,7 +322,7 @@ export default function PaymentDetails() {
               <TableBody>
                 {currentSchedule?.milestones.map((milestone, index) => (
                   <TableRow 
-                    key={milestone._id} 
+                    key={milestone.slNo} 
                     className={cn(
                       "hover:bg-gray-50/50 transition-colors relative",
                       milestone.slNo === currentSchedule.currentMilestone && "bg-red-100 hover:bg-red-100"

@@ -716,7 +716,7 @@ export const transactionApi = {
 
   // Get transaction by ID (admin only)
   getTransactionById: (id: string) =>
-    api.get<{ transaction: Transaction }>(`/transactions/${id}`),
+    api.get<{data:{ transaction: Transaction }}>(`/transactions/${id}`),
 };
 
 // Get transaction by ID

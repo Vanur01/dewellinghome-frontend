@@ -14,6 +14,7 @@ interface AdminTransactionState {
   loading: boolean;
   error: string | null;
   selectedTransaction: Transaction | null;
+  isViewModalOpen: boolean;
 
   // Actions
   getAllTransactions: (params?: {
@@ -39,6 +40,7 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set,get) 
   loading: false,
   error: null,
   selectedTransaction: null,
+  isViewModalOpen: false,
 
   getAllTransactions: async (params) => {
     try {
@@ -70,7 +72,8 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set,get) 
       set({ loading: true, error: null });
       const response = await transactionApi.getTransactionById(id);
       set({
-        selectedTransaction: response.data.transaction,
+        selectedTransaction: response.data.data.transaction,
+        isViewModalOpen: true, // Add this line to open modal
         loading: false,
       });
     } catch (error) {
@@ -81,6 +84,6 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set,get) 
     }
   },
 
-  clearSelectedTransaction: () => set({ selectedTransaction: null }),
+  clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
   clearError: () => set({ error: null }),
 }));

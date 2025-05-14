@@ -45,7 +45,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import PaymentDetails from "./pages/admin/Payment/PaymentDetails";
 import PaymentScheduleDetails from "./pages/user/Payment/PaymentScheduleDetails";
 import Transactions from "./pages/user/Transactions/Transactions";
-import AdminTransactionsTable from "./pages/admin/AdminTransactions";
+import AdminTransactionsTable from "./pages/admin/Transactions/AdminTransactions";
 
 function App() {
   const { restoreSession, isLoading } = useAuthStore();

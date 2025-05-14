@@ -54,7 +54,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const response = await transactionApi.getTransactionById(id);
-      return response.data.transaction;
+      return response.data.data.transaction;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to fetch transaction' });
       return null;
