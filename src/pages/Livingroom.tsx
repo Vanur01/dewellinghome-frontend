@@ -1,44 +1,37 @@
+import { useEffect } from 'react';
 import InteriorDesignTemplate from '../components/InteriorDesignTemplate';
 import { BsShieldCheck, BsCalendarCheck, BsAward, BsTools } from "react-icons/bs";
+import useGalleryStore from '../store/public/gallery.store';
 
 const LivingroomInteriorDesign = () => {
-  const galleryItems = [
-    {
-      id: 1,
-      image: "https://images.unsplash.com/photo-1618220179428-22790b461013",
-      title: "Contemporary Living Room",
-      size: "18' X 15'",
-    },
-    {
-      id: 2,
-      image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace",
-      title: "Modern Open Plan Living",
-      size: "20' X 16'",
-    },
-    {
-      id: 3,
-      image: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c",
-      title: "Cozy Family Living Room",
-      size: "16' X 14'",
-    },
-    {
-      id: 4,
-      image: "https://images.unsplash.com/photo-1600210492493-0946911123ea",
-      title: "Minimalist Living Space",
-      size: "15' X 13'",
-    },
-    {
-      id: 5,
+  const { getDesignsByCategory, categoryDesigns, loading, error } = useGalleryStore();
+
+  useEffect(() => {
+    getDesignsByCategory('living-room');
+  }, [getDesignsByCategory]);
+
+  const galleryItems:any = categoryDesigns['living-room']?.map(design => ({
+    id: design._id,
+    image: design.images[0]?.url,
+    title: design.title,
+    description: design.description
+  })) || [];
+
+  // Add the special item for 45 days delivery
+  if (galleryItems.length >= 4) {
+    galleryItems.splice(4, 0, {
+      id: 'special-delivery',
       special: true,
       days: 45,
-    },
-    {
-      id: 6,
-      image: "https://images.unsplash.com/photo-1615529182904-14819c35db37",
-      title: "Luxury Living Room Design",
-      size: "22' X 18'",
-    },
-  ];
+      specialDescription: "Transform your space with our expert design team. Get started with a free consultation.",
+      specialFeatures: [
+        "Professional design consultation",
+        "3D visualization",
+        "Custom material selection",
+        "Expert installation"
+      ]
+    });
+  }
 
   const serviceFeatures = [
     {
@@ -78,6 +71,8 @@ const LivingroomInteriorDesign = () => {
       galleryItems={galleryItems}
       serviceFeatures={serviceFeatures}
       estimateCardTitle="Your perfect living room delivered in just 45 days"
+      loading={loading}
+      error={error}
     />
   );
 };

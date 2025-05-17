@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { getImageUrl } from "@/utils/Image";
 
 const WarrantyClaimPage = () => {
   const { claims, loading, error, submitting, createClaim, fetchUserClaims } = useWarrantyStore();
@@ -277,7 +278,7 @@ const WarrantyClaimPage = () => {
                       {claim.images.map((image, index) => (
                         <img
                           key={index}
-                          src={image}
+                          src={getImageUrl(image)}
                           alt={`Claim ${claim.ticketId} image ${index + 1}`}
                           className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                         />

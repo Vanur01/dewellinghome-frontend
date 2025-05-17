@@ -5,25 +5,25 @@ const BathroomInteriorDesign = () => {
   const galleryItems = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1631889993959-41b4e9c6e3c5",
+      image: "https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg",
       title: "Modern Spa-like Bathroom",
       size: "8' X 6'",
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14",
+      image: "https://images.pexels.com/photos/6585761/pexels-photo-6585761.jpeg",
       title: "Luxury Master Bathroom",
       size: "10' X 8'",
     },
     {
       id: 3,
-      image: "https://nextluxury.com/wp-content/uploads/modern-bathroom-ideas.jpg",
+      image: "https://images.pexels.com/photos/7319316/pexels-photo-7319316.jpeg",
       title: "Contemporary Guest Bath",
       size: "6' X 5'",
     },
     {
       id: 4,
-      image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a",
+      image: "https://images.pexels.com/photos/6585754/pexels-photo-6585754.jpeg",
       title: "Minimalist Powder Room",
       size: "5' X 4'",
     },
@@ -34,7 +34,7 @@ const BathroomInteriorDesign = () => {
     },
     {
       id: 6,
-      image: "https://images.unsplash.com/photo-1600566752355-35792bedcfea",
+      image: "https://images.pexels.com/photos/6585751/pexels-photo-6585751.jpeg",
       title: "Classic Family Bathroom",
       size: "8' X 7'",
     },
@@ -71,7 +71,7 @@ const BathroomInteriorDesign = () => {
 
   return (
     <InteriorDesignTemplate
-      heroImage="https://hindware.com/wp-content/uploads/2025/03/Resize.png"
+      heroImage="https://images.pexels.com/photos/6585750/pexels-photo-6585750.jpeg"
       heroTitle="Bathroom Interior Design"
       breadcrumbSection="Bathroom"
       description={description}

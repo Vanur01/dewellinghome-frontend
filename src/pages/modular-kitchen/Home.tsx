@@ -6,9 +6,10 @@ import { WarrantyIcon,
   FourtyfiveIcon,
   NohiddencostIcons,
 } from "../../utils/Icons";
+import { useNavigate } from "react-router-dom";
 
 const ModularKitchen = () => {
-
+const navigate = useNavigate();
   const service = [
     {
       img: <FourtyfiveIcon width={100} height={100} />,
@@ -78,7 +79,7 @@ const ModularKitchen = () => {
               <p className="text-[#4A4A4A] text-2xl mb-4">
                 Get costing for your kitchen interiors.
               </p>
-              <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
+              <button onClick={()=>navigate('/kitchen-estimate')} className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
                 Get Free Estimate
               </button>
             </div>

@@ -15,7 +15,7 @@ interface UserDetails {
 interface ProjectDetails {
   homeType: string;
   purpose: string;
-  items: InquiryItem[];
+  items?: InquiryItem[];
   kitchenConfiguration?: KitchenConfiguration;
 }
 
@@ -52,6 +52,7 @@ const initialKitchenConfiguration: KitchenConfiguration = {
   },
   cabinetMaterial: '',
   shutterMaterial: '',
+  carcassMaterial: '',
   accessories: {},
 };
 

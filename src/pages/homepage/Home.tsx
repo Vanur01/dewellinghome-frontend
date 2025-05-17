@@ -9,10 +9,12 @@ import Reviews from "./Reviews";
 import ReferSection from "../../components/Refersection";
 import InteriorDesignServices from "./Services";
 import InteriorSolutionsGrid from "./SolutionsGrid";
-import { MySvgIcon, ReferIcon } from "../../utils/Icons";
+import {  ReferIcon } from "../../utils/Icons";
 import { ScrollReveal } from "../../components/ScrollReveal";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div>
       <HeroSection
@@ -41,18 +43,10 @@ const Home = () => {
         <Reviews />
       </ScrollReveal>
       <ScrollReveal>
-        <ReferSection Icon={<ReferIcon width={300} height={300} />} />
+        <ReferSection Icon={<ReferIcon width={300} height={300} />} onButtonClick={()=>navigate('/dashboard/refer&earn')}/>
       </ScrollReveal>
       <ScrollReveal>
         <InteriorSolutionsGrid />
-      </ScrollReveal>
-      <ScrollReveal>
-        <ReferSection
-          title={"We are NRI-friendly too."}
-          description="Pull strings from anywhere in the world. Set up your dream home from across the seven seas."
-          buttonText="Read More"
-          Icon={<MySvgIcon width={300} height={300} />}
-        />
       </ScrollReveal>
       <ScrollReveal>
         <InteriorDesignServices />

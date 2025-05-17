@@ -86,7 +86,7 @@ const DesignGallary = () => {
       </section>
 
       <ScrollReveal>
-        <ServiceSection title="Why HomeLane? Here's Why!" service={service} />
+        <ServiceSection title="Why DewellingHome? Here's Why!" service={service} />
       </ScrollReveal>
 
       <section className="text-center bg-[#EDEAE5] py-24 px-4">
@@ -125,9 +125,9 @@ const DesignGallary = () => {
         <DesignConsultationCarousel />
       </ScrollReveal>
       
-      <ScrollReveal>
+      {/* <ScrollReveal>
         <GoogleReview />
-      </ScrollReveal>
+      </ScrollReveal> */}
     </div>
   );
 };

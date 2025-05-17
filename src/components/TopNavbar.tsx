@@ -13,26 +13,12 @@ const Navbar = () => {
         <div className="flex justify-between h-14">
           {/* Left side navigation items */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="#" className="text-xs text-gray-700 hover:text-red-600 font-normal">
-              Partner with DwellingHome
-            </Link>
-            <Link to="#" className="text-xs text-gray-700 hover:text-red-600 font-normal">
+            <Link to="/dashboard/refer&earn" className="text-xs text-gray-700 hover:text-red-600 font-normal">
               Refer and Earn
             </Link>
-            <Link to="#" className="text-xs text-gray-700 hover:text-red-600 font-normal">
-              Join Us
+            <Link to="/team" className="text-xs text-gray-700 hover:text-red-600 font-normal">
+              Our Team
             </Link>
-            <div className="relative group">
-              <div className="flex items-center text-xs text-gray-700 hover:text-red-600 font-normal cursor-pointer">
-                Cities <ChevronDown className="ml-1 h-3 w-3" />
-              </div>
-              <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute z-30 w-48 bg-white shadow-lg rounded-md py-1 transition-all duration-300 ease-in-out">
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">New York</Link>
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-7 00 hover:text-red-600 font-normal">Los Angeles</Link>
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Chicago</Link>
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Houston</Link>
-              </div>
-            </div>
           </div>
           
           {/* Right side navigation items */}
@@ -42,14 +28,9 @@ const Navbar = () => {
                 <span className="mr-1"> <Headphones className="h-3 w-3" /></span> Customer Support <ChevronDown className="ml-1 h-3 w-3" />
               </div>
               <div className="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute right-0 z-30 w-48 bg-white shadow-lg rounded-md py-1 transition-all duration-300 ease-in-out">
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Contact Us</Link>
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Help Center</Link>
-                <Link to="#" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Live Chat</Link>
+                <Link to="/contact-us" className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal">Contact Us</Link>
               </div>
             </div>
-            <Link to="#" className="text-xs text-gray-700 hover:text-red-600 font-normal">
-              Visit Us
-            </Link>
             {accessToken ? (
               <Link to={redirectTo} className="text-xs text-gray-700 hover:text-red-600 font-normal">
                 <div>

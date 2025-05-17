@@ -8,8 +8,8 @@ interface GalleryState {
   currentDesign: Design | null;
   loading: boolean;
   error: string | null;
-  
-  // Public Actions
+  categoryDesigns: { [category: string]: Design[] };
+  getDesignsByCategory: (category: string) => Promise<void>;
   getAllGalleries: () => Promise<void>;
   getGalleryByCategory: (category: string) => Promise<void>;
   getDesignsByGalleryId: (galleryId: string) => Promise<void>;
@@ -82,6 +82,27 @@ const useGalleryStore = create<GalleryState>((set) => ({
       set({ 
         error: axiosError.response?.data?.message || 'Failed to fetch design', 
         loading: false 
+      });
+    }
+  },
+  categoryDesigns: {},
+
+  getDesignsByCategory: async (category: string) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await publicGalleryApi.getDesignsByCategory(category);
+      set(state => ({
+        categoryDesigns: {
+          ...state.categoryDesigns,
+          [category]: response.data.data
+        },
+        loading: false
+      }));
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      set({
+        error: axiosError.response?.data?.message || 'Failed to fetch designs by category',
+        loading: false
       });
     }
   },

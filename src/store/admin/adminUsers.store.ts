@@ -8,6 +8,7 @@ interface User {
   phone: string;
   address: string;
   createdAt: string;
+  role?: "admin" | "client";
 }
 
 interface searchParams{
@@ -35,7 +36,7 @@ interface AdminUsersState {
   updateUser: (userId: string, data: { name?: string; email?: string; phone?: string; address?: string; role:"admin"| "client" }) => Promise<void>;
 }
 
-export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
+export const useAdminUsersStore = create<AdminUsersState>((set ) => ({
   users: [],
   selectedUser: null,
   loading: false,

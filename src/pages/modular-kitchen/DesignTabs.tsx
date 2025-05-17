@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Heart } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,44 +11,44 @@ export default function DesignTabs() {
   const kitchenDesigns = [
     {
       id: 1,
-      title: 'Coastal Chic Modular Kitchen Design',
-      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f',
+      title: 'Modern L-Shaped Kitchen Design',
+      image: 'https://images.pexels.com/photos/3214064/pexels-photo-3214064.jpeg',
       type: 'L-Shaped',
     },
     {
       id: 2,
-      title: 'Sleek Seafoam Modular Kitchen Design',
-      image: 'https://images.unsplash.com/photo-1556909172-54557c7e4fb7',
+      title: 'Contemporary Straight Kitchen',
+      image: 'https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg',
       type: 'Straight',
     },
     {
       id: 3,
-      title: 'Sleek Serenity Modern Kitchen Design',
-      image: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d',
+      title: 'Luxury Island Kitchen',
+      image: 'https://images.pexels.com/photos/1599791/pexels-photo-1599791.jpeg',
       type: 'Straight Island',
     },
     {
       id: 4,
-      title: 'Nordic Wood Kitchen Design',
-      image: 'https://images.unsplash.com/photo-1556910638-64dc96845c3d',
+      title: 'Minimalist Parallel Kitchen',
+      image: 'https://images.pexels.com/photos/2635038/pexels-photo-2635038.jpeg',
       type: 'Parallel',
     },
     {
       id: 5,
-      title: 'Urban Grey Kitchen Suite',
-      image: 'https://images.unsplash.com/photo-1556911261-6bd341186b2f',
+      title: 'Modern U-Shaped Kitchen',
+      image: 'https://images.pexels.com/photos/3935325/pexels-photo-3935325.jpeg',
       type: 'U-Shaped',
     },
     {
       id: 6,
-      title: 'Modern Luxury Kitchen',
-      image: 'https://images.unsplash.com/photo-1556909190-eccf4a8bf97a',
+      title: 'Contemporary L-Shaped Island Kitchen',
+      image: 'https://images.pexels.com/photos/7061674/pexels-photo-7061674.jpeg',
       type: 'L-Shaped Island',
     },
     {
       id: 7,
-      title: 'Contemporary Open Plan Kitchen',
-      image: 'https://images.unsplash.com/photo-1556912173-3bb406ef7e77',
+      title: 'Spacious U-Shaped Island Kitchen',
+      image: 'https://images.pexels.com/photos/7061665/pexels-photo-7061665.jpeg',
       type: 'U-shaped Island',
     },
   ];
@@ -106,10 +105,6 @@ export default function DesignTabs() {
              alt={design.title}
              className="w-full h-64 object-cover"
            />
-           {/* Heart Icon */}
-           <button className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white shadow-sm transition">
-            <Heart className='text-gray-600'/>
-           </button>
            {/* Dots */}
            <div className="absolute bottom-4 left-4 flex space-x-1">
              {[...Array(5)].map((_, i) => (
@@ -123,7 +118,7 @@ export default function DesignTabs() {
          {/* Title & Button */}
          <div className="p-4 flex items-center justify-between">
            <h3 className="text-sm font-medium text-gray-800">{design.title}</h3>
-           <Button onClick={() => navigate('/get-estimate')} variant="default" className="text-sm px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-500 hover:text-white  transition">
+           <Button onClick={() => navigate('/kitchen-estimate')} variant="default" className="text-sm px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-500 hover:text-white  transition">
              Get Quote
            </Button>
          </div>

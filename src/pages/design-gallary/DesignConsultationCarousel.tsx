@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IoMdClose } from 'react-icons/io';
+import ContactForm from '@/components/Forms/ContactForm';
 
 export default function DesignConsultationCarousel() {
   const [activeStep, setActiveStep] = useState(1);
@@ -16,6 +18,7 @@ export default function DesignConsultationCarousel() {
 
   // Direction for animations
   const [direction, setDirection] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const nextStep = () => {
     if (activeStep < steps.length) {
@@ -154,6 +157,7 @@ export default function DesignConsultationCarousel() {
                   transition={{ duration: 0.2 }}
                 >
                   <motion.button 
+                   onClick={()=>setModalOpen(true)}
                     className="bg-red-600 text-white font-bold py-3 px-6 rounded-md hover:bg-red-700 transition text-sm sm:text-base"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -393,6 +397,37 @@ export default function DesignConsultationCarousel() {
           />
         ))}
       </div>
+
+
+
+
+      {modalOpen && <motion.div
+            initial={{ scale: 0.5 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 flex items-center justify-center p-4 z-[999]"
+          >
+            <div className="relative bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+                aria-label="Close modal"
+              >
+                <IoMdClose className="w-6 h-6" />
+              </button>
+
+              <div className="p-6">
+
+                <ContactForm />
+              </div>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-red-500 text-xs text-center w-full underline mb-4"
+              >
+                close
+              </button>
+            </div>
+          </motion.div>}
     </div>
   );
 }

@@ -22,8 +22,6 @@ const COLORS = [
 
 const MobilePieChart: React.FC<MobilePieChartProps> = ({ 
   data: inputData,
-  width = 300,
-  height = 300
 }) => {
   // Map input data to our enhanced color scheme
   const data = inputData.map((item, index) => ({
@@ -99,7 +97,7 @@ const MobilePieChart: React.FC<MobilePieChartProps> = ({
             label={renderCustomizedLabel}
             labelLine={false}
           >
-            {data.map((entry, index) => (
+            {data.map(( index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={`url(#gradient-${index})`}

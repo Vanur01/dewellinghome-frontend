@@ -1,44 +1,37 @@
+import { useEffect } from 'react';
 import InteriorDesignTemplate from '../components/InteriorDesignTemplate';
 import { BsShieldCheck, BsCalendarCheck, BsAward, BsTools } from "react-icons/bs";
+import useGalleryStore from '../store/public/gallery.store';
 
 const WardrobeInteriorDesign = () => {
-  const galleryItems = [
-    {
-      id: 1,
-      image: "https://images.unsplash.com/photo-1600585152220-90363fe7e115",
-      title: "Contemporary Oasis Bedroom Design",
-      size: "13' X 12'",
-    },
-    {
-      id: 2,
-      image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf",
-      title: "Luminous Loft Master Bedroom Design",
-      size: "13' X 12'",
-    },
-    {
-      id: 3,
-      image: "https://images.unsplash.com/photo-1558997519-83c9716c8d08",
-      title: "Stately in Greige Walk-in Wardrobe",
-      size: "13' X 12'",
-    },
-    {
-      id: 4,
-      image: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0",
-      title: "Modern Pattern Bedroom Design",
-      size: "12' X 12'",
-    },
-    {
-      id: 5,
+  const { getDesignsByCategory, categoryDesigns, loading, error } = useGalleryStore();
+
+  useEffect(() => {
+    getDesignsByCategory('wardrobe');
+  }, [getDesignsByCategory]);
+
+  const galleryItems:any = categoryDesigns['wardrobe']?.map(design => ({
+    id: design._id,
+    image: design.images[0]?.url,
+    title: design.title,
+    description: design.description
+  })) || [];
+
+  // Add the special item for 45 days delivery
+  if (galleryItems.length >= 4) {
+    galleryItems.splice(4, 0, {
+      id: 'special-delivery',
       special: true,
       days: 45,
-    },
-    {
-      id: 6,
-      image: "https://images.unsplash.com/photo-1571843439991-dd2b8e051966",
-      title: "Contemporary Hallway Design",
-      size: "8' X 14'",
-    },
-  ];
+      specialDescription: "Transform your space with our expert design team. Get started with a free consultation.",
+      specialFeatures: [
+        "Professional design consultation",
+        "3D visualization",
+        "Custom material selection",
+        "Expert installation"
+      ]
+    });
+  }
 
   const serviceFeatures = [
     {
@@ -78,6 +71,8 @@ const WardrobeInteriorDesign = () => {
       galleryItems={galleryItems}
       serviceFeatures={serviceFeatures}
       estimateCardTitle="Personalized walk-in wardrobe delivered in just 45 days"
+      loading={loading}
+      error={error}
     />
   );
 };

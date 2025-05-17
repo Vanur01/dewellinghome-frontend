@@ -4,6 +4,7 @@ import { useProjectStore } from '../../../store/user/ProjectStore';
 import { useUserProgressStore } from '../../../store/user/ProgressStore';
 import { useEffect } from 'react';
 import { Calendar, MapPin, Clock, User, Phone, Mail, Home, ArrowRight ,IndianRupee} from 'lucide-react';
+import { getImageUrl } from '@/utils/Image';
 
 ChartJS.register(ArcElement, Title, Tooltip, Legend);
 
@@ -154,7 +155,7 @@ const ProjectDetails = () => {
             {currentProject.gallery.map((image, index) => (
               <div key={index} className="aspect-square">
                 <img
-                  src={image}
+                  src={getImageUrl(image)}
                   alt={`Project image ${index + 1}`}
                   className="w-full h-full object-cover rounded-lg"
                 />
@@ -212,7 +213,7 @@ const ProjectDetails = () => {
                 {entry.images.map((image, photoIndex) => (
                   <div key={photoIndex} className="group relative">
                     <img
-                      src={image}
+                      src={getImageUrl(image)}
                       alt={`Progress update ${photoIndex + 1}`}
                       className="w-full h-48 object-cover rounded-lg"
                     />

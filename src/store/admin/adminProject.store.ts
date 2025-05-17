@@ -14,6 +14,7 @@ export interface ProjectItem {
 
 export interface Project {
   _id: string;
+  paymentSchedule:string;
   clientId: {
     _id: string;
     name: string;

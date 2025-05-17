@@ -5,25 +5,25 @@ const SpaceSavingFurniture = () => {
   const galleryItems = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc",
+      image: "https://images.pexels.com/photos/6580227/pexels-photo-6580227.jpeg",
       title: "Convertible Sofa Bed",
       size: "78\" x 38\"",
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1522155174216-12bb19132151",
+      image: "https://images.pexels.com/photos/6580228/pexels-photo-6580228.jpeg",
       title: "Wall-Mounted Desk",
       size: "48\" x 24\"",
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1540518614846-7eded433c457",
+      image: "https://images.pexels.com/photos/6580229/pexels-photo-6580229.jpeg",
       title: "Murphy Bed System",
       size: "85\" x 64\"",
     },
     {
       id: 4,
-      image: "https://images.unsplash.com/photo-1595514535415-dae8570b0ce0",
+      image: "https://images.pexels.com/photos/6580230/pexels-photo-6580230.jpeg",
       title: "Expandable Dining Table",
       size: "30-60\" x 36\"",
     },
@@ -34,7 +34,7 @@ const SpaceSavingFurniture = () => {
     },
     {
       id: 6,
-      image: "https://images.unsplash.com/photo-1597072689227-8882273e8f6a",
+      image: "https://images.pexels.com/photos/6580231/pexels-photo-6580231.jpeg",
       title: "Modular Storage Unit",
       size: "72\" x 84\"",
     },
@@ -71,7 +71,7 @@ const SpaceSavingFurniture = () => {
 
   return (
     <InteriorDesignTemplate
-      heroImage="https://interiorworld.net.in/wp-content/uploads/2021/12/space-saving-furniture-4.jpg"
+      heroImage="https://images.pexels.com/photos/6580226/pexels-photo-6580226.jpeg"
       heroTitle="Space-Saving Furniture Solutions"
       breadcrumbSection="Space-Saving Furniture"
       description={description}

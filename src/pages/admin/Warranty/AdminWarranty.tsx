@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Search, Edit2, Trash2, Loader2, Filter } from 'lucide-react';
-import { useAdminWarrantyStore, WarrantyClaim } from '../../store/admin/adminWarranty.store';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
-import { Button } from '../../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Textarea } from '../../components/ui/textarea';
-import { Input } from '../../components/ui/input';
+import { Search, Edit2, Trash2, Loader2, Filter, Eye } from 'lucide-react';
+import { useAdminWarrantyStore, WarrantyClaim } from '../../../store/admin/adminWarranty.store';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../../components/ui/dialog';
+import { Button } from '../../../components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Textarea } from '../../../components/ui/textarea';
+import { Input } from '../../../components/ui/input';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import {
   Table,
   TableBody,
@@ -16,7 +16,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../../components/ui/table';
+} from '../../../components/ui/table';
+import ViewWarrantyClaim from './ViewWarrantyClaim';
 
 const AdminWarranty = () => {
   const { claims, loading, error, filters, fetchClaims, updateClaimStatus, deleteClaim, setFilters } = useAdminWarrantyStore();
@@ -27,6 +28,7 @@ const AdminWarranty = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<WarrantyClaim['status']>('pending');
   const [adminNotes, setAdminNotes] = useState('');
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   useEffect(() => {
     if(claims.length === 0){
@@ -201,6 +203,16 @@ const AdminWarranty = () => {
                             size="icon"
                             onClick={() => {
                               setSelectedClaim(claim);
+                              setIsViewDialogOpen(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedClaim(claim);
                               setNewStatus(claim.status);
                               setAdminNotes(claim.adminNotes);
                               setIsUpdateDialogOpen(true);
@@ -282,6 +294,13 @@ const AdminWarranty = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Warranty Claim Dialog */}
+      <ViewWarrantyClaim
+        claim={selectedClaim}
+        isOpen={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+      />
     </div>
   );
 };

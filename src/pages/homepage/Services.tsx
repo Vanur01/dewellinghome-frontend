@@ -5,9 +5,9 @@ import {
   BsAward,
   BsTools,
 } from "react-icons/bs";
-import ContactForm from '../../components/Forms/ContactForm';
+import ContactForm from "../../components/Forms/ContactForm";
 import { IoMdClose } from "react-icons/io";
-import { motion} from 'framer-motion';
+import { motion } from "framer-motion";
 
 export default function InteriorDesignServices() {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
@@ -75,10 +75,11 @@ export default function InteriorDesignServices() {
 
           {/* Modal */}
           <motion.div
-          initial={{scale:0.5}}
-          animate={{scale:1}}
-          transition={{duration:0.2}}
-          className="fixed inset-0 flex items-center justify-center p-4">
+            initial={{ scale: 0.5 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 flex items-center justify-center p-4"
+          >
             <div className="relative bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out">
               <button
                 onClick={() => setModalOpen(false)}
@@ -91,11 +92,7 @@ export default function InteriorDesignServices() {
               <div className="p-6">
                 <p className="text-xl mb-6 text-gray-900">Meet a Designer</p>
 
-                <ContactForm
-                  onSubmit={() => {
-                    setModalOpen(false);
-                  }}
-                />
+                <ContactForm />
               </div>
               <button
                 onClick={() => setModalOpen(false)}

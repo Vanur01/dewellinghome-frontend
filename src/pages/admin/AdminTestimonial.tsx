@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { Loader2, Pencil, Plus, Star, Trash2, Youtube } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Testimonial } from "../../utils/api";
+import { getImageUrl } from "@/utils/Image";
 
 interface FormData {
   name: string;
@@ -266,7 +267,7 @@ export default function AdminTestimonial() {
                     {(imagePreview || formData.currentImage) && (
                       <div className="mt-2">
                         <img
-                          src={imagePreview || formData.currentImage}
+                          src={editingId ? getImageUrl(imagePreview) : imagePreview || formData.currentImage}
                           alt="Testimonial"
                           className="w-full max-w-[200px] h-auto rounded-md object-cover"
                         />

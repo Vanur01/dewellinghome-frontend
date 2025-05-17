@@ -10,7 +10,7 @@ interface ReferSectionProps {
 
 const ReferSection: React.FC<ReferSectionProps> = ({
   title = "Loved us? Now refer us!",
-  description = "Refer and earn ₹ 10,000 every time your friends try HomeLane.",
+  description = "Refer and earn ₹ 10,000 every time your friends try DewellingHome.",
   buttonText = "Refer Now",
   onButtonClick = () => {},
   Icon

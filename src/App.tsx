@@ -4,7 +4,7 @@ import RootLayout from "./components/RootLayout";
 import Dashboard from "./pages/user/Dashboard";
 import WarrantyClaimPage from "./pages/user/Warranty";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminWarranty from "./pages/admin/AdminWarranty";
+import AdminWarranty from "./pages/admin/Warranty/AdminWarranty";
 import AdminProjects from "./pages/admin/Projects/AdminProjects";
 import AdminUsers from "./pages/admin/AdminUsers";
 import ModularKitchen from "./pages/modular-kitchen/Home";
@@ -46,6 +46,11 @@ import PaymentDetails from "./pages/admin/Payment/PaymentDetails";
 import PaymentScheduleDetails from "./pages/user/Payment/PaymentScheduleDetails";
 import Transactions from "./pages/user/Transactions/Transactions";
 import AdminTransactionsTable from "./pages/admin/Transactions/AdminTransactions";
+import TeamPage from "./pages/TeamPage";
+import ContactUsPage from "./pages/ContactUsPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsandConditions";
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
   const { restoreSession, isLoading } = useAuthStore();
@@ -54,7 +59,6 @@ function App() {
   useEffect(() => {
     const startTime = Date.now();
     const minimumLoadingTime = 2000; // 2 seconds minimum display time
-    console.log('isLoading', isLoading);
 
     restoreSession()
       .catch((error) => {
@@ -90,7 +94,7 @@ function App() {
           <Route path="/kitchen-estimate" element={<KitchenEstimate />} />
 
           {/* User-Protected Routes */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute allowedRoles={['client']}/>}>
             <Route path="/dashboard" element={<Dashboard />}>
               <Route path="projects" element={<Projects />} />
               <Route path="profile" element={<Profile />} />
@@ -108,7 +112,7 @@ function App() {
           </Route>
 
           {/* Admin-Protected Routes */}
-          <Route element={<ProtectedRoute requireAdmin />}>
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
             <Route path="/admin" element={<AdminDashboard />}>
               <Route path="warranty" element={<AdminWarranty />} />
               <Route path="projects" element={<AdminProjects />} />
@@ -139,7 +143,7 @@ function App() {
 
           {/* Still Public */}
           <Route path="modular-kitchen" element={<ModularKitchen />} />
-          <Route path="design-gallary" element={<DesignGallary />} />
+          <Route path="design-gallery" element={<DesignGallary />} />
           <Route path="wardrobe" element={<WardrobeInteriorDesign />} />
           <Route path="bedroom" element={<BedroomInteriorDesign />} />
           <Route path="living-room" element={<LivingroomInteriorDesign />} />
@@ -148,6 +152,13 @@ function App() {
             path="space-saving-furniture"
             element={<SpaceSavingFurniture />}
           />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="contact-us" element={<ContactUsPage />} />
+          {/* privacy policy page */}
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+
         </Route>
       </Routes>
     </Router>

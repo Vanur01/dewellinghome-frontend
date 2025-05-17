@@ -39,7 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { projectApi } from '@/utils/api';
+
 
 interface User {
   _id: string;
@@ -355,8 +355,6 @@ const CreateProject = () => {
         formData.append('images', file);
       });
 
-      // Create project with all data
-      const response = await createProject(formData);
       
       // Cleanup preview URLs
       imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));

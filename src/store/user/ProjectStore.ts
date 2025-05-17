@@ -8,6 +8,7 @@ interface Project {
   status: 'planning' | 'designing' | 'in_progress' | 'completed' | 'on_hold';
   startDate: Date;
   estimatedEndDate: Date;
+  paymentSchedule: string;
   budget: number;
   notes?: string;
   items?: Array<{

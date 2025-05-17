@@ -13,7 +13,6 @@ import {
   Home,
   Shield,
   CreditCard,
-  Clock,
   ChevronRight,
   Upload,
   Pencil,
@@ -21,6 +20,7 @@ import {
   Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '@/utils/Image';
 
 const Profile: React.FC = () => {
   const { profile, isLoading, fetchProfile, updateProfile, isUpdating, updateError, clearError } = useProfileStore();
@@ -194,7 +194,7 @@ const Profile: React.FC = () => {
                   />
                 ) : profile.image ? (
                   <img
-                    src={profile.image}
+                    src={getImageUrl(profile.image)}
                     alt={profile.name || 'Profile'}
                     className="w-full h-full object-cover"
                   />

@@ -5,6 +5,7 @@ import { useTestimonialsStore } from '../../store/public/Testimonials.store';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './Reviews.css';
+import { getImageUrl } from '@/utils/Image';
 
 interface ArrowProps {
   onClick?: () => void;
@@ -16,6 +17,7 @@ const Reviews: React.FC = () => {
   useEffect(() => {
     fetchPublishedTestimonials();
   }, [fetchPublishedTestimonials]);
+
 
   const CustomPrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
     return (
@@ -92,7 +94,7 @@ const Reviews: React.FC = () => {
                 <div className="overflow-hidden h-full flex flex-col">
                   <div className="aspect-w-16 aspect-h-9 flex-shrink-0">
                     <img
-                      src={testimonial.image || 'https://via.placeholder.com/400x300?text=No+Image'}
+                      src={getImageUrl(testimonial.image) || 'https://via.placeholder.com/400x300?text=No+Image'}
                       alt={testimonial.name}
                       className="w-full h-48 object-cover rounded-lg"
                     />

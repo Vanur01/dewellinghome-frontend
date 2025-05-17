@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getImageUrl } from "@/utils/Image";
 
 const statusOptions = [
   { value: "planning", label: "Planning" },
@@ -590,7 +591,7 @@ const EditProject = () => {
                     {formData.gallery.map((imageUrl, index) => (
                       <div key={index} className="relative group">
                         <img
-                          src={imageUrl}
+                          src={getImageUrl(imageUrl)}
                           alt={`Gallery image ${index + 1}`}
                           className="w-full h-48 object-cover rounded-lg"
                         />

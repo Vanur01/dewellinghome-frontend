@@ -13,7 +13,7 @@ export interface WarrantyClaim {
     project: string;
     item: string;
     description: string;
-    image: string;
+    images: string[];
     status: 'pending' | 'in-review' | 'approved' | 'rejected' | 'resolved';
     adminNotes: string;
     createdAt: string;

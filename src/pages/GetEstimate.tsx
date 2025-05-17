@@ -103,7 +103,18 @@ export default function GetEstimate() {
 
   const canProceedToNextStep = () => {
     if (currentStage === 'contact') {
-      return userDetails?.name && userDetails?.email && userDetails?.phone;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return userDetails?.name && 
+             userDetails?.email && 
+             userDetails?.phone && 
+             userDetails?.address && 
+             userDetails?.pincode &&
+             // Add validation checks
+             userDetails.name.trim().length >= 2 &&
+             emailRegex.test(userDetails.email) && // Use stricter email validation
+             /^\d{10}$/.test(userDetails.phone) &&
+             userDetails.address.trim().length >= 5 &&
+             /^\d{6}$/.test(userDetails.pincode);
     }
     if (currentStage === 'requirements') {
       return isRequirementsValid;

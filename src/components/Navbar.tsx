@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 const Navbar = () => {
   const menuItems = [
-    { name: "Design Gallery", href: "design-gallary" },
+    { name: "Design Gallery", href: "design-gallery" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
     { name: "Bedroom", href: "bedroom" },
     { name: "Living Room", href: "living-room" },
   ];
 
   const FullMenuItems = [
-    { name: "Design Gallery", href: "design-gallary" },
+    { name: "Design Gallery", href: "design-gellery" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
     { name: "Wardrobe", href: "wardrobe" },
     { name: "Bedroom", href: "bedroom" },
@@ -29,7 +29,7 @@ const Navbar = () => {
               alt="DwellingHome Logo"
             />
             <h2 className="text-xl font-poppins tracking-tight">
-              <span className="font-semibold text-gray-700">Dwelling</span>
+              <span className="font-semibold text-gray-700">Dewelling</span>
               <span className="font-medium text-red-600">Home</span>
             </h2>
           </Link>

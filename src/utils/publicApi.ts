@@ -55,6 +55,9 @@ export const publicGalleryApi = {
 
   getSpecificDesign: (galleryId: string, designId: string) =>
     publicApi.get<{ data: Design }>(`/gallery/${galleryId}/designs/${designId}`),
+
+  getDesignsByCategory: (category: string) =>
+    publicApi.get(`/gallery/category/${category}/designs`),
 };
 
 export const publicTestimonialApi = {

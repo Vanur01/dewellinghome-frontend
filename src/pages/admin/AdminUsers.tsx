@@ -39,14 +39,12 @@ import {
   RefreshCw,
   UserPlus,
   Edit,
-  Divide,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -91,7 +89,7 @@ const AdminUsersPage = () => {
     password: "",
     phone: "",
     address: "",
-    role: "client",
+    role: "client" as "client" | "admin",
   });
 
   const [editFormData, setEditFormData] = useState({
@@ -99,6 +97,7 @@ const AdminUsersPage = () => {
     email: "",
     phone: "",
     address: "",
+    role: "client" as "client" | "admin",
   });
 
   useEffect(() => {
@@ -114,6 +113,7 @@ const AdminUsersPage = () => {
         email: selectedUser.email,
         phone: selectedUser.phone,
         address: selectedUser.address,
+        role: selectedUser.role,
       });
     }
   }, [selectedUser, editDialogOpen]);

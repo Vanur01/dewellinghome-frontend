@@ -35,8 +35,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     { name: 'Warranty Claim', path: '/dashboard/warranty', icon: <Shield className="w-5 h-5" /> },
     { name: 'Refer & Earn', path: '/dashboard/refer&earn', icon: <Send className="w-5 h-5" /> },
     { name: 'Payment', path: '/dashboard/payment', icon: <CreditCard className="w-5 h-5" /> },
-    { name: 'Transactions', path: '/dashboard/transactions', icon:  Wallet},
-
+    { name: 'Transactions', path: '/dashboard/transactions', icon: <Wallet className="w-5 h-5" /> },
   ];
 
   const adminMenuItems = [
@@ -48,7 +47,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     { name: 'Inquiries', path: '/admin/inquiries', icon: <MessageSquare className="w-5 h-5" /> },
     { name: 'Gallery', path: '/admin/gallery', icon: <Image className="w-5 h-5" /> },
     { name: 'Testimonials', path: '/admin/testimonials', icon: <Star className="w-5 h-5" /> },
-    { name: 'Transactions', path: '/admin/transactions', icon:  Wallet},
+    { name: 'Transactions', path: '/admin/transactions', icon: <Wallet className="w-5 h-5" /> },
   ];
 
   const mainMenuItems = [
@@ -61,15 +60,12 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   ];
 
   const quickLinks = [
-    { name: "Partner with DwellingHome", path: "/partner" },
-    { name: "Refer and Earn", path: "/refer" },
-    { name: "Join Us", path: "/careers" },
+    { name: "Refer and Earn", path: "/refer&earn" },
+    { name: "Our Team", path: "/team"}
   ];
 
   const supportItems = [
-    { name: "Contact Us", path: "/contact" },
-    { name: "Help Center", path: "/help" },
-    { name: "Live Chat", path: "/chat" },
+    { name: "Contact Us", path: "/contact-us" }
   ];
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
@@ -96,7 +92,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
             <div className="sticky top-0 bg-white z-[999] p-5 flex items-center justify-between border-b border-gray-200">
               <Link to={'/'} className="flex items-center gap-3" onClick={onClose}>
                 <img className='w-16' src='/images/Dwelling_home.png' alt="Logo"/>
-                <h2 className="text-xl font-semibold text-gray-800">Dwelling Home</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Dewelling Home</h2>
               </Link>
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -195,7 +191,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
                                 : 'text-gray-700 hover:bg-red-50 hover:text-red-600'}
                             `}
                           >
-                            {item.icon}
+                            <>{item.icon}</>
                             <span className="ml-3">{item.name}</span>
                           </Link>
                         </motion.div>

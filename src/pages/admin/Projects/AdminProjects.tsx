@@ -39,7 +39,6 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Link } from 'react-router-dom';
-import { useAuthStore } from "@/store/auth.store";
 
 const statusOptions = [
   { value: "planning", label: "Planning" },

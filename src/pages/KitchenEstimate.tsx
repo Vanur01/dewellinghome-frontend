@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Info, Minus, Plus, ChevronLeft, PencilIcon } from 'lucide-react';
+import { ChevronRight, Minus, Plus, ChevronLeft, PencilIcon } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -15,6 +15,7 @@ import ContactKitchenForm from '@/components/Forms/ContactStepForm';
 import InquiryStore from '@/store/public/InquiryStore';
 import { inquiryApi } from '@/utils/api';
 import { toast } from 'sonner';
+import {LShapeDiagram, ParallelDiagram, StraightDiagram, UShapeDiagram } from '@/utils/Icons';
 
 const steps = [
   { id: 1, name: 'Contact Information' },
@@ -43,7 +44,8 @@ export default function KitchenConfigurator() {
   const [wallCHeight, setWallCHeight] = useState('8');
   const [wallCHeightInch, setWallCHeightInch] = useState('0');
   const [cabinetMaterial, setCabinetMaterial] = useState('Particle Board');
-  const [shutterMaterial, setShutterMaterial] = useState('Particle Board Matte Laminate');
+  const [shutterMaterial, setShutterMaterial] = useState('BWP Ply Matte Laminate');
+  const [carcassMaterial, setCarcassMaterial] = useState('HDHMR Ply Matte Laminate');
   const [accessories, setAccessories] = useState({
     detergentHolder: 1,
     bottlePullOut: 1,
@@ -202,6 +204,7 @@ export default function KitchenConfigurator() {
       },
       cabinetMaterial,
       shutterMaterial,
+      carcassMaterial,
       accessories
     };
     setKitchenConfiguration(kitchenConfig);
@@ -210,7 +213,7 @@ export default function KitchenConfigurator() {
     wallALength, wallAInch, wallAHeight, wallAHeightInch,
     wallBLength, wallBInch, wallBHeight, wallBHeightInch,
     wallCLength, wallCInch, wallCHeight, wallCHeightInch,
-    cabinetMaterial, shutterMaterial,
+    cabinetMaterial, shutterMaterial, carcassMaterial,
     accessories
   ]);
 
@@ -383,6 +386,7 @@ export default function KitchenConfigurator() {
               <div className="space-y-1">
                 <p><span className="font-medium">Cabinet Material:</span> {cabinetMaterial}</p>
                 <p><span className="font-medium">Shutter Material:</span> {shutterMaterial}</p>
+                <p><span className="font-medium">Carcass Material:</span> {carcassMaterial}</p>
               </div>
             </div>
 
@@ -555,19 +559,8 @@ export default function KitchenConfigurator() {
                   <div className="grid grid-cols-4 gap-4">
                     {/* L-Shape Layout */}
                     <div className="flex flex-col items-center">
-                      <div className="border p-2 mb-4 w-full h-32 flex justify-center items-center">
-                        <svg width="100" height="80" viewBox="0 0 100 80">
-                          <text x="5" y="10" className="text-xs">Wall B</text>
-                          <rect x="10" y="15" width="80" height="10" fill="none" stroke="#000" />
-                          <rect x="20" y="15" width="10" height="10" fill="none" stroke="#000" />
-                          <rect x="40" y="15" width="10" height="10" fill="none" stroke="#000" />
-                          <rect x="70" y="15" width="20" height="10" fill="none" stroke="#000" />
-                          
-                          <text x="5" y="45" className="text-xs">Wall A</text>
-                          <rect x="10" y="50" width="10" height="30" fill="none" stroke="#000" />
-                          <rect x="10" y="50" width="10" height="10" fill="none" stroke="#000" />
-                          <rect x="10" y="70" width="10" height="10" fill="none" stroke="#000" />
-                        </svg>
+                      <div className="border p-2 mb-4 w-full h-36 flex justify-center items-center">
+                      <LShapeDiagram className="w-full max-w-md h-auto" />
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroup value={kitchenShape} onValueChange={setKitchenShape} className="flex">
@@ -581,19 +574,8 @@ export default function KitchenConfigurator() {
 
                     {/* U-Shape Layout */}
                     <div className="flex flex-col items-center">
-                      <div className="border p-2 mb-4 w-full h-32 flex justify-center items-center">
-                        <svg width="100" height="80" viewBox="0 0 100 80">
-                          <text x="5" y="10" className="text-xs">Wall B</text>
-                          <rect x="10" y="15" width="80" height="10" fill="none" stroke="#000" />
-                          <rect x="30" y="15" width="20" height="10" fill="none" stroke="#000" />
-                          
-                          <text x="5" y="45" className="text-xs">Wall A</text>
-                          <rect x="10" y="50" width="10" height="30" fill="none" stroke="#000" />
-                          <rect x="10" y="50" width="10" height="10" fill="none" stroke="#000" />
-
-                          <text x="85" y="45" className="text-xs">Wall C</text>
-                          <rect x="80" y="50" width="10" height="30" fill="none" stroke="#000" />
-                        </svg>
+                      <div className="border p-2 mb-4 w-full h-36 flex justify-center items-center">
+                      <UShapeDiagram className="w-full max-w-md h-auto" />
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroup value={kitchenShape} onValueChange={setKitchenShape} className="flex">
@@ -607,17 +589,9 @@ export default function KitchenConfigurator() {
 
                     {/* Parallel Layout */}
                     <div className="flex flex-col items-center">
-                      <div className="border p-2 mb-4 w-full h-32 flex justify-center items-center">
-                        <svg width="100" height="80" viewBox="0 0 100 80">
-                          <text x="5" y="10" className="text-xs">Wall A</text>
-                          <rect x="10" y="15" width="80" height="10" fill="none" stroke="#000" />
-                          <rect x="30" y="15" width="10" height="10" fill="none" stroke="#000" />
-                          <rect x="50" y="15" width="10" height="10" fill="none" stroke="#000" />
-                          
-                          <text x="5" y="55" className="text-xs">Wall B</text>
-                          <rect x="10" y="60" width="80" height="10" fill="none" stroke="#000" />
-                          <rect x="20" y="60" width="10" height="10" fill="none" stroke="#000" />
-                        </svg>
+                      <div className="border p-2 mb-4 w-full h-36 flex justify-center items-center">
+                      <ParallelDiagram className="w-full max-w-md h-auto" />
+
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroup value={kitchenShape} onValueChange={setKitchenShape} className="flex">
@@ -631,15 +605,9 @@ export default function KitchenConfigurator() {
 
                     {/* Straight Layout */}
                     <div className="flex flex-col items-center">
-                      <div className="border p-2 mb-4 w-full h-32 flex justify-center items-center">
-                        <svg width="100" height="80" viewBox="0 0 100 80">
-                          <text x="5" y="40" className="text-xs">Wall A</text>
-                          <rect x="10" y="40" width="80" height="10" fill="none" stroke="#000" />
-                          <circle cx="20" cy="45" r="5" fill="none" stroke="#000" />
-                          <circle cx="40" cy="45" r="5" fill="none" stroke="#000" />
-                          <rect x="60" y="40" width="10" height="10" fill="none" stroke="#000" />
-                          <rect x="80" y="40" width="10" height="10" fill="none" stroke="#000" />
-                        </svg>
+                      <div className="border p-2 mb-4 w-full h-36 flex justify-center items-center">
+                      <StraightDiagram className="w-full max-w-md h-auto" />
+
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroup value={kitchenShape} onValueChange={setKitchenShape} className="flex">
@@ -825,7 +793,6 @@ export default function KitchenConfigurator() {
               <Card>
                 <CardHeader className="border-b flex flex-row justify-between">
                   <CardTitle className="text-base font-semibold">Step 3 : Cabinet Material</CardTitle>
-                  <Info className="h-5 w-5 text-red-500" />
                 </CardHeader>
                 <CardContent className="pt-6 pb-4">
                   <Select value={cabinetMaterial} onValueChange={setCabinetMaterial}>
@@ -842,11 +809,10 @@ export default function KitchenConfigurator() {
                 </CardContent>
               </Card>
 
-              {/* Step 4: Shutter Material & Finish */}
+              {/* Step 4: Shutter Material  */}
               <Card>
                 <CardHeader className="border-b flex flex-row justify-between">
-                  <CardTitle className="text-base font-semibold">Step 4 : Shutter Material & Finish</CardTitle>
-                  <Info className="h-5 w-5 text-red-500" />
+                  <CardTitle className="text-base font-semibold">Step 4 : Shutter Material</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 pb-4">
                   <Select value={shutterMaterial} onValueChange={setShutterMaterial}>
@@ -854,19 +820,35 @@ export default function KitchenConfigurator() {
                       <SelectValue placeholder="Select shutter material" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Particle Board Matte Laminate">Particle Board Matte Laminate</SelectItem>
-                      <SelectItem value="Particle Board Glossy Laminate">Particle Board Glossy Laminate</SelectItem>
-                      <SelectItem value="MDF Matte Finish">MDF Matte Finish</SelectItem>
-                      <SelectItem value="MDF Glossy Finish">MDF Glossy Finish</SelectItem>
+                      <SelectItem value="BWP Ply Matte Laminate">BWP Ply Matte Laminate</SelectItem>
+                      <SelectItem value="BWP Ply Gloss Laminate">BWP Ply Gloss Laminate</SelectItem>
                     </SelectContent>
                   </Select>
                 </CardContent>
               </Card>
 
-              {/* Step 5: Accessories */}
+              {/* Step 5: Carcass Material */}
+              <Card>
+                <CardHeader className="border-b flex flex-row justify-between">
+                  <CardTitle className="text-base font-semibold">Step 5 : Carcass Material</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 pb-4">
+                  <Select value={carcassMaterial} onValueChange={setCarcassMaterial}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select carcuss material" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HDHMR Ply Matte Laminate">HDHMR Ply Matte Laminate</SelectItem>
+                      <SelectItem value="HDHMR Ply Gloss Laminate">HDHMR Ply Gloss Laminate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              {/* Step 6: Accessories */}
               <Card>
                 <CardHeader className="border-b">
-                  <CardTitle className="text-base font-semibold">Step 5 : Accessories</CardTitle>
+                  <CardTitle className="text-base font-semibold">Step 6 : Accessories</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 pb-4">
                   <div className="relative px-6">

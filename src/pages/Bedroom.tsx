@@ -5,25 +5,25 @@ const BedroomInteriorDesign = () => {
   const galleryItems = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?ixlib=rb-4.0.3",
+      image: "https://images.pexels.com/photos/3754595/pexels-photo-3754595.jpeg",
       title: "Modern Minimalist Bedroom",
       size: "14' X 12'",
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1540518614846-7eded433c457?ixlib=rb-4.0.3",
+      image: "https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg",
       title: "Luxurious Master Suite",
       size: "16' X 14'",
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1669119992363-5a0c17c6a509?ixlib=rb-4.0.3",
+      image: "https://images.pexels.com/photos/3144580/pexels-photo-3144580.jpeg",
       title: "Contemporary Kids Bedroom",
       size: "12' X 10'",
     },
     {
       id: 4,
-      image: "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?ixlib=rb-4.0.3",
+      image: "https://images.pexels.com/photos/3701434/pexels-photo-3701434.jpeg",
       title: "Rustic Guest Bedroom",
       size: "12' X 12'",
     },
@@ -34,7 +34,7 @@ const BedroomInteriorDesign = () => {
     },
     {
       id: 6,
-      image: "https://images.unsplash.com/photo-1635428025262-d52ee9b54882?ixlib=rb-4.0.3",
+      image: "https://images.pexels.com/photos/1648768/pexels-photo-1648768.jpeg",
       title: "Scandinavian Style Bedroom",
       size: "14' X 12'",
     },
@@ -71,7 +71,7 @@ const BedroomInteriorDesign = () => {
 
   return (
     <InteriorDesignTemplate
-      heroImage="https://images.unsplash.com/photo-1560448075-bb485b067938?ixlib=rb-4.0.3"
+      heroImage="https://images.pexels.com/photos/1743231/pexels-photo-1743231.jpeg"
       heroTitle="Bedroom Interior Design"
       breadcrumbSection="Bedroom"
       description={description}

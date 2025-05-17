@@ -18,15 +18,9 @@ interface ArrowProps {
 const videos: VideoData[] = [
   {
     id: 1,
-    url: 'https://www.youtube.com/embed/OzUkvzyBttA',
-    title: 'Modern Living Room Design',
+    url: 'https://www.youtube.com/embed/U21NKJnV33k?si=w8qug-sehn_Rt2Us',
+    title: 'Modern Home Interior Design',
     description: 'Explore contemporary living room interior design ideas.'
-  },
-  {
-    id: 2,
-    url: 'https://www.youtube.com/embed/gxMUrIh5FtI?si=_hbF4JVBogkGgZqB',
-    title: 'Elegant Kitchen Interior',
-    description: 'Discover beautiful kitchen design concepts and layouts.'
   },
 ];
 
@@ -57,7 +51,7 @@ const PrevArrow = (props: ArrowProps) => {
 const VideoSlider: React.FC = () => {
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: videos.length > 1,  // Only enable infinite when multiple videos exist
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,

@@ -35,6 +35,7 @@ import {
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ConfirmDialog } from "@/components/admin/ProjectProgress/ConfirmDialog";
+import { getImageUrl } from "@/utils/Image";
 
 const statusColors = {
   planning: "bg-purple-100 text-purple-800",
@@ -47,14 +48,20 @@ const statusColors = {
 const ViewProject = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentProject, loading, error, fetchProjectById, deleteProject } = useProjectStore();
-  const { progressEntries, loading: progressLoading, pagination, fetchProjectProgress } = useProgressStore();
+  const { currentProject, loading, error, fetchProjectById, deleteProject } =
+    useProjectStore();
+  const {
+    progressEntries,
+    loading: progressLoading,
+    pagination,
+    fetchProjectProgress,
+  } = useProgressStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchProjectById(id);
-      fetchProjectProgress(id,1,2);
+      fetchProjectProgress(id, 1, 2);
     }
   }, [id, fetchProjectById, fetchProjectProgress]);
 
@@ -123,7 +130,9 @@ const ViewProject = () => {
         <div className="flex gap-3">
           <Button
             variant="outline"
-            onClick={() => navigate(`/admin/projects/edit/${currentProject._id}`)}
+            onClick={() =>
+              navigate(`/admin/projects/edit/${currentProject._id}`)
+            }
           >
             Edit Project
           </Button>
@@ -154,7 +163,7 @@ const ViewProject = () => {
                   {currentProject.status
                     .replace("_", " ")
                     .split("_")
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ")}
                 </Badge>
               </div>
@@ -172,7 +181,9 @@ const ViewProject = () => {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-1">Estimated Completion</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  Estimated Completion
+                </p>
                 <p className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   {formatDate(currentProject.estimatedEndDate)}
@@ -254,10 +265,10 @@ const ViewProject = () => {
                   {currentProject.gallery.map((image, index) => (
                     <div key={index} className="relative aspect-square group">
                       <img
-                        src={image}
+                        src={getImageUrl(image)}
                         alt={`Project image ${index + 1}`}
                         className="w-full h-full object-cover rounded-lg"
-                      /> 
+                      />
                     </div>
                   ))}
                 </div>
@@ -272,7 +283,9 @@ const ViewProject = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate(`/admin/projects/${currentProject._id}/gallery`)}
+                onClick={() =>
+                  navigate(`/admin/projects/edit/${currentProject._id}`)
+                }
               >
                 Manage Gallery
               </Button>
@@ -283,11 +296,15 @@ const ViewProject = () => {
           <Card>
             <CardHeader>
               <CardTitle>Notes</CardTitle>
-              <CardDescription>Additional project information and remarks</CardDescription>
+              <CardDescription>
+                Additional project information and remarks
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {currentProject.notes ? (
-                <p className="whitespace-pre-wrap text-gray-700">{currentProject.notes}</p>
+                <p className="whitespace-pre-wrap text-gray-700">
+                  {currentProject.notes}
+                </p>
               ) : (
                 <p className="text-center py-4 text-gray-500">No notes added</p>
               )}
@@ -299,11 +316,15 @@ const ViewProject = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle>Daily Progress</CardTitle>
-                <CardDescription>Track the daily progress of this project</CardDescription>
+                <CardDescription>
+                  Track the daily progress of this project
+                </CardDescription>
               </div>
               <Button
                 variant="outline"
-                onClick={() => navigate(`/admin/projects/${currentProject._id}/progress`)}
+                onClick={() =>
+                  navigate(`/admin/projects/${currentProject._id}/progress`)
+                }
               >
                 Add Progress
               </Button>
@@ -316,28 +337,43 @@ const ViewProject = () => {
               ) : progressEntries && progressEntries.length > 0 ? (
                 <div className="space-y-6">
                   {progressEntries.map((progress) => (
-                    <div key={progress._id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <div
+                      key={progress._id}
+                      className="border-b pb-4 last:border-b-0 last:pb-0"
+                    >
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                         <div className="space-y-1">
-                          <h3 className="font-medium text-lg">{progress.title}</h3>
+                          <h3 className="font-medium text-lg">
+                            {progress.title}
+                          </h3>
                           <p className="text-sm text-gray-500 flex items-center gap-2">
                             <Calendar className="h-3 w-3" />
                             {formatDate(progress.date)}
                             <span className="text-gray-400">•</span>
-                            <span className="text-gray-500">by {progress.postedBy.name}</span>
+                            <span className="text-gray-500">
+                              by {progress.postedBy.name}
+                            </span>
                           </p>
                         </div>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 self-start">
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 self-start"
+                        >
                           {progress.completionPercentage}% Complete
                         </Badge>
                       </div>
-                      <p className="text-gray-700 mb-3">{progress.description}</p>
+                      <p className="text-gray-700 mb-3">
+                        {progress.description}
+                      </p>
                       {progress.images && progress.images.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {progress.images.map((image, imgIndex) => (
-                            <div key={imgIndex} className="relative aspect-square">
+                            <div
+                              key={imgIndex}
+                              className="relative aspect-square"
+                            >
                               <img
-                                src={image}
+                                src={getImageUrl(image)}
                                 alt={`Progress image ${imgIndex + 1}`}
                                 className="w-full h-full object-cover rounded-md"
                               />
@@ -354,17 +390,19 @@ const ViewProject = () => {
                   <p>No daily progress updates yet</p>
                 </div>
               )}
-              {progressEntries && progressEntries.length > 0 && pagination.totalPages > 1 && (
-                <div className="mt-4 flex justify-center">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => navigate(`/admin/projects/${id}/progress`)}
-                  >
-                    View All Progress ({pagination.totalItems} entries)
-                  </Button>
-                </div>
-              )}
+              {progressEntries &&
+                progressEntries.length > 0 &&
+                pagination.totalPages > 1 && (
+                  <div className="mt-4 flex justify-center">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate(`/admin/projects/${id}/progress`)}
+                    >
+                      View All Progress ({pagination.totalItems} entries)
+                    </Button>
+                  </div>
+                )}
             </CardContent>
           </Card>
         </div>
@@ -405,7 +443,9 @@ const ViewProject = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate(`/admin/clients/${currentProject.clientId._id}`)}
+                onClick={() =>
+                  navigate(`/admin/clients/${currentProject.clientId._id}`)
+                }
               >
                 View Client Profile
               </Button>
@@ -418,18 +458,48 @@ const ViewProject = () => {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full bg-red-500 hover:bg-red-700" onClick={() => navigate(`/admin/projects/edit/${currentProject._id}`)}>
+              <Button
+                className="w-full bg-red-500 hover:bg-red-700"
+                onClick={() =>
+                  navigate(`/admin/projects/edit/${currentProject._id}`)
+                }
+              >
                 Add New Item
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate(`/admin/projects/${currentProject._id}/progress`)}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  navigate(`/admin/projects/${currentProject._id}/progress`)
+                }
+              >
                 View Progress
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate(`/admin/payments/new?projectId=${currentProject._id}`)}>
-                Create Payment Schedule
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate(`/admin/payments/${currentProject._id}`)}>
-                View Payments
-              </Button>
+              {!currentProject.paymentSchedule ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    navigate(
+                      `/admin/payments/new?projectId=${currentProject._id}`
+                    )
+                  }
+                >
+                  Create Payment Schedule
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    navigate(
+                      `/admin/payments/${currentProject.paymentSchedule}`
+                    )
+                  }
+                >
+                  View Payments
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -259,6 +259,7 @@ export interface KitchenConfiguration {
   wallDimensions: WallDimensions;
   cabinetMaterial: string;
   shutterMaterial: string;
+  carcassMaterial: string;
   accessories: Record<string, number>;
 }
 
@@ -278,8 +279,8 @@ export const inquiryApi = {
     address: string;
     message?: string;
     countryCode?: string;
-    homeType: string;
-    purpose: string;
+    homeType?: string;
+    purpose?: string;
     items?: InquiryItem[];
     kitchenConfiguration?: KitchenConfiguration;
   }) => api.post("/inquiries", data),
@@ -363,7 +364,7 @@ export const userApi = {
     password: string;
     phone: string;
     address: string;
-    role: "admin" | "client";
+    role?: "admin" | "client";
   }) => api.post("/users", data),
 
   updateUser: (

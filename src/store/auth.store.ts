@@ -85,7 +85,6 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authApi.refresh();
           const { accessToken } = response.data.data;
-          console.log(response.data.data);
           
           if (!accessToken) {
             set(initialState);

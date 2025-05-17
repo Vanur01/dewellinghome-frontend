@@ -179,7 +179,7 @@ const AdminReferrals = () => {
 
   // Handle page change
   const handlePageChange = useCallback((newPage) => {
-    const filters = {};
+    const filters:any = {};
     if (searchQuery) filters[filterType] = searchQuery;
     if (statusFilter) filters.status = statusFilter;
     

@@ -4,6 +4,7 @@ import { useProjectStore } from '../../../store/user/ProjectStore';
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '@/utils/Image';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -124,7 +125,7 @@ const ProgressDetails = () => {
                   {entry.images.map((image, photoIndex) => (
                     <div key={photoIndex} className="group relative">
                       <img
-                        src={image}
+                        src={getImageUrl(image)}
                         alt={`Progress update ${photoIndex + 1}`}
                         className="w-full h-48 object-cover rounded-lg"
                       />
