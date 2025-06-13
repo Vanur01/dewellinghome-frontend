@@ -31,16 +31,18 @@ const ProtectedRoute = ({ allowedRoles }: Props) => {
     return <LoadingScreen />;
   }
 
+  // Redirect unauthenticated users directly to login
   if (!isAuthenticated) {
     return (
       <Navigate
-        to="/unauthorized"
+        to="/login"
         replace
-        state={{ from: location.pathname, reason: 'notLoggedIn' }}
+        state={{ from: location.pathname }}
       />
     );
   }
 
+  // Show Unauthorized page for authenticated users with wrong role
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     const reason =
       user?.role === 'admin' ? 'notClient' :

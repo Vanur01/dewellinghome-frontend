@@ -64,7 +64,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
   fetchUserProjects: async (params) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await projectApi.getUserProjects(params);
+      const response = await projectApi.getUserProjects( params);
       set({
         projects: response.data.projects,
         totalPages: response.data.pagination.totalPages,

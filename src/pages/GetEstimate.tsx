@@ -2,7 +2,7 @@ import RequirementForm from '../components/Forms/RequirementForm';
 import ContactStepForm from '../components/Forms/ContactStepForm';
 import enquiryStore from '../store/public/InquiryStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { CheckCircle2, Calendar, PhoneCall, ClipboardList, User, Mail, Phone, MapPin, ChevronRight, ChevronLeft } from 'lucide-react';
 import { inquiryApi } from '../utils/api';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +40,8 @@ export default function GetEstimate() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRequirementsValid, setIsRequirementsValid] = useState(false);
+  const [isUserValid, setIsuservalid] = useState(false);
+
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -61,14 +63,18 @@ export default function GetEstimate() {
     }
   };
 
-  const handleContactComplete = () => {
-    setCurrentStage('requirements');
-  };
+  // const handleContactComplete = () => {
+  //   setCurrentStage('requirements');
+  // };
 
-  const handleRequirementsValidation = (isValid: boolean) => {
+  const handleRequirementsValidation = useCallback((isValid: boolean) => {
     setIsRequirementsValid(isValid);
-  };
+  }, []);
 
+  const handleUserValidation = useCallback((isValid: boolean) => {
+    setIsuservalid(isValid);
+  }, []);
+  
   const handleFinalSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -103,21 +109,10 @@ export default function GetEstimate() {
 
   const canProceedToNextStep = () => {
     if (currentStage === 'contact') {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return userDetails?.name && 
-             userDetails?.email && 
-             userDetails?.phone && 
-             userDetails?.address && 
-             userDetails?.pincode &&
-             // Add validation checks
-             userDetails.name.trim().length >= 2 &&
-             emailRegex.test(userDetails.email) && // Use stricter email validation
-             /^\d{10}$/.test(userDetails.phone) &&
-             userDetails.address.trim().length >= 5 &&
-             /^\d{6}$/.test(userDetails.pincode);
+      return isUserValid
     }
     if (currentStage === 'requirements') {
-      return isRequirementsValid;
+      return isRequirementsValid 
     }
     return true;
   };
@@ -130,7 +125,7 @@ export default function GetEstimate() {
     const currentIndex = getCurrentStepIndex();
     if (currentIndex < steps.length - 1 && canProceedToNextStep()) {
       if (currentStage === 'contact') {
-        handleContactComplete();
+        setCurrentStage('requirements');
       } else if (currentStage === 'requirements') {
         if (projectDetails?.items && projectDetails.items.length > 0 && 
             projectDetails.homeType && projectDetails.purpose) {
@@ -371,7 +366,7 @@ export default function GetEstimate() {
             <p className="text-sm text-gray-600">
               Have questions? Contact us at{" "}
               <a href="tel:+919876543210" className="text-red-600 font-medium hover:text-red-700 transition-colors">
-                +91 98765 43210
+                +91 8328973166
               </a>
             </p>
 
@@ -414,7 +409,7 @@ export default function GetEstimate() {
               )}
 
               {currentStage === 'contact' && (
-                <ContactStepForm onComplete={handleContactComplete} />
+                <ContactStepForm onUserValidationChange={handleUserValidation}/>
               )}
               {currentStage === 'requirements' && (
                 <RequirementForm 

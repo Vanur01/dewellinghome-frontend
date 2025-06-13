@@ -17,8 +17,9 @@ const WarrantyClaimPage = () => {
   const [images, setImages] = useState<File[]>([]);
   const [description, setDescription] = useState("");
 
+
   useEffect(() => {
-    fetchUserClaims();
+      fetchUserClaims();
   }, [fetchUserClaims]);
 
   useEffect(() => {

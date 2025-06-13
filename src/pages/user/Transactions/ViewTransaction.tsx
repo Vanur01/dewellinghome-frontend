@@ -4,12 +4,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../components/ui/dialog";
-import { useTransactionStore } from "../../../store/user/TransactionStore";
 import { Badge } from "../../../components/ui/badge";
 import { CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
-import { Transaction } from "@/utils/api";
+import { useEffect } from "react";
+import { useTransactionStore } from "@/store/transaction.store";
 
 interface ViewTransactionProps {
   isOpen: boolean;
@@ -18,21 +17,15 @@ interface ViewTransactionProps {
 }
 
 export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransactionProps) {
-  const { getTransactionById } = useTransactionStore();
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { getTransactionById, selectedTransaction, loading, clearSelectedTransaction } = useTransactionStore();
 
   useEffect(() => {
-    const loadTransaction = async () => {
-      if (isOpen && transactionId) {
-        setLoading(true);
-        const result = await getTransactionById(transactionId);
-        setTransaction(result);
-        setLoading(false);
-      }
-    };
-    loadTransaction();
-  }, [isOpen, transactionId, getTransactionById]);
+    if (isOpen && transactionId) {
+      getTransactionById(transactionId);
+    } else {
+      clearSelectedTransaction();
+    }
+  }, [isOpen, transactionId, getTransactionById, clearSelectedTransaction]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -64,32 +57,32 @@ export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransact
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : transaction ? (
+        ) : selectedTransaction ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Payment ID</p>
-                <p className="text-sm font-medium">{transaction.razorpay_payment_id}</p>
+                <p className="text-sm font-medium">{selectedTransaction.razorpay_payment_id}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Amount</p>
-                <p className="text-sm font-medium">{formatCurrency(transaction.amount)}</p>
+                <p className="text-sm font-medium">{formatCurrency(selectedTransaction.amount)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <div>{getStatusBadge(transaction.status)}</div>
+                <div>{getStatusBadge(selectedTransaction.status)}</div>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
-                <p className="text-sm font-medium">{transaction.method}</p>
+                <p className="text-sm font-medium">{selectedTransaction.method}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Project</p>
-                <p className="text-sm font-medium">{transaction.projectId.title}</p>
+                <p className="text-sm font-medium">{selectedTransaction.projectId.title}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Paid On</p>
-                <p className="text-sm font-medium">{format(new Date(transaction.paidAt), "PPP")}</p>
+                <p className="text-sm font-medium">{format(new Date(selectedTransaction.paidAt), "PPP")}</p>
               </div>
             </div>
           </div>

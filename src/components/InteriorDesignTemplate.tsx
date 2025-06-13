@@ -5,43 +5,42 @@ import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "@/utils/Image";
 
-interface GalleryItem {
-  id: string | number;
-  image?: string;
-  title?: string;
-  size?: string;
-  special?: boolean;
-  days?: number;
-  specialDescription?: string;
-  specialFeatures?: string[];
-  description?: string;
-}
+// interface GalleryItem {
+//   id: string | number;
+//   image?: string;
+//   title?: string;
+//   size?: string;
+//   special?: boolean;
+//   days?: number;
+//   specialDescription?: string;
+//   specialFeatures?: string[];
+//   description?: string;
+// }
 
-interface ServiceFeature {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
+// interface ServiceFeature {
+//   icon: React.ReactNode;
+//   title: string;
+//   description: string;
+// }
 
-interface InteriorDesignTemplateProps {
-  heroImage: string;
-  heroTitle: string;
-  breadcrumbSection: string;
-  description: string[];
-  galleryItems?: GalleryItem[];
-  serviceFeatures?: ServiceFeature[];
-  estimateCardTitle?: string;
-  loading?: boolean;
-  error?: string | null;
-}
+// interface InteriorDesignTemplateProps {
+//   heroImage: string;
+//   heroTitle: string;
+//   breadcrumbSection: string;
+//   description: string[];
+//   galleryItems?: GalleryItem[];
+//   serviceFeatures?: ServiceFeature[];
+//   estimateCardTitle?: string;
+//   loading?: boolean;
+//   error?: string | null;
+// }
 
-const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
+const InteriorDesignTemplate:any = ({
   heroImage,
   heroTitle,
   breadcrumbSection,
   description,
   galleryItems = [],
-  serviceFeatures,
   estimateCardTitle,
   loading,
   error,
@@ -82,12 +81,10 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
             {heroTitle}
           </h1>
         </div>
-        {/* Contact Form Section */}
-        <div className="relative -mt-36 container mx-auto px-4 md:px-8 lg:px-16 xl:px-20">
-          <div className="absolute right-0 bg-white p-4 md:px-6 md:py-8 w-full md:w-[400px] min-w-[350px] shadow-lg rounded-lg">
+          {/* Contact Form Section */}
+          <div className="hidden absolute right-24 -bottom-28 bg-white p-4 md:px-6 md:py-8 w-full md:w-[400px] min-w-[350px] shadow-lg rounded-lg">
             <ContactForm />
           </div>
-        </div>
       </div>
 
       {/* Breadcrumb Navigation */}
@@ -118,15 +115,15 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
               {galleryItems.map((item, index) => (
                 <div
                   key={index}
-                  className="relative rounded overflow-hidden shadow-md"
+                  className="relative rounded overflow-hidden shadow-md "
                 >
                   {!item.special ? (
                     <>
-                      <div className="relative">
+                      <div className="relative group">
                         <img
                           src={getImageUrl(item.image)}
                           alt={item.title}
-                          className="w-full h-64 object-cover"
+                          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         {/* Pagination dots for image sliders */}
                         <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-1">
@@ -136,16 +133,24 @@ const InteriorDesignTemplate: React.FC<InteriorDesignTemplateProps> = ({
                         </div>
                       </div>
                       <div className="p-4 bg-white">
-                        <h3 className="font-medium text-lg text-gray-800">
-                          {item.title}
-                        </h3>
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-medium text-lg text-gray-800 transition-colors duration-300 group-hover:text-red-500">
+                            {item.title}
+                          </h3>
+                          <Button
+                            onClick={() => navigate("/get-estimate")}
+                            className="bg-white border-1 text-red-500 border-red-500 hover:bg-red-600 hover:text-white flex items-center gap-1 px-3 py-1 rounded-md text-sm"
+                          >
+                            Get Quote
+                          </Button>
+                        </div>
                         {item.size && (
-                          <p className="text-gray-600">Size | {item.size}</p>
+                          <p className="text-gray-600 mt-2">Size | {item.size}</p>
                         )}
                       </div>
                     </>
                   ) : (
-                    <div className="bg-white p-6 flex flex-col h-full justify-between min-h-[320px] border border-gray-200 rounded-lg hover:border-red-300 transition-all duration-300">
+                    <div className="bg-white p-6 flex flex-col h-full justify-between min-h-[320px] border border-gray-200 rounded-lg hover:border-red-300 transition-all duration-300 hover:shadow-lg hover:bg-red-50/30">
                       <div className="space-y-6">
                         <div className="flex items-start gap-3">
                           <Sparkles className="w-6 h-6 text-red-500 mt-1" />

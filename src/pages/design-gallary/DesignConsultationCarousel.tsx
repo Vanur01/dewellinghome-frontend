@@ -11,8 +11,8 @@ export default function DesignConsultationCarousel() {
     { id: 1, title: "Design Consultation", description: "Share your ideas and floor plan to receive personalised 3D designs and an instant quote." },
     { id: 2, title: "Design Review", description: "Review your personalized designs and make any necessary adjustments." },
     { id: 3, title: "Final Approval", description: "Approve your final design and prepare for the next steps." },
-    { id: 4, title: "Production", description: "We manufacture your custom furniture according to your approved design." },
-    { id: 5, title: "Delivery Scheduling", description: "We coordinate a convenient delivery time that works with your schedule." },
+    { id: 4, title: "Material Acquisition & Implementation", description: "We manufacture your custom furniture according to your approved design." },
+    { id: 5, title: "Project Handover", description: "We coordinate a convenient handover time that works with your schedule." },
     { id: 6, title: "Move-In", description: "Our team delivers and installs your furniture in your space." }
   ];
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { usePaymentStore } from '@/store/user/PaymentStore';
-import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building, AlertTriangle } from 'lucide-react';
+import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building, AlertTriangle, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -26,15 +26,19 @@ interface Milestone {
 
 export default function PaymentScheduleDetails() {
   const { projectId } = useParams();
-  const { currentSchedule, loading, getPaymentScheduleByProject } = usePaymentStore();
+  const navigate = useNavigate();
+  const { currentSchedule, loading, getPaymentScheduleByProject ,clearSchedule} = usePaymentStore();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [milestonesWithPreviousDues, setMilestonesWithPreviousDues] = useState<Array<Milestone & { previousDues: number }>>([]);
 
   useEffect(() => {
+    clearSchedule();
     if (projectId) {
-      getPaymentScheduleByProject(projectId);
+      getPaymentScheduleByProject(projectId).catch((error) => {
+        clearSchedule();
+      });
     }
-  }, [projectId]);
+  }, [projectId, getPaymentScheduleByProject]);
 
   // Calculate previous dues for each milestone
   useEffect(() => {
@@ -105,6 +109,34 @@ export default function PaymentScheduleDetails() {
 
   const completionPercentage = (currentSchedule.totalPaid / currentSchedule.totalProjectValue) * 100;
   const currentMilestone = currentSchedule?.milestones.find(m => m.slNo === currentSchedule.currentMilestone);
+  const paymentActions = [];
+
+  // Add Pay Now button if there's remaining amount
+  if (currentSchedule?.totalRemaining > 0) {
+    paymentActions.push(
+      <Button 
+        key="pay"
+        onClick={() => setIsPaymentModalOpen(true)}
+        className="bg-red-500 hover:bg-red-600"
+      >
+        <IndianRupee className="h-4 w-4 mr-2" />
+        Pay Now
+      </Button>
+    );
+  }
+
+  // Add View Transactions button
+  paymentActions.push(
+    <Button 
+      key="transactions"
+      variant="outline"
+      onClick={() => navigate(`/dashboard/projects/${projectId}/transactions`)}
+      className="border-gray-200"
+    >
+      <History className="h-4 w-4 mr-2" />
+      View Transactions
+    </Button>
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -127,15 +159,9 @@ export default function PaymentScheduleDetails() {
                 <span className="text-lg font-medium">Project Payment Details</span>
               </div>
             </div>
-            {currentSchedule?.totalRemaining > 0 && (
-              <Button 
-                onClick={() => setIsPaymentModalOpen(true)}
-                className="bg-red-500 hover:bg-red-600"
-              >
-                <IndianRupee className="h-4 w-4 mr-2" />
-                Pay Now
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {paymentActions}
+            </div>
           </div>
 
           {/* Project Info */}
@@ -353,7 +379,6 @@ export default function PaymentScheduleDetails() {
                             </span>
                             {milestone.previousDues > 0 && (
                               <div className="group relative">
-                                <AlertTriangle className="h-4 w-4 text-red-500 cursor-help" />
                                 <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-white shadow-lg rounded-md border border-gray-200 text-xs text-gray-700 invisible group-hover:visible z-10">
                                   Includes ₹{milestone.previousDues.toLocaleString('en-IN')} from previous unpaid milestones
                                 </div>

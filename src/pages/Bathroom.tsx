@@ -5,27 +5,27 @@ const BathroomInteriorDesign = () => {
   const galleryItems = [
     {
       id: 1,
-      image: "https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg",
-      title: "Modern Spa-like Bathroom",
-      size: "8' X 6'",
+      image: "https://super.homelane.com/Nera%20Bathroom/1681379115910b60be0c57fe0-HLKT00000842_batch-3-800x600_19-main.jpg",
+      title: "Monochrome Marvel Bathroom Design",
+
     },
     {
       id: 2,
-      image: "https://images.pexels.com/photos/6585761/pexels-photo-6585761.jpeg",
-      title: "Luxury Master Bathroom",
-      size: "10' X 8'",
+      image: "https://super.homelane.com/Nera%20Bathroom/1681203312305779436e031f3-HLKT00000825_batch-3-800x600_15-main.jpg",
+      title: "Luxury Terrazzo Lagoon Bathroom Design Bathroom",
+
     },
     {
       id: 3,
-      image: "https://images.pexels.com/photos/7319316/pexels-photo-7319316.jpeg",
-      title: "Contemporary Guest Bath",
-      size: "6' X 5'",
+      image: "https://super.homelane.com/Nera%20Bathroom/1681198945791cad1a97c2a26-HLKT00000824_batch-3-800x600_29-main.jpg",
+      title: "Contemporary Guest Enchanted Garden Bathroom Design",
+
     },
     {
       id: 4,
-      image: "https://images.pexels.com/photos/6585754/pexels-photo-6585754.jpeg",
-      title: "Minimalist Powder Room",
-      size: "5' X 4'",
+      image: "https://super.homelane.com/Nera%20Bathroom/163230056353048a7bd10d435-HLKT00000749_9-main.jpg",
+      title: "Spruce Mirrored Bathroom Cabinet with Sliding Shutters",
+
     },
     {
       id: 5,
@@ -34,9 +34,23 @@ const BathroomInteriorDesign = () => {
     },
     {
       id: 6,
-      image: "https://images.pexels.com/photos/6585751/pexels-photo-6585751.jpeg",
-      title: "Classic Family Bathroom",
-      size: "8' X 7'",
+      image: "https://super.homelane.com/Nera%20Bathroom/1632300235527e073fde6423e-HLKT00000748_12-main.jpg",
+      title: "Dapper Bathroom Cabinet with Open Storage",
+    },
+    {
+      id: 7,
+      image: "https://super.homelane.com/Nera%20Bathroom/163229810927569e341ff8d3c-HLKT00000739_2-main.jpg",
+      title: "Elegance Single Shutter Mirrored Bathroom Cabinet",
+    },
+    {
+      id: 8,
+      image: "https://super.homelane.com/Nera%20Bathroom/1632299074637edd329a30cc8-HLKT00000744_6-main.jpg",
+      title: "Radiance 3-Shutter Mirrored Bathroom Cabinet",
+    },
+    {
+      id: 9,
+      image: "https://super.homelane.com/Nera%20Bathroom/163229887678665e9044a0a1b-HLKT00000743_5-main.jpg",
+      title: "Elementary Hidden Storage Bathroom Cabinet",
     },
   ];
 

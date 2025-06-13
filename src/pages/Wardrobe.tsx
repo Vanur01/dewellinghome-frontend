@@ -1,37 +1,9 @@
-import { useEffect } from 'react';
+import { wardrobeData } from '@/utils/ineteriorData';
 import InteriorDesignTemplate from '../components/InteriorDesignTemplate';
 import { BsShieldCheck, BsCalendarCheck, BsAward, BsTools } from "react-icons/bs";
-import useGalleryStore from '../store/public/gallery.store';
 
 const WardrobeInteriorDesign = () => {
-  const { getDesignsByCategory, categoryDesigns, loading, error } = useGalleryStore();
 
-  useEffect(() => {
-    getDesignsByCategory('wardrobe');
-  }, [getDesignsByCategory]);
-
-  const galleryItems:any = categoryDesigns['wardrobe']?.map(design => ({
-    id: design._id,
-    image: design.images[0]?.url,
-    title: design.title,
-    description: design.description
-  })) || [];
-
-  // Add the special item for 45 days delivery
-  if (galleryItems.length >= 4) {
-    galleryItems.splice(4, 0, {
-      id: 'special-delivery',
-      special: true,
-      days: 45,
-      specialDescription: "Transform your space with our expert design team. Get started with a free consultation.",
-      specialFeatures: [
-        "Professional design consultation",
-        "3D visualization",
-        "Custom material selection",
-        "Expert installation"
-      ]
-    });
-  }
 
   const serviceFeatures = [
     {
@@ -68,11 +40,9 @@ const WardrobeInteriorDesign = () => {
       heroTitle="Wardrobe Interior Design"
       breadcrumbSection="Wardrobe"
       description={description}
-      galleryItems={galleryItems}
+      galleryItems={wardrobeData}
       serviceFeatures={serviceFeatures}
       estimateCardTitle="Personalized walk-in wardrobe delivered in just 45 days"
-      loading={loading}
-      error={error}
     />
   );
 };

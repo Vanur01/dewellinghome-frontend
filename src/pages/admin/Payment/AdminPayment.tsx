@@ -142,7 +142,7 @@ export default function AdminPayment() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/admin/payments/${schedule._id}`)}
+                      onClick={() => navigate(`/admin/payments/${schedule.projectId._id}`)}
                     >
                       View Details
                     </Button>

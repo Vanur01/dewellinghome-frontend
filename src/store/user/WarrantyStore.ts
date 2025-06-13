@@ -21,7 +21,7 @@ interface WarrantyState {
     submitting: boolean;
 
     // Actions
-    fetchUserClaims: () => Promise<void>;
+    fetchUserClaims: () => Promise<void>; // <-- update signature
     createClaim: (data: FormData) => Promise<void>;
     resetError: () => void;
 }

@@ -24,7 +24,7 @@ const steps = [
 ];
 
 export default function KitchenConfigurator() {
-  const { userDetails, projectDetails, setKitchenConfiguration } = InquiryStore();
+  const { userDetails, projectDetails, setKitchenConfiguration ,resetEnquiryData} = InquiryStore();
   const [currentStep, setCurrentStep] = useState(() => userDetails.name ? 2 : 1);
   const [editingContact, setEditingContact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +66,7 @@ export default function KitchenConfigurator() {
   });
   
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [isUserValid, setIsUserValid] = useState(false);
   
   // Product data
   const accessoryProducts = [
@@ -259,6 +260,10 @@ export default function KitchenConfigurator() {
     }
   };
 
+  const handleuserValidationChange = (isValid) => {
+    setIsUserValid(isValid);
+  };
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -280,6 +285,7 @@ export default function KitchenConfigurator() {
 
       // Make the API call
       await inquiryApi.createInquiry(inquiryData);
+      
 
       // Show success message and set success state
       toast.success('Kitchen estimate request submitted successfully!');
@@ -290,6 +296,7 @@ export default function KitchenConfigurator() {
       toast.error('Failed to submit kitchen estimate request. Please try again.');
     } finally {
       setIsSubmitting(false);
+      resetEnquiryData();
     }
   };
 
@@ -413,10 +420,7 @@ export default function KitchenConfigurator() {
   const canProceedToNextStep = () => {
     if (currentStep === 1) {
       // Check if all required contact fields are filled
-      return userDetails.name && 
-             userDetails.email && 
-             userDetails.phone && 
-             userDetails.pincode;
+      return isUserValid
     }
     return true;
   };
@@ -514,7 +518,7 @@ export default function KitchenConfigurator() {
           {renderStepsIndicator()}
 
           {currentStep === 1 && (
-            <ContactKitchenForm isEditing={editingContact} />
+            <ContactKitchenForm isEditing={editingContact} onUserValidationChange={handleuserValidationChange} />
           )}
 
           {currentStep === 2 && (

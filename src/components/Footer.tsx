@@ -10,6 +10,26 @@ import { MdEmail } from "react-icons/md";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
+
+
+  const socialMediaIcons = [
+    {
+      icon: FaInstagram,
+      link:"https://www.instagram.com/dewelling.homes"
+    },
+    {
+      icon: FaYoutube,
+      link:"https://www.youtube.com/@DewellingHome"
+    },
+    {
+      icon: FaLinkedin,
+      link:"https://www.linkedin.com/company/dewellinghomes/"
+    },
+    {
+      icon: FaFacebookF,
+      link:"https://www.facebook.com/profile.php?id=100089446819851"
+    },
+  ]
   return (
     <footer className="bg-white border-t shadow-xl border-[0.1rem] border-gray-200 py-16">
       <div className="max-w-7xl mx-auto px-6">
@@ -33,13 +53,13 @@ const Footer = () => {
               Transforming spaces into extraordinary homes. Your vision, our expertise.
             </p>
             <div className="flex items-center gap-6">
-              {[FaInstagram, FaYoutube, FaPinterest, FaLinkedin, FaFacebookF].map((Icon, idx) => (
+              {socialMediaIcons.map((Icon, idx) => (
                 <a
                   key={idx}
-                  href="#"
+                  href={Icon.link}
                   className="text-gray-400 hover:text-gray-900 hover:scale-110 transform transition-all duration-300 text-xl"
                 >
-                  <Icon />
+                  <Icon.icon/>
                 </a>
               ))}
             </div>

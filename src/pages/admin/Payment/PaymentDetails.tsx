@@ -12,12 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, ArrowLeft, Bell, FileText, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Bell, FileText, AlertCircle, History } from "lucide-react";
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function PaymentDetails() {
-  const { scheduleId } = useParams();
+  const { projectId } = useParams();
   const navigate = useNavigate();
   const { 
     currentSchedule,
@@ -37,10 +37,10 @@ export default function PaymentDetails() {
 
   // Fetch payment schedule on mount
   useEffect(() => {
-    if (scheduleId) {
-      fetchScheduleById(scheduleId);
+    if (projectId) {
+      fetchScheduleById(projectId);
     }
-  }, [scheduleId]);
+  }, [projectId]);
 
   // Update edited values when schedule changes
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function PaymentDetails() {
 
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
-        await updateProjectValue(scheduleId!, editedValues.projectValue);
+        await updateProjectValue(currentSchedule._id!, editedValues.projectValue);
       }
 
       // Update milestone structure if changed
@@ -119,17 +119,17 @@ export default function PaymentDetails() {
       );
 
       if (structureChanged) {
-        await updatePaymentStructure(scheduleId!, editedValues.milestones);
+        await updatePaymentStructure(currentSchedule._id!, editedValues.milestones);
       }
 
       // Update current milestone if changed
       if (editedValues.currentMilestone !== currentSchedule?.currentMilestone) {
-        await updateCurrentMilestone(scheduleId!, editedValues.currentMilestone);
+        await updateCurrentMilestone(currentSchedule._id!, editedValues.currentMilestone);
       }
 
       setEditMode(false);
       toast.success('Payment schedule updated successfully');
-      fetchScheduleById(scheduleId!);
+      fetchScheduleById(projectId);
     } catch (error) {
       toast.error('Failed to update payment schedule');
       console.error('Error updating payment schedule:', error);
@@ -176,14 +176,24 @@ export default function PaymentDetails() {
           <div className="px-6 py-6">
             {/* Navigation and status */}
             <div className="flex items-center justify-between mb-6">
-              <Button
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50"
-                onClick={() => navigate(-1)}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Payments
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  className="border-red-200 text-red-600 hover:bg-red-50"
+                  onClick={() => navigate(-1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Payments
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/admin/projects/${currentSchedule.projectId._id}/transactions`)}
+                  className="flex items-center gap-2"
+                >
+                  <History className="h-4 w-4" />
+                  View Transaction History
+                </Button>
+              </div>
               <div className={cn(
                 "px-3 py-1 rounded-full text-sm font-medium",
                 totalRemaining === 0 
@@ -200,7 +210,7 @@ export default function PaymentDetails() {
                 <div className="flex items-center gap-3 text-gray-500 text-sm">
                   <span>Payment Schedule</span>
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                  <span className="font-mono">#{scheduleId}</span>
+                  <span className="font-mono">#{currentSchedule._id}</span>
                 </div>
                 <h1 className="text-2xl font-semibold text-gray-900 mt-1">
                   {currentSchedule.projectId.title}
@@ -465,7 +475,7 @@ export default function PaymentDetails() {
                       >
                         Edit Values
                       </Button>
-                      <div className="grid grid-cols-2 gap-3">
+                      {/* <div className="grid grid-cols-2 gap-3">
                         <Button 
                           variant="outline"
                           className="flex items-center justify-center gap-2 border-red-600 text-red-600 hover:bg-red-50"
@@ -479,7 +489,7 @@ export default function PaymentDetails() {
                           <FileText className="h-4 w-4" />
                           Generate Invoice
                         </Button>
-                      </div>
+                      </div> */}
                     </div>
                   ) : (
                     <div className="flex gap-3">

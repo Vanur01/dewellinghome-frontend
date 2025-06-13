@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -19,7 +19,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>('');
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
-  const { login } = useAuthStore();
+  const { login, user } = useAuthStore();
   const { isLoading }= useAuthStore();
   const navigate = useNavigate();
 
@@ -30,7 +30,6 @@ const Login: React.FC = () => {
       setError('');
       await login(data.email, data.password);
       toast.success('Login successful');
-      navigate('/');
     } catch (err) {
       toast.error('Login failed');
       if (err instanceof AxiosError) {
@@ -40,6 +39,17 @@ const Login: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+  
+    if (user.role === 'admin') {
+      navigate('/admin/projects');
+    } else {
+      navigate('/dashboard/profile');
+    }
+  }, [user]);
+  
 
   return (
     <div className="min-h-screen flex">

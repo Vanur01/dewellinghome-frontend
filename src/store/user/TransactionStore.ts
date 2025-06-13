@@ -17,12 +17,10 @@ interface TransactionState {
     status?: string;
   }) => Promise<void>;
   
-  getTransactionById: (id: string) => Promise<Transaction | null>;
-  
   reset: () => void;
 }
 
-export const useTransactionStore = create<TransactionState>((set, get) => ({
+export const useUserTransactionStore = create<TransactionState>((set) => ({
   transactions: [],
   isLoading: false,
   error: null,
@@ -45,19 +43,6 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to fetch transactions' });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  getTransactionById: async (id) => {
-    try {
-      set({ isLoading: true, error: null });
-      const response = await transactionApi.getTransactionById(id);
-      return response.data.data.transaction;
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : 'Failed to fetch transaction' });
-      return null;
     } finally {
       set({ isLoading: false });
     }

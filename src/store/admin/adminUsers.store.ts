@@ -8,6 +8,7 @@ interface User {
   phone: string;
   address: string;
   createdAt: string;
+  image?: string;
   role?: "admin" | "client";
 }
 

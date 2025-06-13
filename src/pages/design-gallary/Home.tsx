@@ -1,12 +1,14 @@
 import DesignSlider from "./DesignSlider";
 import DesignConsultationCarousel from "./DesignConsultationCarousel";
 import HeroSection from "./Hero";
-import {  WarrantyIcon,
+import {
   FourtyfiveIcon,
   NohiddencostIcons,
+  EmiIcon,
+  Flat10YearWarranty,
 } from "../../utils/Icons";
 import ServiceSection from "../modular-kitchen/ServiceSection";
-import GoogleReview from "./GoogleReview";
+// import GoogleReview from "./GoogleReview";
 import { ScrollReveal } from "../../components/ScrollReveal";
 import { Link } from "react-router-dom";
 
@@ -30,23 +32,23 @@ const estimateCards = [
 const service = [
   {
     img: <FourtyfiveIcon width={100} height={100} />,
-    label: "Delivery in 45 days",
+    label: "Handover in 65 days",
   },
   {
     img: <NohiddencostIcons width={100} height={100} />,
     label: "No hidden costs",
   },
   {
-    img: <WarrantyIcon width={100} height={100} />,
-    label: "F5at 10-year warranty",
+    img: <Flat10YearWarranty width={100} height={100} />,
+    label: "UPto 10-year warranty",
   },
-  { img: <FourtyfiveIcon width={100} height={100} />, label: "Easy EMIs" },
+  { img: <EmiIcon width={100} height={100} />, label: "Easy EMIs" },
 ];
 
 const DesignGallary = () => {
   return (
     <div>
-        <HeroSection />
+      <HeroSection />
 
       <section className="border-b border-gray-200">
         <div className="relative flex flex-col items-center justify-center px-6 py-28 gap-10 text-center">
@@ -58,10 +60,11 @@ const DesignGallary = () => {
           <ScrollReveal>
             <p className="text-[#555] max-w-4xl leading-relaxed text-justify text-base md:text-lg">
               Looking for that magical mix of style and function in your home
-              interior design? Our interior design experts craft spaces that spark
-              delight in every moment. With smart solutions that stretch your
-              space to wallet-friendly ideas that make real sense, our interior
-              designers have what it takes to create the most extraordinary homes.
+              interior design? Our interior design experts craft spaces that
+              spark delight in every moment. With smart solutions that stretch
+              your space to wallet-friendly ideas that make real sense, our
+              interior designers have what it takes to create the most
+              extraordinary homes.
             </p>
           </ScrollReveal>
 
@@ -72,8 +75,8 @@ const DesignGallary = () => {
 
             <p className="text-[#737373] max-w-xl leading-relaxed">
               Browse trending designs for kitchens, living rooms, and wardrobes.
-              Get inspired by the latest styles and find the perfect look for your
-              home.
+              Get inspired by the latest styles and find the perfect look for
+              your home.
             </p>
           </ScrollReveal>
 
@@ -86,7 +89,10 @@ const DesignGallary = () => {
       </section>
 
       <ScrollReveal>
-        <ServiceSection title="Why DewellingHome? Here's Why!" service={service} />
+        <ServiceSection
+          title="Why DewellingHome? Here's Why!"
+          service={service}
+        />
       </ScrollReveal>
 
       <section className="text-center bg-[#EDEAE5] py-24 px-4">
@@ -110,9 +116,9 @@ const DesignGallary = () => {
                   </h3>
                   <p className="text-gray-600 mb-4">{card.description}</p>
                   <Link to="/get-estimate">
-                  <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
-                    Get Free Estimate
-                  </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
+                      Get Free Estimate
+                    </button>
                   </Link>
                 </div>
               </div>
@@ -124,7 +130,7 @@ const DesignGallary = () => {
       <ScrollReveal>
         <DesignConsultationCarousel />
       </ScrollReveal>
-      
+
       {/* <ScrollReveal>
         <GoogleReview />
       </ScrollReveal> */}

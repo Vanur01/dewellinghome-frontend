@@ -1,38 +1,8 @@
-import { useEffect } from 'react';
+import { Livingroomdata } from '@/utils/ineteriorData';
 import InteriorDesignTemplate from '../components/InteriorDesignTemplate';
 import { BsShieldCheck, BsCalendarCheck, BsAward, BsTools } from "react-icons/bs";
-import useGalleryStore from '../store/public/gallery.store';
 
 const LivingroomInteriorDesign = () => {
-  const { getDesignsByCategory, categoryDesigns, loading, error } = useGalleryStore();
-
-  useEffect(() => {
-    getDesignsByCategory('living-room');
-  }, [getDesignsByCategory]);
-
-  const galleryItems:any = categoryDesigns['living-room']?.map(design => ({
-    id: design._id,
-    image: design.images[0]?.url,
-    title: design.title,
-    description: design.description
-  })) || [];
-
-  // Add the special item for 45 days delivery
-  if (galleryItems.length >= 4) {
-    galleryItems.splice(4, 0, {
-      id: 'special-delivery',
-      special: true,
-      days: 45,
-      specialDescription: "Transform your space with our expert design team. Get started with a free consultation.",
-      specialFeatures: [
-        "Professional design consultation",
-        "3D visualization",
-        "Custom material selection",
-        "Expert installation"
-      ]
-    });
-  }
-
   const serviceFeatures = [
     {
       icon: <BsShieldCheck className="text-red-500 w-10 h-10" />,
@@ -68,11 +38,9 @@ const LivingroomInteriorDesign = () => {
       heroTitle="Living Room Interior Design"
       breadcrumbSection="Living Room"
       description={description}
-      galleryItems={galleryItems}
+      galleryItems={Livingroomdata}
       serviceFeatures={serviceFeatures}
       estimateCardTitle="Your perfect living room delivered in just 45 days"
-      loading={loading}
-      error={error}
     />
   );
 };

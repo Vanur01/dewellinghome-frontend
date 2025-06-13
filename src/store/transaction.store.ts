@@ -1,34 +1,31 @@
 import { create } from 'zustand';
-import { transactionApi, Transaction } from '../../utils/api';
+import { Transaction, transactionApi } from '../utils/api';
 
-interface Pagination {
-  currentPage: number;
-  totalPages: number;
-  totalTransactions: number;
-  limit: number;
-}
-
-interface AdminTransactionState {
+interface TransactionState {
   transactions: Transaction[];
-  pagination: Pagination;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalTransactions: number;
+    limit: number;
+  };
   loading: boolean;
   error: string | null;
   selectedTransaction: Transaction | null;
   isViewModalOpen: boolean;
 
   // Actions
-  getAllTransactions: (params?: {
+  getProjectTransactions: (projectId: string, params?: {
     page?: number;
     limit?: number;
     status?: string;
-    paymentId?: string;
-    orderId?: string;
   }) => Promise<void>;
+  getTransactionById: (id: string) => Promise<void>;
   clearSelectedTransaction: () => void;
   clearError: () => void;
 }
 
-export const useAdminTransactionStore = create<AdminTransactionState>((set) => ({
+export const useTransactionStore = create<TransactionState>((set) => ({
   transactions: [],
   pagination: {
     currentPage: 1,
@@ -41,10 +38,10 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
   selectedTransaction: null,
   isViewModalOpen: false,
 
-  getAllTransactions: async (params) => {
+  getProjectTransactions: async (projectId, params) => {
     try {
       set({ loading: true, error: null });
-      const response = await transactionApi.getAllTransactions(params);
+      const response = await transactionApi.getProjectTransactions(projectId, params);
       const data = response.data.data;
       set({
         transactions: data?.transactions || [],
@@ -59,7 +56,24 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
     } catch (error) {
       set({
         transactions: [],
-        error: error instanceof Error ? error.message : 'Failed to fetch transactions',
+        error: error instanceof Error ? error.message : 'Failed to fetch project transactions',
+        loading: false,
+      });
+    }
+  },
+
+  getTransactionById: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await transactionApi.getTransactionById(id);
+      set({
+        selectedTransaction: response.data.data.transaction,
+        isViewModalOpen: true,
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to fetch transaction',
         loading: false,
       });
     }

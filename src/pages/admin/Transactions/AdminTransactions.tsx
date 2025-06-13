@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TransactionDetailsModal } from './TransactionDetails'
+import { useTransactionStore } from "@/store/transaction.store"
 
 export default function AdminTransactionsTable() {
   const [filterValue, setFilterValue] = useState("")
@@ -50,8 +51,8 @@ export default function AdminTransactionsTable() {
     pagination, 
     loading, 
     getAllTransactions,
-    getTransactionById
   } = useAdminTransactionStore();
+  const { getTransactionById} = useTransactionStore();
 
   // Initial data load
   useEffect(() => {

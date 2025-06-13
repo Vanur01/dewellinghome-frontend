@@ -7,25 +7,21 @@ const BedroomInteriorDesign = () => {
       id: 1,
       image: "https://images.pexels.com/photos/3754595/pexels-photo-3754595.jpeg",
       title: "Modern Minimalist Bedroom",
-      size: "14' X 12'",
     },
     {
       id: 2,
       image: "https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg",
       title: "Luxurious Master Suite",
-      size: "16' X 14'",
     },
     {
       id: 3,
       image: "https://images.pexels.com/photos/3144580/pexels-photo-3144580.jpeg",
       title: "Contemporary Kids Bedroom",
-      size: "12' X 10'",
     },
     {
       id: 4,
       image: "https://images.pexels.com/photos/3701434/pexels-photo-3701434.jpeg",
       title: "Rustic Guest Bedroom",
-      size: "12' X 12'",
     },
     {
       id: 5,
@@ -36,8 +32,23 @@ const BedroomInteriorDesign = () => {
       id: 6,
       image: "https://images.pexels.com/photos/1648768/pexels-photo-1648768.jpeg",
       title: "Scandinavian Style Bedroom",
-      size: "14' X 12'",
     },
+    {
+      id: 7,
+      image: "https://super.homelane.com/products/07dec18/homeinteriors/5.jpg",
+      title: "Pop Theme Home Interiors",
+    },
+    {
+      id: 8,
+      image: "https://super.homelane.com/Bedroom%20Wardrobes/1680587912476dc608e0c110e-HLKT00000770_Resized-800x600_1%20(1)-main.jpg",
+      title: "Grey-t Expectations Bedroom",
+    },
+    {
+      id: 9,
+      image: "https://super.homelane.com/Bedroom%20Wardrobes/1680589580503770e1a0c229f-HLKT00000774_Resized-800x600_7-main.jpg",
+      title: "Officially Fabulous Master Bedroom",
+    },
+
   ];
 
   const serviceFeatures = [

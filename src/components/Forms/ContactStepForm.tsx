@@ -36,12 +36,13 @@ interface ContactStepFormProps {
   isEditing?: boolean;
   onComplete?: () => void;
   initialData?: FormValues;
+  onUserValidationChange?: (isValid: boolean) => void;
 }
 
 export default function ContactStepForm({ 
   isEditing = false,
-  onComplete,
-  initialData 
+  initialData ,
+  onUserValidationChange
 }: ContactStepFormProps) {
   const { userDetails, setUserDetails } = InquiryStore();
 
@@ -69,16 +70,18 @@ export default function ContactStepForm({
     if (!isFormValid) {
       return;
     }
+    onUserValidationChange?.(true);
     setUserDetails(data);
-    if (onComplete) {
-      onComplete();
-    }
+    
   };
 
   // Add effect to update store only when form is valid
   useEffect(() => {
     if (isFormValid) {
       setUserDetails(formValues);
+      onUserValidationChange?.(true);
+    } else {
+      onUserValidationChange?.(false);
     }
   }, [isFormValid]);
 

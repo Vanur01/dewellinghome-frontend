@@ -30,7 +30,7 @@ const TeamPage = () => {
     {
       name: 'Pratyush Meher',
       position: 'Chief Operation Officer',
-      image: '../../public/images/pratyush.jpeg',
+      image: '/images/pratyush.jpeg',
       bio: 'Pratyush brings operational excellence to DewellingHome, streamlining processes to ensure timely project delivery and customer satisfaction.',
       social: {
         linkedin: '#',

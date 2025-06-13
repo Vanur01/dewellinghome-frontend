@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, ArrowLeft, AlertCircle, Phone, Mail, Calendar as CalendarIcon, ImagePlus, X } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertCircle, Phone, Mail, Calendar as CalendarIcon, ImagePlus, X, Info } from 'lucide-react';
+import { HoverInfo } from '@/components/hover-info';
 import { useProjectStore } from '@/store/admin/adminProject.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,15 @@ interface SearchPagination {
   totalItems: number;
   limit: number;
 }
+
+const fieldInfo = {
+  category: "Select from available categories (e.g., Modular Kitchen, Wardrobe)",
+  name: "Select component type (e.g., Kitchen: Island Unit, Wardrobe: Walk-in Closet)",
+  units: "Specify quantity (e.g., 2 units)",
+  size: "Enter dimensions (e.g., Kitchen Island: 6x4 ft, Wardrobe: 8x8 ft)",
+  materials: "Specify materials (e.g., Kitchen: Granite Top, Wardrobe: Laminated Panels)",
+  itemNotes: "Additional details (e.g., Kitchen Island with breakfast counter, L-shaped wardrobe)"
+};
 
 const statusOptions = [
   { value: 'planning', label: 'Planning' },
@@ -168,11 +178,10 @@ const CreateProject = () => {
     try {
       setSearching(true);
       setSearchError(null);
-      const response = await userApi.getAllUsers({
+      const response = await userApi.searchUser({
         page,
         limit: 10,
         name: '',
-        email: '',
         phone: ''
       });
       setSearchResults(response.data.data.users);
@@ -204,11 +213,10 @@ const CreateProject = () => {
       } 
       // If only one field is provided, use getAllUsers with filter
       else {
-        const response = await userApi.getAllUsers({
+        const response = await userApi.searchUser({
           page,
           limit: 10,
           name: name || '',
-          email: '',
           phone: phone || ''
         });
         setSearchResults(response.data.data.users);
@@ -355,6 +363,7 @@ const CreateProject = () => {
         formData.append('images', file);
       });
 
+      createProject(formData);
       
       // Cleanup preview URLs
       imagePreviewUrls.forEach(url => URL.revokeObjectURL(url));
@@ -730,7 +739,10 @@ const CreateProject = () => {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="category">Category</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="category">Category</Label>
+                        <HoverInfo info={fieldInfo.category} />
+                      </div>
                       <Input
                         id="category"
                         value={newItem.category}
@@ -740,7 +752,10 @@ const CreateProject = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="name">Name</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="name">Name</Label>
+                        <HoverInfo info={fieldInfo.name} />
+                      </div>
                       <Input
                         id="name"
                         value={newItem.name}
@@ -750,7 +765,10 @@ const CreateProject = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="units">Units</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="units">Units</Label>
+                        <HoverInfo info={fieldInfo.units} />
+                      </div>
                       <Input
                         id="units"
                         type="number"
@@ -761,7 +779,10 @@ const CreateProject = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="size">Size</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="size">Size</Label>
+                        <HoverInfo info={fieldInfo.size} />
+                      </div>
                       <Input
                         id="size"
                         value={newItem.size}
@@ -771,7 +792,10 @@ const CreateProject = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="materials">Materials</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="materials">Materials</Label>
+                        <HoverInfo info={fieldInfo.materials} />
+                      </div>
                       <Input
                         id="materials"
                         value={newItem.materials}
@@ -781,7 +805,10 @@ const CreateProject = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="itemNotes">Notes</Label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Label htmlFor="itemNotes">Notes</Label>
+                        <HoverInfo info={fieldInfo.itemNotes} />
+                      </div>
                       <Input
                         id="itemNotes"
                         value={newItem.notes}

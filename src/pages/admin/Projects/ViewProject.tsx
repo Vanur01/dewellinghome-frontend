@@ -475,6 +475,15 @@ const ViewProject = () => {
               >
                 View Progress
               </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  navigate(`/admin/projects/${currentProject._id}/transactions`)
+                }
+              >
+                View Transactions
+              </Button>
               {!currentProject.paymentSchedule ? (
                 <Button
                   variant="outline"
@@ -493,7 +502,7 @@ const ViewProject = () => {
                   className="w-full"
                   onClick={() =>
                     navigate(
-                      `/admin/payments/${currentProject.paymentSchedule}`
+                      `/admin/payments/${currentProject._id}`
                     )
                   }
                 >

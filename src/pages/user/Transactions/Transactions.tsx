@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useTransactionStore } from "../../../store/user/TransactionStore";
+import { useUserTransactionStore } from "../../../store/user/TransactionStore";
 import { format } from "date-fns";
 
 import {
@@ -23,7 +23,7 @@ import { Loader2, Eye } from "lucide-react";
 import { ViewTransaction } from './ViewTransaction';
 
 export default function Transactions() {
-  const { transactions, isLoading, total, page, limit, getUserTransactions } = useTransactionStore();
+  const { transactions, isLoading, total, page, limit, getUserTransactions } = useUserTransactionStore();
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
 
   useEffect(() => {

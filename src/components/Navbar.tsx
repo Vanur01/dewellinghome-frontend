@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 const Navbar = () => {
   const menuItems = [
-    { name: "Design Gallery", href: "design-gallery" },
+ { name: "Design Gallery", href: "design-gallery" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
+    { name: "Wardrobe", href: "wardrobe" },
     { name: "Bedroom", href: "bedroom" },
     { name: "Living Room", href: "living-room" },
+    { name: "Bathroom", href: "bathroom" },
   ];
 
   const FullMenuItems = [
-    { name: "Design Gallery", href: "design-gellery" },
+    { name: "Design Gallery", href: "design-gallery" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
     { name: "Wardrobe", href: "wardrobe" },
     { name: "Bedroom", href: "bedroom" },
@@ -19,18 +21,18 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-sm sticky z-20">
-      <div className="px-4 sm:px-6 lg:px-16">
+      <div className="px-4 lg:px-12">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center h-full gap-3">
+          <Link to="/" className="flex items-center h-full gap-1">
             <img
-              className="w-10 h-9 object-contain"
+              className="w-12 h-11 object-contain"
               src="/images/Dwelling_home.png"
               alt="DwellingHome Logo"
             />
-            <h2 className="text-xl font-poppins tracking-tight">
-              <span className="font-semibold text-gray-700">Dewelling</span>
-              <span className="font-medium text-red-600">Home</span>
+            <h2 className="text-xl lg:text-2xl font-poppins tracking-tight">
+              <span className="font-semibold text-black">Dewelling</span>
+              <span className="font-medium text-[#e71d24]">Home</span>
             </h2>
           </Link>
           {/* Desktop Navigation */}
@@ -39,7 +41,7 @@ const Navbar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="text-gray-600 hover:text-red-600 px-2 py-1 text-xs"
+                className="text-[#4a4a4a] hover:text-red-600 px-1 lg:px-3 py-2 text-xs lg:text-sm"
               >
                 {item.name}
               </Link>
@@ -64,7 +66,7 @@ const Navbar = () => {
                   <Link
                     key={index}
                     to={item.href}
-                    className="block px-4 py-2 text-xs text-gray-700 hover:text-red-600 font-normal"
+                    className="block px-4 py-2 text-xs text-[#4a4a4a] hover:text-red-600 font-normal"
                   >
                     {item.name}
                   </Link>
@@ -78,7 +80,7 @@ const Navbar = () => {
             <div className="flex-shrink-0">
               <Link
                 to={"/get-estimate"}
-                className="bg-red-600 text-white px-6 py-3 rounded-md text-sm font-medium"
+                className="bg-[#e71d24] text-white px-6 py-3 rounded text-sm font-medium"
               >
                 Get Free Estimate
               </Link>

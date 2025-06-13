@@ -11,7 +11,7 @@ const HeroSection = () => {
       {/* Image Section */}
       <div className="relative w-full h-[60vh] md:h-screen bg-green-800">
         <div className="absolute bottom-48 left-30 z-20 text-white text-center">
-          <h2 className="text-6xl font-bold max-w-lg leading-20 shadow-xl">Welcome to Your Dream Kitchen</h2>
+          <h2 className="text-4xl md:text-6xl font-bold max-w-lg leading-20 shadow-xl">Welcome to Your Dream Kitchen</h2>
         </div>
         <img
           src="https://images.livspace-cdn.com/w:3840/plain/https://d3gq2merok8n5r.cloudfront.net/abhinav/ond-1634120396-Obfdc/1-2025-1736068988-NDPD1/jfm-1736069001-9OxTK/kitchen-1736069015-B2aEs/ki-55-1741598379-2GJ7N.jpg"

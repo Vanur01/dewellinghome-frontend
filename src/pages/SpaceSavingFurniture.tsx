@@ -5,27 +5,23 @@ const SpaceSavingFurniture = () => {
   const galleryItems = [
     {
       id: 1,
-      image: "https://images.pexels.com/photos/6580227/pexels-photo-6580227.jpeg",
-      title: "Convertible Sofa Bed",
-      size: "78\" x 38\"",
+      image: "https://super.homelane.com/ssf-8c-o.jpg",
+      title: "Convertible Sofa Sectional Sofa Cum Bed With Ottoman",
     },
     {
       id: 2,
-      image: "https://images.pexels.com/photos/6580228/pexels-photo-6580228.jpeg",
-      title: "Wall-Mounted Desk",
-      size: "48\" x 24\"",
+      image: "https://super.homelane.com/ssf-13c-o.jpg",
+      title: "Vanalen 4 To 6 Extendable Glass Top Dining Table",
     },
     {
       id: 3,
-      image: "https://images.pexels.com/photos/6580229/pexels-photo-6580229.jpeg",
-      title: "Murphy Bed System",
-      size: "85\" x 64\"",
+      image: "https://super.homelane.com/prodsnew/HLKT0000068.jpg",
+      title: "Space-Saving Furniture: Queen-Size Wall-Mounted Sofa-Cum-Storage-Bed",
     },
     {
       id: 4,
-      image: "https://images.pexels.com/photos/6580230/pexels-photo-6580230.jpeg",
-      title: "Expandable Dining Table",
-      size: "30-60\" x 36\"",
+      image: "https://super.homelane.com/ssf-6c-o.jpg",
+      title: "Space-Saving Furniture: Sofa-Cum-Bed",
     },
     {
       id: 5,
@@ -34,9 +30,8 @@ const SpaceSavingFurniture = () => {
     },
     {
       id: 6,
-      image: "https://images.pexels.com/photos/6580231/pexels-photo-6580231.jpeg",
-      title: "Modular Storage Unit",
-      size: "72\" x 84\"",
+      image: "https://super.homelane.com/ssf-29g.jpg",
+      title: "Space-Saving Furniture: Queen-Size Vertical Wall-Mounted Sofa-Cum-Bed",
     },
   ];
 
@@ -71,7 +66,7 @@ const SpaceSavingFurniture = () => {
 
   return (
     <InteriorDesignTemplate
-      heroImage="https://images.pexels.com/photos/6580226/pexels-photo-6580226.jpeg"
+      heroImage="https://www.thespruce.com/thmb/fNW8BSy54lEB9TY12MUT0dIGrJM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/transforming-furniture-for-small-spaces-4058276-0490f69ad6114680920b7545b42abb92.jpg"
       heroTitle="Space-Saving Furniture Solutions"
       breadcrumbSection="Space-Saving Furniture"
       description={description}

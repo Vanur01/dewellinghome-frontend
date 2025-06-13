@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAdminUsersStore } from "../../store/admin/adminUsers.store";
+import { useAdminUsersStore } from "../../../store/admin/adminUsers.store";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -60,6 +61,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
+type RoleType = "client" | "admin";
+
 const AdminUsersPage = () => {
   const {
     users,
@@ -78,9 +81,9 @@ const AdminUsersPage = () => {
   const [filterValue, setFilterValue] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -89,7 +92,7 @@ const AdminUsersPage = () => {
     password: "",
     phone: "",
     address: "",
-    role: "client" as "client" | "admin",
+    role: "client" as RoleType,
   });
 
   const [editFormData, setEditFormData] = useState({
@@ -97,12 +100,12 @@ const AdminUsersPage = () => {
     email: "",
     phone: "",
     address: "",
-    role: "client" as "client" | "admin",
+    role: "client" as RoleType,
   });
 
   useEffect(() => {
-    if(users.length === 0){
-    fetchAllUsers();
+    if (users.length === 0) {
+      fetchAllUsers();
     }
   }, []);
 
@@ -162,10 +165,6 @@ const AdminUsersPage = () => {
     }
   };
 
-  const viewUserDetails = async (userId: string) => {
-    await fetchUserById(userId);
-    setViewDialogOpen(true);
-  };
 
   const handleEditClick = async (userId: string) => {
     await fetchUserById(userId);
@@ -288,7 +287,7 @@ const AdminUsersPage = () => {
             </CardDescription>
           </div>
           <Button
-          variant="default"
+            variant="default"
             onClick={() => setCreateDialogOpen(true)}
             className="flex items-center gap-2 bg-red-500"
           >
@@ -321,7 +320,11 @@ const AdminUsersPage = () => {
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
 
-              <Button className="bg-red-500" onClick={handleSearch} variant="default">
+              <Button
+                className="bg-red-500"
+                onClick={handleSearch}
+                variant="default"
+              >
                 Search
               </Button>
 
@@ -352,6 +355,7 @@ const AdminUsersPage = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
+                    <TableHead>Role</TableHead> {/* Added Role column header */}
                     <TableHead>Created At</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -359,28 +363,25 @@ const AdminUsersPage = () => {
                 <TableBody>
                   {users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         No users found. Try adjusting your search criteria.
                       </TableCell>
                     </TableRow>
                   ) : (
                     users.map((user) => (
                       <TableRow key={user._id}>
-                        <TableCell className="font-medium">
-                          {user.name}
-                        </TableCell>
+                        <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.phone}</TableCell>
-                        <TableCell>
-                          {new Date(user.createdAt).toLocaleDateString()}
-                        </TableCell>
+                        <TableCell>{user.role}</TableCell> {/* Display user role */}
+                        <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => viewUserDetails(user._id)}
+                              onClick={() => navigate(`/admin/users/${user._id}`)}
                             >
                               <UserCog className="h-4 w-4" />
                             </Button>
@@ -461,42 +462,7 @@ const AdminUsersPage = () => {
         </CardContent>
       </Card>
 
-      {/* View User Dialog */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-          </DialogHeader>
-          {selectedUser ? (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium">Name:</div>
-                <div className="col-span-3">{selectedUser.name}</div>
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium">Email:</div>
-                <div className="col-span-3">{selectedUser.email}</div>
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium">Phone:</div>
-                <div className="col-span-3">{selectedUser.phone}</div>
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium">Address:</div>
-                <div className="col-span-3">{selectedUser.address}</div>
-              </div>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="font-medium">Created At:</div>
-                <div className="col-span-3">
-                  {new Date(selectedUser.createdAt).toLocaleString()}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-red-500">Error fetching the user</div>
-          )}
-        </DialogContent>
-      </Dialog>
+   
 
       {/* Create User Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -616,6 +582,7 @@ const AdminUsersPage = () => {
           </DialogHeader>
           <form onSubmit={handleEditSubmit}>
             <div className="space-y-4 py-4">
+              {/* Name */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-name" className="text-right">
                   Name
@@ -630,6 +597,8 @@ const AdminUsersPage = () => {
                   required
                 />
               </div>
+
+              {/* Email */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-email" className="text-right">
                   Email
@@ -645,6 +614,8 @@ const AdminUsersPage = () => {
                   required
                 />
               </div>
+
+              {/* Phone */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-phone" className="text-right">
                   Phone
@@ -659,6 +630,8 @@ const AdminUsersPage = () => {
                   required
                 />
               </div>
+
+              {/* Address */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-address" className="text-right">
                   Address
@@ -676,7 +649,31 @@ const AdminUsersPage = () => {
                   required
                 />
               </div>
+
+              {/* Role Dropdown */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-role" className="text-right">
+                  Role
+                </Label>
+                <div className="col-span-3">
+                  <Select
+                    value={editFormData.role}
+                    onValueChange={(value:RoleType) =>
+                      setEditFormData({ ...editFormData, role: value })
+                    }
+                  >
+                    <SelectTrigger id="edit-role" className="w-full">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">Client</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
+
             <DialogFooter>
               <Button type="submit">Update User</Button>
             </DialogFooter>

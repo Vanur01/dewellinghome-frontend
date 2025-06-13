@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import enquiryStore from '../../store/public/InquiryStore';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface Item {
   category: string;
@@ -32,6 +33,18 @@ export interface Item {
 
 interface RequirementFormProps {
   onValidationChange: (isValid: boolean) => void;
+}
+
+interface ValidationErrors {
+  homeType?: string;
+  purpose?: string;
+  category?: string;
+  name?: string;
+  units?: string;
+  width?: string;
+  height?: string;
+  items?: string;
+  general?: string;
 }
 
 export default function RequirementForm({ onValidationChange }: RequirementFormProps) {
@@ -129,6 +142,8 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
     height: "",
     width: ""
   });
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [showErrors, setShowErrors] = useState(false);
   const { setProjectDetails, projectDetails } = enquiryStore();
 
   useEffect(() => {
@@ -151,18 +166,65 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
     }
   }, []);
 
+  const validateForm = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+
+    // Validate project details
+    if (!projectDetails?.homeType) {
+      newErrors.homeType = "Home type is required";
+    }
+
+    if (!projectDetails?.purpose) {
+      newErrors.purpose = "Purpose is required";
+    }
+
+    // Validate items
+    if (items.length === 0) {
+      newErrors.items = "At least one item is required";
+    }
+
+    return newErrors;
+  };
+
+  const validateCurrentItem = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+
+    if (!currentItem.category) {
+      newErrors.category = "Category is required";
+    }
+
+    if (!currentItem.name.trim()) {
+      newErrors.name = "Item name is required";
+    }
+
+    if (currentItem.units < 1) {
+      newErrors.units = "Units must be at least 1";
+    }
+
+    // Validate dimensions if provided
+    if (currentItem.width && isNaN(parseFloat(currentItem.width))) {
+      newErrors.width = "Width must be a valid number";
+    }
+
+    if (currentItem.height && isNaN(parseFloat(currentItem.height))) {
+      newErrors.height = "Height must be a valid number";
+    }
+
+    return newErrors;
+  };
+
   useEffect(() => {
-    const isValid = 
-      items.length > 0 && 
-      Boolean(projectDetails?.homeType) && 
-      Boolean(projectDetails?.purpose);
-    
+    const errors = validateForm();
+    const isValid = Object.keys(errors).length === 0;
     onValidationChange(isValid);
-  }, [items, projectDetails?.homeType, projectDetails?.purpose, onValidationChange]);
+  }, [projectDetails, items]);
 
   const handleAddItem = () => {
-    if (!currentItem.category || !currentItem.name.trim()) {
-      alert("Please select a category and an item");
+    const itemErrors = validateCurrentItem();
+    
+    if (Object.keys(itemErrors).length > 0) {
+      setErrors({ ...errors, ...itemErrors });
+      setShowErrors(true);
       return;
     }
 
@@ -186,6 +248,11 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       height: "",
       width: ""
     });
+    
+    // Clear item-specific errors
+    const { category, name, units, width, height, ...remainingErrors } = errors;
+    setErrors(remainingErrors);
+    setShowErrors(false);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -206,12 +273,39 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       width: ""
     });
     setProjectDetails({ ...projectDetails, items: [] });
+    setErrors({});
+    setShowErrors(false);
+  };
+
+  const handleFieldChange = (field: string, value: any) => {
+    // Clear specific field error when user starts typing/selecting
+    if (errors[field]) {
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
+    }
+
+    if (field === 'homeType' || field === 'purpose') {
+      setProjectDetails({ ...projectDetails, [field]: value });
+    } else {
+      setCurrentItem({ ...currentItem, [field]: value });
+    }
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="p-6">
         <h2 className="text-2xl mb-6 font-semibold">Interior Design Requirements</h2>
+        
+        {/* General Form Errors */}
+        {(errors.general || errors.items) && (
+          <Alert className="mb-6 border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
+              {errors.general || errors.items}
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="space-y-6">
           <Card>
@@ -220,12 +314,14 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="space-y-2">
-                  <Label>Home Type</Label>
+                  <Label className={errors.homeType ? "text-red-600" : ""}>
+                    Home Type <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={projectDetails?.homeType || ''}
-                    onValueChange={(value) => setProjectDetails({ ...projectDetails, homeType: value })}
+                    onValueChange={(value) => handleFieldChange('homeType', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.homeType ? "border-red-500 focus:border-red-500" : ""}>
                       <SelectValue placeholder="Select home type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,15 +332,23 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.homeType && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.homeType}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Purpose</Label>
+                  <Label className={errors.purpose ? "text-red-600" : ""}>
+                    Purpose <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={projectDetails?.purpose || ''}
-                    onValueChange={(value) => setProjectDetails({ ...projectDetails, purpose: value })}
+                    onValueChange={(value) => handleFieldChange('purpose', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.purpose ? "border-red-500 focus:border-red-500" : ""}>
                       <SelectValue placeholder="Select purpose" />
                     </SelectTrigger>
                     <SelectContent>
@@ -255,23 +359,32 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.purpose && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.purpose}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <h2 className="text-lg font-medium mb-4">Add Items to Your Requirements</h2>
+              <h2 className="text-lg font-medium mb-4">
+                Add Items to Your Requirements <span className="text-red-500">*</span>
+              </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label className={errors.category ? "text-red-600" : ""}>
+                    Category <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={currentItem.category}
-                    onValueChange={(value) => setCurrentItem({
-                      ...currentItem,
-                      category: value,
-                      name: "" 
-                    })}
+                    onValueChange={(value) => {
+                      handleFieldChange('category', value);
+                      setCurrentItem(prev => ({ ...prev, category: value, name: "" }));
+                    }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.category ? "border-red-500 focus:border-red-500" : ""}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -282,16 +395,24 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.category && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.category}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Item Name</Label>
+                  <Label className={errors.name ? "text-red-600" : ""}>
+                    Item Name <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={currentItem.name}
-                    onValueChange={(value) => setCurrentItem({...currentItem, name: value})}
+                    onValueChange={(value) => handleFieldChange('name', value)}
                     disabled={!currentItem.category}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.name ? "border-red-500 focus:border-red-500" : ""}>
                       <SelectValue placeholder="Select an item" />
                     </SelectTrigger>
                     <SelectContent>
@@ -302,37 +423,60 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.name && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
-                  <Label>Units</Label>
+                  <Label className={errors.units ? "text-red-600" : ""}>
+                    Units <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     type="number"
                     min="1"
                     value={currentItem.units}
-                    onChange={(e) => setCurrentItem({...currentItem, units: parseInt(e.target.value) || 1})}
+                    onChange={(e) => handleFieldChange('units', parseInt(e.target.value) || 1)}
+                    className={errors.units ? "border-red-500 focus:border-red-500" : ""}
                   />
+                  {errors.units && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.units}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Dimensions</Label>
+                  <Label>Dimensions (Optional)</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Input
                         type="text"
                         value={currentItem.width}
-                        onChange={(e) => setCurrentItem({...currentItem, width: e.target.value})}
+                        onChange={(e) => handleFieldChange('width', e.target.value)}
                         placeholder="Width (ft)"
+                        className={errors.width ? "border-red-500 focus:border-red-500" : ""}
                       />
+                      {errors.width && (
+                        <p className="text-xs text-red-600 mt-1">{errors.width}</p>
+                      )}
                     </div>
                     <div>
                       <Input
                         type="text"
                         value={currentItem.height}
-                        onChange={(e) => setCurrentItem({...currentItem, height: e.target.value})}
+                        onChange={(e) => handleFieldChange('height', e.target.value)}
                         placeholder="Height (ft)"
+                        className={errors.height ? "border-red-500 focus:border-red-500" : ""}
                       />
+                      {errors.height && (
+                        <p className="text-xs text-red-600 mt-1">{errors.height}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -341,7 +485,6 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
               <Button
                 type="button"
                 onClick={handleAddItem}
-                disabled={!currentItem.category || !currentItem.name.trim()}
                 className="w-full bg-red-500 hover:bg-red-600"
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Item

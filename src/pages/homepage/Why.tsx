@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 const features = [
   {
     icon: <ShieldCheckIcon strokeWidth={1} width={64} height={64} className="text-red-500" />,
-    title: 'Flat 10 Year Warranty',
+    title: 'Upto 10 Year Warranty',
     subtitle: '',
   },
   {
@@ -17,18 +17,13 @@ const features = [
   },
   {
     icon: <MapPin strokeWidth={1} width={64} height={64} className="text-red-500" />,
-    title: '25+ Cities',
+    title: '15+ Cities',
     subtitle: '',
   },
   {
     icon: <Home strokeWidth={1} width={64} height={64} className="text-red-500" />,
-    title: '45,000+',
+    title: '500+',
     subtitle: 'Home Deliveries',
-  },
-  {
-    icon: <Store strokeWidth={1} width={64} height={64} className="text-red-500" />,
-    title: '45+',
-    subtitle: 'Studios',
   },
   {
     icon: <Banknote strokeWidth={1} width={64} height={64} className="text-red-500" />,
@@ -37,8 +32,8 @@ const features = [
   },
   {
     icon: <Clock3 strokeWidth={1} width={64} height={64} className="text-red-500" />,
-    title: 'Delivery in 45 Days',
-    subtitle: 'or we pay the rent*',
+    title: 'Handover in 65 Days',
+    subtitle: 'Depending on the project type and scope',
   },
 ];
 

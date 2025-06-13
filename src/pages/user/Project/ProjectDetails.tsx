@@ -1,22 +1,45 @@
-import { Chart as ChartJS, ArcElement, Title, Tooltip, Legend } from 'chart.js';
-import { useParams, Link } from 'react-router-dom';
-import { useProjectStore } from '../../../store/user/ProjectStore';
-import { useUserProgressStore } from '../../../store/user/ProgressStore';
-import { useEffect } from 'react';
-import { Calendar, MapPin, Clock, User, Phone, Mail, Home, ArrowRight ,IndianRupee} from 'lucide-react';
-import { getImageUrl } from '@/utils/Image';
+import { Chart as ChartJS, ArcElement, Title, Tooltip, Legend } from "chart.js";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useProjectStore } from "../../../store/user/ProjectStore";
+import { useUserProgressStore } from "../../../store/user/ProgressStore";
+import { useEffect } from "react";
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  Home,
+  ArrowRight,
+  IndianRupee,
+  History,
+  Receipt,
+  ArrowLeft,
+} from "lucide-react";
+import { getImageUrl } from "@/utils/Image";
+import { Button } from "@/components/ui/button";
 
 ChartJS.register(ArcElement, Title, Tooltip, Legend);
 
 const ProjectDetails = () => {
+  const navigate = useNavigate();
   const { projectId } = useParams();
-  const { currentProject, fetchProjectById, isLoading: projectLoading } = useProjectStore();
-  const { progressEntries, fetchProjectProgress, loading: progressLoading } = useUserProgressStore();
+  const {
+    currentProject,
+    fetchProjectById,
+    isLoading: projectLoading,
+  } = useProjectStore();
+  const {
+    progressEntries,
+    fetchProjectProgress,
+    loading: progressLoading,
+  } = useUserProgressStore();
 
   useEffect(() => {
     if (projectId) {
       fetchProjectById(projectId);
-      fetchProjectProgress(projectId,1,2);
+      fetchProjectProgress(projectId, 1, 2);
     }
   }, [projectId, fetchProjectById, fetchProjectProgress]);
 
@@ -30,13 +53,13 @@ const ProjectDetails = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      planning: 'bg-blue-100 text-blue-800',
-      designing: 'bg-purple-100 text-purple-800',
-      in_progress: 'bg-yellow-100 text-yellow-800',
-      completed: 'bg-green-100 text-green-800',
-      on_hold: 'bg-red-100 text-red-800'
+      planning: "bg-blue-100 text-blue-800",
+      designing: "bg-purple-100 text-purple-800",
+      in_progress: "bg-yellow-100 text-yellow-800",
+      completed: "bg-green-100 text-green-800",
+      on_hold: "bg-red-100 text-red-800",
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   // Get only the first 2 progress entries
@@ -53,9 +76,46 @@ const ProjectDetails = () => {
               <MapPin className="w-4 h-4 text-gray-500" />
               <span className="text-gray-600">{currentProject.location}</span>
             </div>
+            <div className="mt-4 flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate(-1)}
+                className="border-gray-200"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  navigate(`/dashboard/projects/${projectId}/transactions`)
+                }
+                className="border-gray-200"
+              >
+                <History className="h-4 w-4 mr-2" />
+                View Transactions
+              </Button>
+              {currentProject.paymentSchedule && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    navigate(`/dashboard/payment/${currentProject._id}`)
+                  }
+                  className="border-gray-200"
+                >
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Payment Details
+                </Button>
+              )}
+            </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(currentProject.status)}`}>
-            {currentProject.status.replace('_', ' ').charAt(0).toUpperCase() + currentProject.status.slice(1)}
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+              currentProject.status
+            )}`}
+          >
+            {currentProject.status.replace("_", " ").charAt(0).toUpperCase() +
+              currentProject.status.slice(1)}
           </span>
         </div>
       </div>
@@ -70,21 +130,29 @@ const ProjectDetails = () => {
               <Calendar className="w-5 h-5 text-gray-500" />
               <div>
                 <p className="text-sm text-gray-500">Start Date</p>
-                <p className="font-medium">{new Date(currentProject.startDate).toLocaleDateString()}</p>
+                <p className="font-medium">
+                  {new Date(currentProject.startDate).toLocaleDateString()}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Clock className="w-5 h-5 text-gray-500" />
               <div>
                 <p className="text-sm text-gray-500">Estimated End Date</p>
-                <p className="font-medium">{new Date(currentProject.estimatedEndDate).toLocaleDateString()}</p>
+                <p className="font-medium">
+                  {new Date(
+                    currentProject.estimatedEndDate
+                  ).toLocaleDateString()}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <IndianRupee className="w-5 h-5 text-gray-500" />
               <div>
                 <p className="text-sm text-gray-500">Budget</p>
-                <p className="font-medium">${currentProject.budget.toLocaleString()}</p>
+                <p className="font-medium">
+                  ${currentProject.budget.toLocaleString()}
+                </p>
               </div>
             </div>
           </div>
@@ -135,11 +203,25 @@ const ProjectDetails = () => {
               <div key={item._id} className="border rounded-lg p-4">
                 <h3 className="font-medium">{item.name}</h3>
                 <div className="mt-2 space-y-2 text-sm text-gray-600">
-                  <p><span className="font-medium">Category:</span> {item.category}</p>
-                  <p><span className="font-medium">Units:</span> {item.units}</p>
-                  <p><span className="font-medium">Size:</span> {item.size}</p>
-                  <p><span className="font-medium">Materials:</span> {item.materials}</p>
-                  {item.notes && <p><span className="font-medium">Notes:</span> {item.notes}</p>}
+                  <p>
+                    <span className="font-medium">Category:</span>{" "}
+                    {item.category}
+                  </p>
+                  <p>
+                    <span className="font-medium">Units:</span> {item.units}
+                  </p>
+                  <p>
+                    <span className="font-medium">Size:</span> {item.size}
+                  </p>
+                  <p>
+                    <span className="font-medium">Materials:</span>{" "}
+                    {item.materials}
+                  </p>
+                  {item.notes && (
+                    <p>
+                      <span className="font-medium">Notes:</span> {item.notes}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -169,7 +251,9 @@ const ProjectDetails = () => {
       {currentProject.notes && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold mb-4">Project Notes</h2>
-          <p className="text-gray-600 whitespace-pre-wrap">{currentProject.notes}</p>
+          <p className="text-gray-600 whitespace-pre-wrap">
+            {currentProject.notes}
+          </p>
         </div>
       )}
 
@@ -178,11 +262,13 @@ const ProjectDetails = () => {
         <div className="p-6 border-b border-gray-200 flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">Recent Progress Updates</h2>
-            <p className="text-gray-600 mt-1">Latest updates on project progress</p>
+            <p className="text-gray-600 mt-1">
+              Latest updates on project progress
+            </p>
           </div>
           {recentProgressEntries.length > 2 && (
-            <Link 
-              to={`/dashboard/projects/${projectId}/progress`} 
+            <Link
+              to={`/dashboard/projects/${projectId}/progress`}
               className="inline-flex items-center gap-2 text-red-600 hover:text-red-600 font-medium"
             >
               View All
@@ -197,11 +283,11 @@ const ProjectDetails = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="font-medium text-gray-900">
-                    {new Date(entry.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(entry.date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </h3>
                   <p className="text-gray-600 mt-1">{entry.description}</p>
@@ -223,10 +309,12 @@ const ProjectDetails = () => {
 
               {/* Completion Status */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Completion Status</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Completion Status
+                </h4>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-red-600 h-2.5 rounded-full" 
+                  <div
+                    className="bg-red-600 h-2.5 rounded-full"
                     style={{ width: `${entry.completionPercentage}%` }}
                   ></div>
                 </div>

@@ -1,6 +1,5 @@
 import { useLocation, matchRoutes } from 'react-router-dom';
 import { AppRouteObject } from '../types/route';  // import the extended type
-import { Helmet } from 'react-helmet-async';
 import React from 'react';
 import { routes } from '../routesConfig';
 
@@ -14,10 +13,8 @@ const MetaWrapper = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
-      </Helmet>
       {children}
     </>
   );

@@ -1,51 +1,57 @@
-// pages/Unauthorized.tsx
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useLocation, Link } from "react-router-dom";
 
 const Unauthorized = () => {
   const location = useLocation();
   const reason = location.state?.reason;
 
-  let message = "You are not authorized to access this page.";
+  let title = "Access Restricted";
+  let message = "You don't have permission to view this page.";
+  let suggestion = "If you believe this is a mistake, please contact support or return home.";
+  let action = null;
 
-  if (reason === "notLoggedIn") {
-    message = "You must be logged in to view this page.";
-  } else if (reason === "notAdmin") {
-    message = "Only admins can access this page.";
+  if (reason === "notAdmin") {
+    title = "Admins Only";
+    message = "This page is only for admin users.";
+    suggestion = "If you need admin access, please contact your administrator.";
   } else if (reason === "notClient") {
-    message = "Only clients can access this page.";
+    title = "Clients Only";
+    message = "This page is only for client users.";
+    suggestion = "Please sign in with a client account if you have one.";
+    action = <Button asChild variant="default" className="w-full"><Link to="/login">Sign In as Client</Link></Button>;
+  } else if (reason === "unauthorized") {
+    title = "Unauthorized";
+    message = "You do not have the required role to access this page.";
+    suggestion = "If you think you should have access, please contact support.";
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-[0_25px_50px_-12px_rgba(239,68,68,0.25)] overflow-hidden">
-        <div className="h-3 bg-gradient-to-r from-red-500 to-red-300"></div>
-        <div className="p-8 text-center">
-          <div className="mx-auto w-24 h-24 mb-6 relative">
-            <div className="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-75"></div>
-            <div className="relative z-10 w-full h-full flex items-center justify-center">
-              <svg className="w-12 h-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-          </div>
-          
-          <h1 className="text-3xl font-bold mb-4 text-red-600">Access Restricted</h1>
-          
-          <div className="mb-6 px-4 py-3 bg-red-50 rounded-lg border-l-4 border-red-500">
-            <p className="text-red-800">{message}</p>
-          </div>
-          
-          <Link 
-            to="/" 
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 transform hover:scale-105"
-          >
-            <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 flex items-center justify-center p-4">
+      <Card className="max-w-md w-full shadow-md border-0">
+        <CardHeader className="flex flex-col items-center">
+          <div className="w-20 h-20 mb-4">
+            {/* Neutral lock icon SVG */}
+            <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
+              <rect x="16" y="28" width="32" height="24" rx="6" fill="#F5F5DC" stroke="#D6C7A1" strokeWidth="2" />
+              <path d="M32 28v-8a8 8 0 1 0-16 0v8" stroke="#D6C7A1" strokeWidth="2" fill="none" />
+              <circle cx="32" cy="40" r="3" fill="#D6C7A1" />
+              <rect x="30.5" y="43" width="3" height="6" rx="1.5" fill="#D6C7A1" />
             </svg>
-            Back to Safety
-          </Link>
-        </div>
-      </div>
+          </div>
+          <CardTitle className="text-xl font-semibold text-stone-700 mb-2">{title}</CardTitle>
+          <CardDescription className="text-center text-gray-700 mb-4">
+            <p className="mb-1">{message}</p>
+            <span className="text-sm text-gray-500">{suggestion}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-3">
+          {action}
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/">Go to Home</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

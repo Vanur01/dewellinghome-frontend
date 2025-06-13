@@ -2,7 +2,7 @@ import DesignTabs from "./DesignTabs";
 import HeroSection from "./Hero";
 import ServiceSection from "./ServiceSection";
 import { ScrollReveal } from "../../components/ScrollReveal";
-import { WarrantyIcon,
+import { Flat10YearWarranty,
   FourtyfiveIcon,
   NohiddencostIcons,
 } from "../../utils/Icons";
@@ -20,7 +20,7 @@ const navigate = useNavigate();
       label: "No hidden costs",
     },
     {
-      img: <WarrantyIcon width={100} height={100} />,
+      img: <Flat10YearWarranty width={100} height={100} />,
       label: "F5at 10-year warranty",
     },
     { img: <FourtyfiveIcon width={100} height={100} />, label: "Easy EMIs" },

@@ -60,7 +60,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       fetchScheduleById: async (id: string) => {
         try {
           set({ loading: true, error: null });
-          const response = await paymentScheduleApi.getPaymentScheduleById(id);
+          const response = await paymentScheduleApi. getPaymentScheduleByProjectId(id);
           set({ currentSchedule: response.data.data });
         } catch (err) {
           const error = err as AxiosError;

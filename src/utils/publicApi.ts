@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const base = import.meta.env.VITE_BASE_URL;
+export const API_URL = base ? `${base}/api` : "http://localhost:8080/api";
 
 // Create axios instance for public endpoints
 const publicApi = axios.create({

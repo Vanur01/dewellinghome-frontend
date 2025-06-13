@@ -60,7 +60,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
   ];
 
   const quickLinks = [
-    { name: "Refer and Earn", path: "/refer&earn" },
+    { name: "Refer and Earn", path: "dashboard/refer&earn" },
     { name: "Our Team", path: "/team"}
   ];
 
