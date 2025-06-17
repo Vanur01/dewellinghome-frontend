@@ -51,19 +51,19 @@ const Inquiries = () => {
       filters.status = statusFilter;
     }
 
-    if (isInitialLoad && inquiries.length === 0) {
+    if (isInitialLoad && (!inquiries || inquiries.length === 0)) {
       // Initial load - just do it once
-      fetchInquiries(1, pagination.limit, filters);
+      fetchInquiries(1, pagination?.limit ?? 10, filters);
       setIsInitialLoad(false);
     } else {
       // For filter changes, apply debounce
       const delayDebounceFn = setTimeout(() => {
-          fetchInquiries(1, pagination.limit, filters);
+          fetchInquiries(1, pagination?.limit ?? 10, filters);
       }, 500);
 
       return () => clearTimeout(delayDebounceFn);
     }
-  }, [searchQuery, statusFilter, isInitialLoad]);
+  }, [searchQuery, statusFilter,  pagination?.limit]);
 
   const handlePageChange = (newPage: number) => {
     const filters: Record<string, string> = {};
@@ -76,7 +76,7 @@ const Inquiries = () => {
       filters.status = statusFilter;
     }
 
-    fetchInquiries(newPage, pagination.limit, filters);
+    fetchInquiries(newPage, pagination?.limit ?? 10, filters);
   };
 
   const handleRefresh = () => {
@@ -90,7 +90,7 @@ const Inquiries = () => {
       filters.status = statusFilter;
     }
 
-    fetchInquiries(pagination.currentPage, pagination.limit, filters);
+    fetchInquiries(pagination?.currentPage ?? 1, pagination?.limit ?? 10, filters);
   };
 
   const handleStatusUpdate = async (
@@ -101,7 +101,7 @@ const Inquiries = () => {
   };
 
   const handleViewDetails = (inquiry: CustomerInquiry) => {
-    navigate(`/admin/inquiries/${inquiry._id}`);
+    navigate(`/admin/inquiries/${inquiry?._id}`);
   };
 
   return (
@@ -192,7 +192,7 @@ const Inquiries = () => {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : inquiries.length === 0 ? (
+            ) : !inquiries || inquiries.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6}>
                   <div className="flex justify-center items-center py-10 text-gray-500">
@@ -202,18 +202,18 @@ const Inquiries = () => {
               </TableRow>
             ) : (
               inquiries.map((inquiry) => (
-                <TableRow key={inquiry._id}>
+                <TableRow key={inquiry?._id}>
                   <TableCell>
-                    {new Date(inquiry.createdAt).toLocaleDateString()}
+                    {new Date(inquiry?.createdAt ?? '').toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{inquiry.name}</TableCell>
-                  <TableCell>{inquiry.email}</TableCell>
-                  <TableCell>{`${inquiry.countryCode} ${inquiry.phone}`}</TableCell>
+                  <TableCell>{inquiry?.name}</TableCell>
+                  <TableCell>{inquiry?.email}</TableCell>
+                  <TableCell>{`${inquiry?.countryCode ?? ''} ${inquiry?.phone ?? ''}`}</TableCell>
                   <TableCell>
                     <Select
-                      value={inquiry.status}
+                      value={inquiry?.status ?? 'new'}
                       onValueChange={(value) =>
-                        handleStatusUpdate(inquiry._id, value as InquiryStatus)
+                        handleStatusUpdate(inquiry?._id ?? '', value as InquiryStatus)
                       }
                     >
                       <SelectTrigger className="w-[120px]">
@@ -243,30 +243,30 @@ const Inquiries = () => {
         </Table>
 
         {/* Pagination Controls */}
-        {!loading && !error && inquiries.length > 0 && (
+        {!loading && !error && inquiries?.length > 0 && (
           <div className="mt-4 flex items-center justify-between">
             <div className="text-sm text-gray-500">
-              Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+              Showing {((pagination?.currentPage ?? 1) - 1) * (pagination?.limit ?? 10) + 1} to{" "}
               {Math.min(
-                pagination.currentPage * pagination.limit,
-                pagination.totalRecords
+                (pagination?.currentPage ?? 1) * (pagination?.limit ?? 10),
+                pagination?.totalRecords ?? 0
               )}{" "}
-              of {pagination.totalRecords} entries
+              of {pagination?.totalRecords ?? 0} entries
             </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage <= 1}
+                onClick={() => handlePageChange((pagination?.currentPage ?? 1) - 1)}
+                disabled={(pagination?.currentPage ?? 1) <= 1}
               >
                 Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage >= pagination.totalPages}
+                onClick={() => handlePageChange((pagination?.currentPage ?? 1) + 1)}
+                disabled={(pagination?.currentPage ?? 1) >= (pagination?.totalPages ?? 1)}
               >
                 Next
               </Button>

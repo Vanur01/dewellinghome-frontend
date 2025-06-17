@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, ArrowLeft, Bell, FileText, AlertCircle, History } from "lucide-react";
+import { Loader2, ArrowLeft, AlertCircle, History } from "lucide-react";
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -20,8 +20,8 @@ export default function PaymentDetails() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { 
-    currentSchedule,
-    loading,
+    currentSchedule = null,
+    loading = false,
     fetchScheduleById,
     updateProjectValue,
     updatePaymentStructure,
@@ -40,24 +40,25 @@ export default function PaymentDetails() {
     if (projectId) {
       fetchScheduleById(projectId);
     }
-  }, [projectId]);
+  }, [projectId, fetchScheduleById]);
 
   // Update edited values when schedule changes
   useEffect(() => {
     if (currentSchedule) {
       setEditedValues({
-        projectValue: currentSchedule.totalProjectValue,
-        milestones: currentSchedule.milestones.map(m => ({
-          timeline: m.timeline,
-          percentage: m.percentage
-        })),
-        currentMilestone: currentSchedule.currentMilestone || 1
+        projectValue: currentSchedule?.totalProjectValue ?? 0,
+        milestones: currentSchedule?.milestones?.map(m => ({
+          timeline: m?.timeline ?? '',
+          percentage: m?.percentage ?? 0
+        })) ?? [],
+        currentMilestone: currentSchedule?.currentMilestone ?? 1
       });
     }
   }, [currentSchedule]);
 
   // Format currency to Indian Rupee format
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined) return '₹ 0';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -90,7 +91,6 @@ export default function PaymentDetails() {
     const milestone = parseInt(value);
     if (!currentSchedule) return;
     
-    // Allow any input but validate before saving
     setEditedValues(prev => ({
       ...prev,
       currentMilestone: milestone || 1
@@ -100,8 +100,13 @@ export default function PaymentDetails() {
   // Save changes
   const handleSaveChanges = async () => {
     try {
+      if (!currentSchedule?._id) {
+        toast.error('Invalid payment schedule');
+        return;
+      }
+
       // Validate total percentage equals 100
-      const totalPercentage = editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0);
+      const totalPercentage = editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0);
       if (Math.abs(totalPercentage - 100) >= 0.01) {
         toast.error('Total milestone percentages must equal 100%');
         return;
@@ -109,22 +114,22 @@ export default function PaymentDetails() {
 
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
-        await updateProjectValue(currentSchedule._id!, editedValues.projectValue);
+        await updateProjectValue(currentSchedule._id, editedValues.projectValue);
       }
 
       // Update milestone structure if changed
       const structureChanged = editedValues.milestones.some((m, i) => 
-        m.timeline !== currentSchedule?.milestones[i].timeline ||
-        m.percentage !== currentSchedule?.milestones[i].percentage
+        m?.timeline !== currentSchedule?.milestones?.[i]?.timeline ||
+        m?.percentage !== currentSchedule?.milestones?.[i]?.percentage
       );
 
       if (structureChanged) {
-        await updatePaymentStructure(currentSchedule._id!, editedValues.milestones);
+        await updatePaymentStructure(currentSchedule._id, editedValues.milestones);
       }
 
       // Update current milestone if changed
       if (editedValues.currentMilestone !== currentSchedule?.currentMilestone) {
-        await updateCurrentMilestone(currentSchedule._id!, editedValues.currentMilestone);
+        await updateCurrentMilestone(currentSchedule._id, editedValues.currentMilestone);
       }
 
       setEditMode(false);
@@ -165,9 +170,9 @@ export default function PaymentDetails() {
     );
   }
 
-  const totalPaid = currentSchedule.totalPaid;
-  const totalRemaining = currentSchedule.totalRemaining;
-  const totalOverpayment = currentSchedule.totalOverpayment;
+  const totalPaid = currentSchedule?.totalPaid ?? 0;
+  const totalRemaining = currentSchedule?.totalRemaining ?? 0;
+  const totalOverpayment = currentSchedule?.totalOverpayment ?? 0;
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -187,7 +192,7 @@ export default function PaymentDetails() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/admin/projects/${currentSchedule.projectId._id}/transactions`)}
+                  onClick={() => navigate(`/admin/projects/${currentSchedule?.projectId?._id ?? ''}/transactions`)}
                   className="flex items-center gap-2"
                 >
                   <History className="h-4 w-4" />
@@ -210,10 +215,10 @@ export default function PaymentDetails() {
                 <div className="flex items-center gap-3 text-gray-500 text-sm">
                   <span>Payment Schedule</span>
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                  <span className="font-mono">#{currentSchedule._id}</span>
+                  <span className="font-mono">#{currentSchedule?._id ?? 'N/A'}</span>
                 </div>
                 <h1 className="text-2xl font-semibold text-gray-900 mt-1">
-                  {currentSchedule.projectId.title}
+                  {currentSchedule?.projectId?.title ?? 'Untitled Project'}
                 </h1>
               </div>
 
@@ -222,14 +227,14 @@ export default function PaymentDetails() {
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-gray-500">Overall Progress</span>
                   <span className="font-medium">
-                    {Math.round((totalPaid / currentSchedule.totalProjectValue) * 100)}%
+                    {Math.round((totalPaid / (currentSchedule?.totalProjectValue ?? 1)) * 100)}%
                   </span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-red-600 rounded-full transition-all duration-500"
                     style={{ 
-                      width: `${(totalPaid / currentSchedule.totalProjectValue) * 100}%`
+                      width: `${(totalPaid / (currentSchedule?.totalProjectValue ?? 1)) * 100}%`
                     }}
                   ></div>
                 </div>
@@ -244,7 +249,7 @@ export default function PaymentDetails() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-muted-foreground">Project Name</label>
-                <h2 className="text-xl font-semibold">{currentSchedule.projectId.title}</h2>
+                <h2 className="text-xl font-semibold">{currentSchedule?.projectId?.title ?? 'Untitled Project'}</h2>
               </div>
               <div>
                 <label className="text-sm text-muted-foreground">Total Project Value</label>
@@ -257,7 +262,7 @@ export default function PaymentDetails() {
                       className="w-64 text-right font-medium"
                     />
                   ) : (
-                    <span className="text-xl font-semibold">{formatCurrency(currentSchedule.totalProjectValue)}</span>
+                    <span className="text-xl font-semibold">{formatCurrency(currentSchedule?.totalProjectValue)}</span>
                   )}
                 </div>
               </div>
@@ -269,18 +274,18 @@ export default function PaymentDetails() {
                       <Input 
                         type="number"
                         min={1}
-                        max={currentSchedule.milestones.length}
+                        max={currentSchedule?.milestones?.length ?? 1}
                         value={editedValues.currentMilestone}
                         onChange={(e) => handleCurrentMilestoneUpdate(e.target.value)}
                         className="w-full pr-12"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        / {currentSchedule.milestones.length}
+                        / {currentSchedule?.milestones?.length ?? 1}
                       </div>
                     </div>
                     <div className="text-sm">
                       <span className="font-medium">Timeline:</span>{' '}
-                      {currentSchedule.milestones.find(m => m.slNo === editedValues.currentMilestone)?.timeline || 'Invalid milestone'}
+                      {currentSchedule?.milestones?.find(m => m?.slNo === editedValues.currentMilestone)?.timeline ?? 'Invalid milestone'}
                     </div>
                   </div>
                 </div>
@@ -330,65 +335,65 @@ export default function PaymentDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {currentSchedule?.milestones.map((milestone, index) => (
+                {currentSchedule?.milestones?.map((milestone, index) => (
                   <TableRow 
-                    key={milestone.slNo} 
+                    key={milestone?.slNo ?? index} 
                     className={cn(
                       "hover:bg-gray-50/50 transition-colors relative",
-                      milestone.slNo === currentSchedule.currentMilestone && "bg-red-100 hover:bg-red-100"
+                      milestone?.slNo === currentSchedule?.currentMilestone && "bg-red-100 hover:bg-red-100"
                     )}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        {milestone.slNo === currentSchedule.currentMilestone && (
+                        {milestone?.slNo === currentSchedule?.currentMilestone && (
                           <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs rounded-full">
                             Current
                           </div>
                         )}
-                        {milestone.slNo}
+                        {milestone?.slNo ?? index + 1}
                       </div>
                     </TableCell>
                     <TableCell>
                       {editMode ? (
                         <Input 
-                          value={editedValues.milestones[index]?.timeline}
+                          value={editedValues.milestones[index]?.timeline ?? ''}
                           onChange={(e) => handleMilestoneUpdate(index, 'timeline', e.target.value)}
                           className="w-full"
                         />
                       ) : (
-                        <div className="font-medium">{milestone.timeline}</div>
+                        <div className="font-medium">{milestone?.timeline ?? 'N/A'}</div>
                       )}
                     </TableCell>
                     <TableCell className="text-center">
                       {editMode ? (
                         <Input 
                           type="number"
-                          value={editedValues.milestones[index]?.percentage}
+                          value={editedValues.milestones[index]?.percentage ?? 0}
                           onChange={(e) => handleMilestoneUpdate(index, 'percentage', e.target.value)}
                           className="w-20 text-center mx-auto"
                         />
                       ) : (
-                        `${milestone.percentage}%`
+                        `${milestone?.percentage ?? 0}%`
                       )}
                     </TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(milestone.amount)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(milestone?.amount)}</TableCell>
                     <TableCell className="text-right">
                       <span className={cn(
                         "font-medium",
-                        milestone.actualPaid > 0 ? "text-green-600" : "text-muted-foreground"
+                        (milestone?.actualPaid ?? 0) > 0 ? "text-green-600" : "text-muted-foreground"
                       )}>
-                        {milestone.actualPaid > 0 ? formatCurrency(milestone.actualPaid) : '-'}
+                        {(milestone?.actualPaid ?? 0) > 0 ? formatCurrency(milestone?.actualPaid) : '-'}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      {milestone.effectivePaid > 0 ? (
+                      {(milestone?.effectivePaid ?? 0) > 0 ? (
                         <div>
                           <span className="font-medium">
-                            {formatCurrency(Math.min(milestone.effectivePaid, milestone.amount))}
+                            {formatCurrency(Math.min(milestone?.effectivePaid ?? 0, milestone?.amount ?? 0))}
                           </span>
-                          {milestone.overpayment > 0 && (
+                          {(milestone?.overpayment ?? 0) > 0 && (
                             <span className="text-green-600 text-sm ml-1">
-                              (+{formatCurrency(milestone.overpayment)})
+                              (+{formatCurrency(milestone?.overpayment)})
                             </span>
                           )}
                         </div>
@@ -397,11 +402,11 @@ export default function PaymentDetails() {
                     <TableCell className="text-right">
                       <span className={cn(
                         "px-2 py-1 rounded-full text-sm font-medium",
-                        milestone.toBePaid > 0 
+                        (milestone?.toBePaid ?? 0) > 0 
                           ? "bg-yellow-100 text-yellow-700" 
                           : "bg-green-100 text-green-700"
                       )}>
-                        {milestone.toBePaid > 0 ? formatCurrency(milestone.toBePaid) : 'Paid'}
+                        {(milestone?.toBePaid ?? 0) > 0 ? formatCurrency(milestone?.toBePaid) : 'Paid'}
                       </span>
                     </TableCell>
                   </TableRow>
@@ -416,11 +421,11 @@ export default function PaymentDetails() {
                     <td className="px-4 py-3 text-center">
                       <span className={cn(
                         "font-bold",
-                        Math.abs(editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0) - 100) < 0.01
+                        Math.abs(editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0) - 100) < 0.01
                           ? "text-green-600"
                           : "text-red-600"
                       )}>
-                        {editedValues.milestones.reduce((sum, m) => sum + m.percentage, 0).toFixed(2)}%
+                        {editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0).toFixed(2)}%
                       </span>
                     </td>
                     <td colSpan={4}></td>
@@ -438,7 +443,7 @@ export default function PaymentDetails() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total Project Value</span>
-                    <span className="font-medium">{formatCurrency(currentSchedule.totalProjectValue)}</span>
+                    <span className="font-medium">{formatCurrency(currentSchedule?.totalProjectValue)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total Received</span>
@@ -475,21 +480,6 @@ export default function PaymentDetails() {
                       >
                         Edit Values
                       </Button>
-                      {/* <div className="grid grid-cols-2 gap-3">
-                        <Button 
-                          variant="outline"
-                          className="flex items-center justify-center gap-2 border-red-600 text-red-600 hover:bg-red-50"
-                        >
-                          <Bell className="h-4 w-4" />
-                          Send Reminder
-                        </Button>
-                        <Button
-                          className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Generate Invoice
-                        </Button>
-                      </div> */}
                     </div>
                   ) : (
                     <div className="flex gap-3">

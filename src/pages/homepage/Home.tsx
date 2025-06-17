@@ -12,6 +12,7 @@ import InteriorSolutionsGrid from "./SolutionsGrid";
 import {  ReferIcon } from "../../utils/Icons";
 import { ScrollReveal } from "../../components/ScrollReveal";
 import { useNavigate } from "react-router-dom";
+import TrustedPartners from "./TrustedPartners";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const Home = () => {
       <ScrollReveal>
         <InteriorDesignServices />
       </ScrollReveal>
+      <TrustedPartners/>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePaymentStore } from '@/store/user/PaymentStore';
-import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building, AlertTriangle, History } from 'lucide-react';
+import { Loader2, IndianRupee, AlertCircle, CheckCircle2, Clock, ArrowLeft, Building, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -35,10 +35,11 @@ export default function PaymentScheduleDetails() {
     clearSchedule();
     if (projectId) {
       getPaymentScheduleByProject(projectId).catch((error) => {
+        console.log(error)
         clearSchedule();
       });
     }
-  }, [projectId, getPaymentScheduleByProject]);
+  }, [projectId]);
 
   // Calculate previous dues for each milestone
   useEffect(() => {
@@ -107,8 +108,8 @@ export default function PaymentScheduleDetails() {
     );
   }
 
-  const completionPercentage = (currentSchedule.totalPaid / currentSchedule.totalProjectValue) * 100;
-  const currentMilestone = currentSchedule?.milestones.find(m => m.slNo === currentSchedule.currentMilestone);
+  const completionPercentage = ((currentSchedule?.totalPaid ?? 0) / (currentSchedule?.totalProjectValue ?? 1)) * 100;
+  const currentMilestone = currentSchedule?.milestones?.find(m => m.slNo === currentSchedule?.currentMilestone);
   const paymentActions = [];
 
   // Add Pay Now button if there's remaining amount
@@ -168,11 +169,11 @@ export default function PaymentScheduleDetails() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                {currentSchedule.projectId.title}
+                {currentSchedule?.projectId?.title}
               </h1>
               <div className="flex gap-3">
                 <Badge variant="secondary" className="py-1.5 px-3">
-                  Project ID: {currentSchedule.projectId._id.slice(-8).toUpperCase()}
+                  Project ID: {currentSchedule?.projectId?._id?.slice(-8)?.toUpperCase()}
                 </Badge>
                 <Badge 
                   variant="secondary" 
@@ -229,7 +230,7 @@ export default function PaymentScheduleDetails() {
                     <div 
                       className="h-full bg-red-500 rounded-full transition-all duration-500"
                       style={{ 
-                        width: `${(currentMilestone.effectivePaid / currentMilestone.amount) * 100}%`
+                        width: `${((currentMilestone?.effectivePaid ?? 0) / (currentMilestone?.amount ?? 1)) * 100}%`
                       }}
                     />
                   </div>
@@ -242,19 +243,19 @@ export default function PaymentScheduleDetails() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500 mb-1">Total Value</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                   {formatCurrency(currentSchedule.totalProjectValue)}
+                   {formatCurrency(currentSchedule?.totalProjectValue ?? 0)}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500 mb-1">Paid Amount</p>
                 <p className="text-2xl font-semibold text-green-600">
-                   {formatCurrency(currentSchedule.totalPaid)}
+                   {formatCurrency(currentSchedule?.totalPaid ?? 0)}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-500 mb-1">Remaining</p>
                 <p className="text-2xl font-semibold text-blue-600">
-                   {formatCurrency(currentSchedule.totalRemaining)}
+                   {formatCurrency(currentSchedule?.totalRemaining ?? 0)}
                 </p>
               </div>
             </div>
@@ -304,7 +305,7 @@ export default function PaymentScheduleDetails() {
                 {milestonesWithPreviousDues.map((milestone) => {
                   const status = getMilestoneStatus(milestone);
                   const StatusIcon = status.icon;
-                  const isCurrent = milestone.slNo === currentSchedule.currentMilestone;
+                  const isCurrent = milestone.slNo === currentSchedule?.currentMilestone;
                   const totalToPay = milestone.toBePaid + milestone.previousDues;
                   
                   return (
@@ -324,7 +325,7 @@ export default function PaymentScheduleDetails() {
                           )}
                           <span className="font-medium text-gray-900">{milestone.slNo}</span>
                           <Separator orientation="vertical" className="h-4" />
-                          <span className="text-gray-600">{milestone.timeline.length> 10? milestone.timeline.slice(0,10):milestone.timeline}</span>
+                          <span className="text-gray-600">{milestone?.timeline?.length > 10 ? milestone?.timeline?.slice(0,10) : milestone?.timeline}</span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -380,7 +381,7 @@ export default function PaymentScheduleDetails() {
                             {milestone.previousDues > 0 && (
                               <div className="group relative">
                                 <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-white shadow-lg rounded-md border border-gray-200 text-xs text-gray-700 invisible group-hover:visible z-10">
-                                  Includes ₹{milestone.previousDues.toLocaleString('en-IN')} from previous unpaid milestones
+                                  Includes ₹{(milestone.previousDues).toLocaleString('en-IN')} from previous unpaid milestones
                                 </div>
                               </div>
                             )}
@@ -409,10 +410,10 @@ export default function PaymentScheduleDetails() {
                 Please ensure timely payments according to the schedule above to avoid any delay in project completion.
                 For any payment-related queries, contact our finance department.
               </p>
-              {currentSchedule.totalOverpayment > 0 && (
+              {currentSchedule?.totalOverpayment > 0 && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <p className="text-green-700 font-medium">
-                    Your advance payment of {formatCurrency(currentSchedule.totalOverpayment)} has been applied to future milestones as shown in the table above.
+                    Your advance payment of {formatCurrency(currentSchedule?.totalOverpayment ?? 0)} has been applied to future milestones as shown in the table above.
                   </p>
                 </div>
               )}
@@ -427,8 +428,8 @@ export default function PaymentScheduleDetails() {
           isOpen={isPaymentModalOpen}
           onClose={() => setIsPaymentModalOpen(false)}
           projectId={projectId!}
-          projectTitle={currentSchedule.projectId.title}
-          totalRemaining={currentSchedule.totalRemaining}
+          projectTitle={currentSchedule?.projectId?.title ?? ''}
+          totalRemaining={currentSchedule?.totalRemaining ?? 0}
         />
       )}
     </div>

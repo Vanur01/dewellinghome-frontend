@@ -60,6 +60,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 
 // Status type definition
+type ReferralStatus = 'pending' | 'processing' | 'completed' | 'rejected';
+type StatusFilter = ReferralStatus | 'all';
+
 const STATUS_TYPES = {
   pending: {
     icon: <Clock className="h-4 w-4 text-yellow-600" />,
@@ -77,14 +80,14 @@ const STATUS_TYPES = {
     icon: <XCircle className="h-4 w-4 text-red-600" />,
     class: "bg-red-100 text-red-800 border-red-200"
   }
-};
+} as const;
 
 // Filter options
 const FILTER_OPTIONS = [
   { value: "name", label: "Name" },
   { value: "phone", label: "Phone" },
   { value: "refId", label: "Ref ID" }
-];
+] as const;
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
@@ -92,14 +95,14 @@ const STATUS_OPTIONS = [
   { value: "processing", label: "Processing" },
   { value: "completed", label: "Completed" },
   { value: "rejected", label: "Rejected" }
-];
+] as const;
 
 const AdminReferrals = () => {
   const {
-    referrals,
-    error,
-    loading,
-    pagination,
+    referrals = [],
+    error = null,
+    loading = false,
+    pagination = { currentPage: 1, totalPages: 1, totalRecords: 0 },
     fetchReferrals,
     updateReferralStatus,
     updateRewardMessage,
@@ -107,9 +110,9 @@ const AdminReferrals = () => {
   
   // State management
   const [searchQuery, setSearchQuery] = useState("");
-  const [updatingId, setUpdatingId] = useState(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState("name");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [rewardDialog, setRewardDialog] = useState({
     open: false,
     referralId: "",
@@ -118,15 +121,15 @@ const AdminReferrals = () => {
 
   // Fetch referrals on initial load
   useEffect(() => {
-    if(referrals.length === 0){
-    fetchReferrals();
+    if(referrals?.length === 0){
+      fetchReferrals();
     }
   }, []);
 
   // Debounced search handling
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      const filters = {};
+      const filters: Record<string, string> = {};
 
       if (searchQuery) {
         filters[filterType] = searchQuery;
@@ -134,20 +137,21 @@ const AdminReferrals = () => {
       if (statusFilter) {
         filters['status'] = statusFilter;
       }
-        fetchReferrals(1, filters);
+      fetchReferrals(1, filters);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, statusFilter]);
 
   // Status update handler with memoization
-  const handleStatusUpdate = useCallback(async (referralId, newStatus) => {
+  const handleStatusUpdate = useCallback(async (referralId: string, newStatus: ReferralStatus) => {
     setUpdatingId(referralId);
     try {
       await updateReferralStatus(referralId, newStatus);
       toast.success("Status updated successfully");
     } catch (error) {
-      toast.error(error.message || "Failed to update status");
+      console.error('Status update failed:', error);
+      toast.error("Failed to update status");
     } finally {
       setUpdatingId(null);
     }
@@ -155,6 +159,8 @@ const AdminReferrals = () => {
 
   // Reward message handler
   const handleRewardMessageUpdate = useCallback(async () => {
+    if (!rewardDialog.referralId) return;
+    
     setUpdatingId(rewardDialog.referralId);
     try {
       await updateRewardMessage(
@@ -164,6 +170,7 @@ const AdminReferrals = () => {
       toast.success("Reward message updated successfully");
       setRewardDialog({ open: false, referralId: "", currentMessage: "" });
     } catch (error) {
+      console.error('Reward message update failed:', error);
       toast.error("Failed to update reward message");
     } finally {
       setUpdatingId(null);
@@ -173,13 +180,13 @@ const AdminReferrals = () => {
   // Reset filters
   const resetFilters = useCallback(() => {
     setSearchQuery("");
-    setStatusFilter("");
+    setStatusFilter("all");
     fetchReferrals(1, {});
   }, [fetchReferrals]);
 
   // Handle page change
-  const handlePageChange = useCallback((newPage) => {
-    const filters:any = {};
+  const handlePageChange = useCallback((newPage: number) => {
+    const filters: Record<string, string> = {};
     if (searchQuery) filters[filterType] = searchQuery;
     if (statusFilter) filters.status = statusFilter;
     
@@ -187,16 +194,17 @@ const AdminReferrals = () => {
   }, [fetchReferrals, searchQuery, filterType, statusFilter]);
 
   // Open reward dialog
-  const openRewardDialog = useCallback((referralId, currentMessage) => {
+  const openRewardDialog = useCallback((referralId: string, currentMessage?: string) => {
     setRewardDialog({
       open: true,
       referralId,
-      currentMessage: currentMessage || ""
+      currentMessage: currentMessage ?? ""
     });
   }, []);
 
   // Format date string
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
@@ -236,7 +244,7 @@ const AdminReferrals = () => {
               <Input
                 type="text"
                 placeholder={`Search by ${filterType}...`}
-                value={searchQuery}
+                value={searchQuery ?? ''}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
@@ -244,7 +252,10 @@ const AdminReferrals = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select 
+              value={statusFilter} 
+              onValueChange={(value: StatusFilter) => setStatusFilter(value)}
+            >
               <SelectTrigger className="w-36">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -311,7 +322,7 @@ const AdminReferrals = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : referrals.length === 0 ? (
+              ) : referrals?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8}>
                     <div className="py-12 flex flex-col items-center gap-3 text-center text-gray-500">
@@ -325,36 +336,36 @@ const AdminReferrals = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                referrals.map((ref) => (
+                referrals?.map((ref) => (
                   <TableRow
-                    key={ref._id}
+                    key={ref?._id ?? Math.random()}
                     className="hover:bg-gray-50/50 transition-colors"
                   >
                     <TableCell className="font-medium">
-                      {ref.referralName}
+                      {ref?.referralName ?? 'N/A'}
                     </TableCell>
-                    <TableCell>{ref.referralEmail}</TableCell>
-                    <TableCell>{ref.referralPhone}</TableCell>
+                    <TableCell>{ref?.referralEmail ?? 'N/A'}</TableCell>
+                    <TableCell>{ref?.referralPhone ?? 'N/A'}</TableCell>
                     <TableCell>
                       <span className="font-mono text-sm text-gray-600">
-                        {ref.refId}
+                        {ref?.refId ?? 'N/A'}
                       </span>
                     </TableCell>
                     <TableCell>
                       <HoverCard>
                         <HoverCardTrigger asChild>
                           <span className="cursor-pointer hover:underline">
-                            {ref.referredBy.name}
+                            {ref?.referredBy?.name ?? 'N/A'}
                           </span>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80">
                           <div className="space-y-2">
                             <h4 className="font-semibold">
-                              {ref.referredBy.name}
+                              {ref?.referredBy?.name ?? 'N/A'}
                             </h4>
                             <div className="text-sm space-y-1">
-                              <p>Email: {ref.referredBy.email}</p>
-                              <p>Phone: {ref.referredBy.phone}</p>
+                              <p>Email: {ref?.referredBy?.email ?? 'N/A'}</p>
+                              <p>Phone: {ref?.referredBy?.phone ?? 'N/A'}</p>
                             </div>
                           </div>
                         </HoverCardContent>
@@ -362,14 +373,14 @@ const AdminReferrals = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {STATUS_TYPES[ref.status]?.icon}
-                        <Badge variant="outline" className={STATUS_TYPES[ref.status]?.class}>
-                          {ref.status.charAt(0).toUpperCase() + ref.status.slice(1)}
+                        {STATUS_TYPES[ref?.status ?? 'pending']?.icon}
+                        <Badge variant="outline" className={STATUS_TYPES[ref?.status ?? 'pending']?.class}>
+                          {(ref?.status?.charAt(0)?.toUpperCase() ?? '') + (ref?.status?.slice(1) ?? '')}
                         </Badge>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {formatDate(ref.createdAt)}
+                      {formatDate(ref?.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -377,9 +388,9 @@ const AdminReferrals = () => {
                           <Button
                             variant="ghost"
                             className="h-8 w-8 p-0"
-                            disabled={updatingId === ref._id}
+                            disabled={updatingId === ref?._id}
                           >
-                            {updatingId === ref._id ? (
+                            {updatingId === ref?._id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <MoreHorizontal className="h-4 w-4" />
@@ -388,28 +399,28 @@ const AdminReferrals = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[160px]">
                           <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(ref._id, "pending")}
+                            onClick={() => ref?._id && handleStatusUpdate(ref._id, "pending" as ReferralStatus)}
                             className="flex items-center gap-2"
                           >
                             <Clock className="h-4 w-4" />
                             Mark Pending
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(ref._id, "processing")}
+                            onClick={() => ref?._id && handleStatusUpdate(ref._id, "processing" as ReferralStatus)}
                             className="flex items-center gap-2"
                           >
                             <Loader2 className="h-4 w-4" />
                             Processing
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(ref._id, "completed")}
+                            onClick={() => ref?._id && handleStatusUpdate(ref._id, "completed" as ReferralStatus)}
                             className="flex items-center gap-2"
                           >
                             <CheckCircle className="h-4 w-4" />
                             Complete
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleStatusUpdate(ref._id, "rejected")}
+                            onClick={() => ref?._id && handleStatusUpdate(ref._id, "rejected" as ReferralStatus)}
                             className="flex items-center gap-2 text-red-600"
                           >
                             <XCircle className="h-4 w-4" />
@@ -417,7 +428,7 @@ const AdminReferrals = () => {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => openRewardDialog(ref._id, ref.rewardMessage)}
+                            onClick={() => ref?._id && openRewardDialog(ref._id, ref?.rewardMessage)}
                             className="flex items-center gap-2"
                           >
                             <Gift className="h-4 w-4" />
@@ -434,29 +445,29 @@ const AdminReferrals = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && !error && referrals.length > 0 && (
+        {!loading && !error && referrals?.length > 0 && (
           <div className="flex items-center justify-between pt-4">
             <p className="text-sm text-gray-500">
-              Showing {referrals.length} of {pagination.totalRecords} results
+              Showing {referrals?.length ?? 0} of {pagination?.totalRecords ?? 0} results
             </p>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage <= 1 || loading}
+                onClick={() => handlePageChange(pagination?.currentPage - 1)}
+                disabled={pagination?.currentPage <= 1 || loading}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
               <span className="text-sm text-gray-500">
-                Page {pagination.currentPage} of {pagination.totalPages}
+                Page {pagination?.currentPage ?? 1} of {pagination?.totalPages ?? 1}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage >= pagination.totalPages || loading}
+                onClick={() => handlePageChange(pagination?.currentPage + 1)}
+                disabled={pagination?.currentPage >= pagination?.totalPages || loading}
               >
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -478,7 +489,7 @@ const AdminReferrals = () => {
           <div className="py-4">
             <Textarea
               placeholder="Enter reward message..."
-              value={rewardDialog.currentMessage}
+              value={rewardDialog.currentMessage ?? ''}
               onChange={(e) => setRewardDialog({
                 ...rewardDialog,
                 currentMessage: e.target.value,
@@ -497,7 +508,7 @@ const AdminReferrals = () => {
             <Button
               variant="destructive"
               onClick={handleRewardMessageUpdate}
-              disabled={!rewardDialog.currentMessage.trim()}
+              disabled={!rewardDialog.currentMessage?.trim()}
             >
               Save
             </Button>

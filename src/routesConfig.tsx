@@ -47,6 +47,9 @@ import TermsAndConditions from './pages/TermsandConditions';
 import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoutes';
 import UserInfo from './pages/admin/Users/UserInfo';
+import AdminPartners from './pages/admin/AdminPartners';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 export const routes = [
   {
@@ -90,6 +93,22 @@ export const routes = [
         meta: {
           title: 'Kitchen Estimate | Dewelling',
           description: 'Get a detailed estimate for your kitchen renovation project.',
+        },
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
+        meta: {
+          title: 'Forgot Password | Dewelling',
+          description: 'Reset your Dewelling account password.',
+        },
+      },
+      {
+        path: '/reset-password/:token',
+        element: <ResetPassword />,
+        meta: {
+          title: 'Reset Password | Dewelling',
+          description: 'Set your new Dewelling account password.',
         },
       },
       {
@@ -204,6 +223,14 @@ export const routes = [
                 meta: {
                   title: 'Warranty Management | Admin',
                   description: 'Manage warranty claims and requests.',
+                },
+              },
+              {
+                path: 'partners',
+                element: <AdminPartners />,
+                meta: {
+                  title: 'Trusted Partners | Admin',
+                  description: 'Manage Trusted Partners and logos.',
                 },
               },
               {

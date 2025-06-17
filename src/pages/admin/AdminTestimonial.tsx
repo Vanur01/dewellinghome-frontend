@@ -34,7 +34,6 @@ import { toast } from "sonner";
 import { Loader2, Pencil, Plus, Star, Trash2, Youtube } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Testimonial } from "../../utils/api";
-import { getImageUrl } from "@/utils/Image";
 
 interface FormData {
   name: string;
@@ -137,17 +136,17 @@ export default function AdminTestimonial() {
   };
 
   const handleEdit = (testimonial: Testimonial) => {
-    setEditingId(testimonial._id);
+    setEditingId(testimonial?._id ?? null);
     setFormData({
-      name: testimonial.name,
-      address: testimonial.address || "",
-      feedback: testimonial.feedback,
-      youtubeLink: testimonial.youtubeLink || "",
-      rating: testimonial.rating || 5,
-      showOnWebsite: testimonial.showOnWebsite || false,
-      currentImage: testimonial.image,
+      name: testimonial?.name ?? '',
+      address: testimonial?.address ?? '',
+      feedback: testimonial?.feedback ?? '',
+      youtubeLink: testimonial?.youtubeLink ?? '',
+      rating: testimonial?.rating ?? 5,
+      showOnWebsite: testimonial?.showOnWebsite ?? false,
+      currentImage: testimonial?.image,
     });
-    setImagePreview(testimonial.image || null);
+    setImagePreview(testimonial?.image ?? null);
     setIsOpen(true);
   };
 
@@ -197,7 +196,7 @@ export default function AdminTestimonial() {
                     <label className="text-sm font-medium">Name *</label>
                     <Input
                       name="name"
-                      value={formData.name}
+                      value={formData?.name ?? ''}
                       onChange={handleInputChange}
                       required
                       minLength={2}
@@ -208,7 +207,7 @@ export default function AdminTestimonial() {
                     <label className="text-sm font-medium">Address</label>
                     <Input
                       name="address"
-                      value={formData.address}
+                      value={formData?.address ?? ''}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -217,7 +216,7 @@ export default function AdminTestimonial() {
                     <label className="text-sm font-medium">Feedback *</label>
                     <Textarea
                       name="feedback"
-                      value={formData.feedback}
+                      value={formData?.feedback ?? ''}
                       onChange={handleInputChange}
                       required
                       minLength={10}
@@ -229,7 +228,7 @@ export default function AdminTestimonial() {
                     <Input
                       name="youtubeLink"
                       type="url"
-                      value={formData.youtubeLink}
+                      value={formData?.youtubeLink ?? ''}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -241,7 +240,7 @@ export default function AdminTestimonial() {
                       type="number"
                       min={1}
                       max={5}
-                      value={formData.rating}
+                      value={formData?.rating ?? 5}
                       onChange={handleInputChange}
                     />
                   </div>
@@ -252,7 +251,7 @@ export default function AdminTestimonial() {
                     </label>
                     <Switch
                       className="bg-red-500"
-                      checked={formData.showOnWebsite}
+                      checked={formData?.showOnWebsite ?? true}
                       onCheckedChange={handleSwitchChange}
                     />
                   </div>
@@ -264,10 +263,10 @@ export default function AdminTestimonial() {
                       accept="image/*"
                       onChange={handleFileChange}
                     />
-                    {(imagePreview || formData.currentImage) && (
+                    {(imagePreview || formData?.currentImage) && (
                       <div className="mt-2">
                         <img
-                          src={editingId ? getImageUrl(imagePreview) : imagePreview || formData.currentImage}
+                          src={editingId ? imagePreview : imagePreview || formData?.currentImage}
                           alt="Testimonial"
                           className="w-full max-w-[200px] h-auto rounded-md object-cover"
                         />
@@ -302,22 +301,22 @@ export default function AdminTestimonial() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {testimonials.map((testimonial) => (
-                  <TableRow key={testimonial._id}>
+                {testimonials?.map((testimonial) => (
+                  <TableRow key={testimonial?._id}>
                     <TableCell className="font-medium">
-                      {testimonial.name}
+                      {testimonial?.name}
                     </TableCell>
                     <TableCell className="max-w-[300px] truncate">
-                      {testimonial.feedback}
+                      {testimonial?.feedback}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="ml-1">{testimonial.rating}</span>
+                        <span className="ml-1">{testimonial?.rating ?? 0}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {testimonial.showOnWebsite ? (
+                      {testimonial?.showOnWebsite ? (
                         <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                           Published
                         </span>
@@ -342,7 +341,7 @@ export default function AdminTestimonial() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setDeleteId(testimonial._id!)}
+                              onClick={() => setDeleteId(testimonial?._id ?? null)}
                               className="hover:bg-red-100 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -372,7 +371,7 @@ export default function AdminTestimonial() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                        {testimonial.youtubeLink && (
+                        {testimonial?.youtubeLink && (
                           <a
                             href={testimonial.youtubeLink}
                             target="_blank"
@@ -391,7 +390,7 @@ export default function AdminTestimonial() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {testimonials.length === 0 && (
+                {(!testimonials || testimonials.length === 0) && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       No testimonials found

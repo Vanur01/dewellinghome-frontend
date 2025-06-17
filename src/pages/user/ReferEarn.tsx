@@ -11,7 +11,7 @@ const ReferEarn = () => {
     try {
       const res = await referralApi.getReferrals();
       // If using axios, data is in res.data
-      setReferrals(res.data.data || []);
+      setReferrals(res?.data?.data ?? []);
     } catch (error) {
       console.error('Failed to fetch referrals:', error);
     } finally {
@@ -27,7 +27,7 @@ const ReferEarn = () => {
   const getStatusBadge = (status) => {
     let badgeStyle = "";
     
-    switch(status) {
+    switch(status?.toLowerCase()) {
       case "pending":
         badgeStyle = "bg-yellow-100 text-yellow-800 border border-yellow-200";
         break;
@@ -46,7 +46,7 @@ const ReferEarn = () => {
     
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeStyle}`}>
-        {status}
+        {status ?? 'unknown'}
       </span>
     );
   };
@@ -108,7 +108,7 @@ const ReferEarn = () => {
           <div className="flex justify-center items-center h-32">
             <Loader2 className="h-8 w-8 text-red-600 animate-spin" />
           </div>
-        ) : referrals.length === 0 ? (
+        ) : referrals?.length === 0 ? (
           <div className="text-center py-10 bg-gray-50 rounded-lg">
             <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
             <p className="text-gray-500 mb-2">No referrals yet.</p>
@@ -120,29 +120,29 @@ const ReferEarn = () => {
               const cardStyle = "bg-white";
               
               return (
-                <div key={ref._id} className={`border rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow ${cardStyle}`}>
+                <div key={ref?._id} className={`border rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow ${cardStyle}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="font-medium text-lg text-gray-800">{ref.referralName}</p>
-                      <p className="text-gray-500 text-sm">Ref ID: <span className="font-mono">{ref.refId}</span></p>
+                      <p className="font-medium text-lg text-gray-800">{ref?.referralName}</p>
+                      <p className="text-gray-500 text-sm">Ref ID: <span className="font-mono">{ref?.refId}</span></p>
                     </div>
                     <div>
-                      {getStatusBadge(ref.status)}
+                      {getStatusBadge(ref?.status)}
                     </div>
                   </div>
                   
-                  {ref.rewardMessage && ref.status==="completed" && (
+                  {ref?.rewardMessage && ref?.status === "completed" && (
                     <div className="mt-3 p-3 bg-green-50 text-green-700 rounded-lg border border-green-100 flex items-center">
                       <Gift className="h-5 w-5 mr-2 text-green-500" />
-                      <span>{ref.rewardMessage}</span>
+                      <span>{ref?.rewardMessage}</span>
                     </div>
                   )}
                   
                   <div className="mt-3 text-sm text-gray-500">
-                    {ref.status === "pending" && "Waiting for your friend to sign up."}
-                    {ref.status === "processing" && "Your friend has signed up! Processing your reward."}
-                    {ref.status === "completed" && "Referral complete! Reward has been issued."}
-                    {ref.status === "rejected" && "This referral was not eligible for a reward."}
+                    {ref?.status === "pending" && "Waiting for your friend to sign up."}
+                    {ref?.status === "processing" && "Your friend has signed up! Processing your reward."}
+                    {ref?.status === "completed" && "Referral complete! Reward has been issued."}
+                    {ref?.status === "rejected" && "This referral was not eligible for a reward."}
                   </div>
                 </div>
               );

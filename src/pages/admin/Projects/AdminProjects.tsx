@@ -72,18 +72,18 @@ const AdminProjects = () => {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const {
-    projects,
-    loading,
-    error,
-    pagination,
+    projects = [],
+    loading = false,
+    error = null,
+    pagination = { currentPage: 1, totalPages: 1, totalItems: 0 },
     fetchProjects,
     setFilters,
     deleteProject,
   } = useProjectStore();
 
   useEffect(() => {
-    if(projects.length === 0){
-    fetchProjects();
+    if(projects?.length === 0){
+      fetchProjects();
     }
   }, []);
 
@@ -106,12 +106,13 @@ const AdminProjects = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!projectToDelete) return;
+    if (!projectToDelete?._id) return;
 
     try {
       await deleteProject(projectToDelete._id);
       toast.success("Project deleted successfully");
-    } catch {
+    } catch (error) {
+      console.error('Project deletion failed:', error);
       toast.error("Failed to delete project");
     } finally {
       setProjectToDelete(null);
@@ -143,7 +144,7 @@ const AdminProjects = () => {
           <Input
             type="text"
             placeholder="Search projects..."
-            value={searchQuery}
+            value={searchQuery ?? ''}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
@@ -184,34 +185,34 @@ const AdminProjects = () => {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : projects.length === 0 ? (
+            ) : projects?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-10">
                   No projects found
                 </TableCell>
               </TableRow>
             ) : (
-              projects.map((project) => (
-                <TableRow key={project._id}>
-                  <TableCell className="font-medium">{project.title}</TableCell>
-                  <TableCell>{project.clientId.name}</TableCell>
-                  <TableCell>{project.location}</TableCell>
+              projects?.map((project) => (
+                <TableRow key={project?._id ?? Math.random()}>
+                  <TableCell className="font-medium">{project?.title ?? 'N/A'}</TableCell>
+                  <TableCell>{project?.clientId?.name ?? 'N/A'}</TableCell>
+                  <TableCell>{project?.location ?? 'N/A'}</TableCell>
                   <TableCell>
                     <Badge
                       variant="secondary"
-                      className={getStatusColor(project.status)}
+                      className={getStatusColor(project?.status ?? '')}
                     >
-                      {project.status
+                      {(project?.status ?? '')
                         .replace("_", " ")
                         .charAt(0)
                         .toUpperCase() +
-                        project.status.slice(1).replace("_", " ")}
+                        (project?.status ?? '').slice(1).replace("_", " ")}
                     </Badge>
                   </TableCell>
-                  <TableCell>₹{project.budget.toLocaleString()}</TableCell>
+                  <TableCell>₹{project?.budget?.toLocaleString() ?? '0'}</TableCell>
                   <TableCell>
-                    {new Date(project.startDate).toLocaleDateString()} -
-                    {new Date(project.estimatedEndDate).toLocaleDateString()}
+                    {project?.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'} -
+                    {project?.estimatedEndDate ? new Date(project.estimatedEndDate).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -223,14 +224,14 @@ const AdminProjects = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>
-                          <Link to={`/admin/projects/${project._id}`}>View Details</Link>
+                          <Link to={`/admin/projects/${project?._id ?? ''}`}>View Details</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Link to={`/admin/projects/edit/${project._id}`}>Edit Project</Link>
+                          <Link to={`/admin/projects/edit/${project?._id ?? ''}`}>Edit Project</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-600"
-                          onClick={() => handleDeleteClick(project)}
+                          onClick={() => project && handleDeleteClick(project)}
                         >
                           Delete Project
                         </DropdownMenuItem>
@@ -250,7 +251,7 @@ const AdminProjects = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the project "{projectToDelete?.title}". 
+              This will permanently delete the project "{projectToDelete?.title ?? 'N/A'}". 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -269,22 +270,22 @@ const AdminProjects = () => {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-500">
-          Showing {projects.length} of {pagination.totalItems} results
+          Showing {projects?.length ?? 0} of {pagination?.totalItems ?? 0} results
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
-            disabled={pagination.currentPage === 1 || loading}
-            onClick={() => fetchProjects(pagination.currentPage - 1)}
+            disabled={pagination?.currentPage === 1 || loading}
+            onClick={() => fetchProjects(pagination?.currentPage - 1)}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             disabled={
-              pagination.currentPage >= pagination.totalPages || loading
+              pagination?.currentPage >= pagination?.totalPages || loading
             }
-            onClick={() => fetchProjects(pagination.currentPage + 1)}
+            onClick={() => fetchProjects(pagination?.currentPage + 1)}
           >
             Next
           </Button>

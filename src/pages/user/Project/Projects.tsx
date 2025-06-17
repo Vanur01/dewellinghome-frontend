@@ -105,8 +105,8 @@ const Projects = () => {
         <h1 className="text-2xl font-bold text-gray-900">My Projects</h1>
         {totalItems > 0 && (
           <p className="text-sm text-gray-600">
-            Showing {(currentPage - 1) * limit + 1} to{" "}
-            {Math.min(currentPage * limit, totalItems)} of {totalItems} projects
+            Showing {((currentPage ?? 1) - 1) * (limit ?? 9) + 1} to{" "}
+            {Math.min((currentPage ?? 1) * (limit ?? 9), totalItems ?? 0)} of {totalItems ?? 0} projects
           </p>
         )}
       </div>
@@ -127,23 +127,23 @@ const Projects = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {projects.map((project) => (
               <Link
-                key={project._id}
-                to={`/dashboard/projects/${project._id}`}
+                key={project?._id}
+                to={`/dashboard/projects/${project?._id}`}
                 className="group bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900 group-hover:text-red-600 transition-colors">
-                        {project.title}
+                        {project?.title}
                       </h2>
                       <div className="flex items-center mt-2 text-gray-600">
                         <MapPin className="w-4 h-4 mr-1" />
-                        <p className="text-sm">{project.location}</p>
+                        <p className="text-sm">{project?.location}</p>
                       </div>
                     </div>
-                    <span className={getStatusBadgeStyle(project.status)}>
-                      {project.status.replace("_", " ").toUpperCase()}
+                    <span className={getStatusBadgeStyle(project?.status ?? '')}>
+                      {project?.status?.replace("_", " ")?.toUpperCase()}
                     </span>
                   </div>
 
@@ -152,7 +152,7 @@ const Projects = () => {
                       <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Budget:</span>
                       <span className="ml-auto font-medium text-gray-900">
-                        ${project.budget.toLocaleString()}
+                        ${(project?.budget ?? 0).toLocaleString()}
                       </span>
                     </div>
 
@@ -160,7 +160,7 @@ const Projects = () => {
                       <Calendar className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Start Date:</span>
                       <span className="ml-auto font-medium text-gray-900">
-                        {new Date(project.startDate).toLocaleDateString()}
+                        {new Date(project?.startDate ?? '').toLocaleDateString()}
                       </span>
                     </div>
 
@@ -169,7 +169,7 @@ const Projects = () => {
                       <span className="text-gray-600">Est. Completion:</span>
                       <span className="ml-auto font-medium text-gray-900">
                         {new Date(
-                          project.estimatedEndDate
+                          project?.estimatedEndDate ?? ''
                         ).toLocaleDateString()}
                       </span>
                     </div>
@@ -183,15 +183,15 @@ const Projects = () => {
           {totalPages > 1 && (
             <div className="flex justify-center items-center space-x-4 mt-8">
               <PaginationButton
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                onClick={() => handlePageChange((currentPage ?? 1) - 1)}
+                disabled={(currentPage ?? 1) === 1}
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Previous
               </PaginationButton>
 
               <div className="flex items-center space-x-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                {Array.from({ length: totalPages ?? 0 }, (_, i) => i + 1).map(
                   (pageNum) => (
                     <button
                       key={pageNum}
@@ -199,7 +199,7 @@ const Projects = () => {
                       className={`
                       w-8 h-8 rounded-md text-sm flex items-center justify-center
                       ${
-                        pageNum === currentPage
+                        pageNum === (currentPage ?? 1)
                           ? "bg-red-600 text-white"
                           : "bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100"
                       }
@@ -212,8 +212,8 @@ const Projects = () => {
               </div>
 
               <PaginationButton
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange((currentPage ?? 1) + 1)}
+                disabled={(currentPage ?? 1) === (totalPages ?? 1)}
               >
                 Next
                 <ChevronRight className="w-4 h-4 ml-1" />

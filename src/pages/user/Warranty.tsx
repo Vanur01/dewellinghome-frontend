@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useWarrantyStore, UserWarrantyClaim } from "../../store/user/WarrantyStore";
+import { useProjectStore } from "../../store/user/ProjectStore";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,33 +9,29 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { getImageUrl } from "@/utils/Image";
+import { useAuthStore } from "../../store/auth.store";
 
 const WarrantyClaimPage = () => {
   const { claims, loading, error, submitting, createClaim, fetchUserClaims } = useWarrantyStore();
+  const { projects, fetchUserProjects, isLoading: projectsLoading } = useProjectStore();
+  const { user } = useAuthStore();
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedItem, setSelectedItem] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [description, setDescription] = useState("");
 
-
   useEffect(() => {
-      fetchUserClaims();
-  }, [fetchUserClaims]);
+    if (user?._id) {
+      fetchUserClaims({ userId: user._id });
+      fetchUserProjects({ userId: user._id });
+    }
+  }, [fetchUserClaims, fetchUserProjects, user?._id]);
 
   useEffect(() => {
     if (error) {
       toast.error(error);
     }
   }, [error]);
-
-  const projectItems = {
-    "Modular Kitchen": ["Cabinet Doors", "Hinges", "Drawers", "Countertop", "Shelves"],
-    "Wardrobe": ["Sliding Doors", "Hinged Doors", "Drawers", "Handles", "Rails"],
-    "False Ceiling": ["LED Lights", "POP Work", "Panels", "Spotlights"],
-    "TV Unit": ["Wall Mount", "Storage Units", "Display Shelves", "Back Panel"],
-    "Lighting": ["Ceiling Lights", "Wall Lights", "Strip Lights", "Spotlights"]
-  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -94,7 +91,7 @@ const WarrantyClaimPage = () => {
   };
 
   const getStatusBadgeVariant = (status: UserWarrantyClaim['status']) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'pending':
         return 'secondary';
       case 'in-review':
@@ -130,14 +127,15 @@ const WarrantyClaimPage = () => {
                   setSelectedProject(value);
                   setSelectedItem("");
                 }}
+                disabled={projectsLoading}
               >
                 <SelectTrigger id="project">
-                  <SelectValue placeholder="Select a project" />
+                  <SelectValue placeholder={projectsLoading ? "Loading projects..." : "Select a project"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.keys(projectItems).map((project) => (
-                    <SelectItem key={project} value={project}>
-                      {project}
+                  {projects.map((project) => (
+                    <SelectItem key={project._id} value={project.title}>
+                      {project.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -156,11 +154,13 @@ const WarrantyClaimPage = () => {
                     <SelectValue placeholder="Select an item" />
                   </SelectTrigger>
                   <SelectContent>
-                    {projectItems[selectedProject].map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
+                    {projects
+                      .find(p => p.title === selectedProject)
+                      ?.items?.map((item) => (
+                        <SelectItem key={item._id} value={item.name}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -245,56 +245,56 @@ const WarrantyClaimPage = () => {
           <div className="flex justify-center items-center p-8">
             <Loader2 className="w-8 h-8 animate-spin text-red-500" />
           </div>
-        ) : claims.length > 0 ? (
+        ) : claims?.length > 0 ? (
           <div className="space-y-4">
-            {claims.map((claim) => (
-              <Card key={claim._id}>
+            {claims?.map((claim) => (
+              <Card key={claim?._id}>
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-gray-500">Ticket ID</p>
-                      <p className="text-lg font-semibold text-gray-900">{claim.ticketId}</p>
+                      <p className="text-lg font-semibold text-gray-900">{claim?.ticketId}</p>
                     </div>
-                    <Badge variant={getStatusBadgeVariant(claim.status)}>
-                      {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                    <Badge variant={getStatusBadgeVariant(claim?.status)}>
+                      {(claim?.status?.charAt(0)?.toUpperCase() ?? '') + (claim?.status?.slice(1) ?? '')}
                     </Badge>
                   </div>
                   <div className="mt-4 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-gray-500">Project</p>
-                      <p className="text-gray-900">{claim.project}</p>
+                      <p className="text-gray-900">{claim?.project}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-500">Item</p>
-                      <p className="text-gray-900">{claim.item}</p>
+                      <p className="text-gray-900">{claim?.item}</p>
                     </div>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-500">Description</p>
-                    <p className="text-gray-900">{claim.description}</p>
+                    <p className="text-gray-900">{claim?.description}</p>
                   </div>
                   <div className="mt-4">
                     <p className="text-sm font-medium text-gray-500 mb-2">Images</p>
                     <div className="flex gap-4 overflow-x-auto pb-2">
-                      {claim.images.map((image, index) => (
+                      {claim?.images?.map((image, index) => (
                         <img
                           key={index}
-                          src={getImageUrl(image)}
-                          alt={`Claim ${claim.ticketId} image ${index + 1}`}
+                          src={image}
+                          alt={`Claim ${claim?.ticketId} image ${index + 1}`}
                           className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
                         />
                       ))}
                     </div>
                   </div>
-                  {claim.adminNotes && (
+                  {claim?.adminNotes && (
                     <div className="mt-4 p-3 bg-gray-50 rounded-md">
                       <p className="text-sm font-medium text-gray-500">Admin Notes</p>
-                      <p className="text-gray-900">{claim.adminNotes}</p>
+                      <p className="text-gray-900">{claim?.adminNotes}</p>
                     </div>
                   )}
                   <div className="mt-4">
                     <p className="text-sm text-gray-500">
-                      Submitted on {new Date(claim.createdAt).toLocaleDateString()}
+                      Submitted on {new Date(claim?.createdAt ?? '').toLocaleDateString()}
                     </p>
                   </div>
                 </CardContent>

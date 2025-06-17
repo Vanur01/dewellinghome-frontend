@@ -47,12 +47,12 @@ export default function AdminTransactionsTable() {
   const [filterValue, setFilterValue] = useState("")
   
   const { 
-    transactions, 
-    pagination, 
-    loading, 
+    transactions = [], 
+    pagination = { currentPage: 1, totalPages: 1, totalItems: 0 }, 
+    loading = false, 
     getAllTransactions,
   } = useAdminTransactionStore();
-  const { getTransactionById} = useTransactionStore();
+  const { getTransactionById } = useTransactionStore();
 
   // Initial data load
   useEffect(() => {
@@ -87,16 +87,16 @@ export default function AdminTransactionsTable() {
     setFilterValue(value)
   }
 
-  const formatCurrency = (amount: string | number) => {
-    const numAmount = parseFloat(amount?.toString() || "0")
+  const formatCurrency = (amount: string | number | undefined) => {
+    const numAmount = parseFloat(amount?.toString() ?? "0")
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
     }).format(numAmount)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch(status.toLowerCase()) {
+  const getStatusBadge = (status: string | undefined) => {
+    switch(status?.toLowerCase() ?? '') {
       case 'completed':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-200"><CheckCircle2 className="w-3 h-3 mr-1" /> {status}</Badge>
       case 'pending':
@@ -104,7 +104,7 @@ export default function AdminTransactionsTable() {
       case 'failed':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-200"><XCircle className="w-3 h-3 mr-1" /> {status}</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status ?? 'Unknown'}</Badge>
     }
   }
 
@@ -151,24 +151,24 @@ export default function AdminTransactionsTable() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : transactions.length > 0 ? (
+                ) : transactions?.length > 0 ? (
                   transactions.map((transaction) => (
-                    <TableRow key={transaction._id} className="hover:bg-muted/50">
+                    <TableRow key={transaction?._id ?? Math.random()} className="hover:bg-muted/50">
                       <TableCell className="font-mono text-xs">
-                        {transaction.razorpay_payment_id}
+                        {transaction?.razorpay_payment_id ?? 'N/A'}
                       </TableCell>
-                      <TableCell>{transaction.userId?.name || "N/A"}</TableCell>
-                      <TableCell className="max-w-[200px] truncate" title={transaction.projectId?.title || "N/A"}>
-                        {transaction.projectId?.title || "N/A"}
+                      <TableCell>{transaction?.userId?.name ?? "N/A"}</TableCell>
+                      <TableCell className="max-w-[200px] truncate" title={transaction?.projectId?.title ?? "N/A"}>
+                        {transaction?.projectId?.title ?? "N/A"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(transaction.amount)}
+                        {formatCurrency(transaction?.amount)}
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(transaction.status)}
+                        {getStatusBadge(transaction?.status)}
                       </TableCell>
                       <TableCell>
-                        {transaction.paidAt ? new Date(transaction.paidAt).toLocaleDateString('en-IN', {
+                        {transaction?.paidAt ? new Date(transaction.paidAt).toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric'
@@ -186,13 +186,13 @@ export default function AdminTransactionsTable() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => navigator.clipboard.writeText(transaction.razorpay_payment_id || "")}
+                              onClick={() => navigator.clipboard.writeText(transaction?.razorpay_payment_id ?? "")}
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy ID
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => transaction._id && getTransactionById(transaction._id)}
+                              onClick={() => transaction?._id && getTransactionById(transaction._id)}
                             >
                               <FileText className="mr-2 h-4 w-4" />
                               View details
@@ -223,23 +223,23 @@ export default function AdminTransactionsTable() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange((pagination?.currentPage || 1) - 1)}
-                disabled={(pagination?.currentPage || 1) <= 1 || loading}
+                onClick={() => handlePageChange((pagination?.currentPage ?? 1) - 1)}
+                disabled={(pagination?.currentPage ?? 1) <= 1 || loading}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-medium">Page</span>
-                <span className="text-sm font-medium">{pagination?.currentPage || 1}</span>
+                <span className="text-sm font-medium">{pagination?.currentPage ?? 1}</span>
                 <span className="text-sm text-muted-foreground">of</span>
-                <span className="text-sm font-medium">{pagination?.totalPages || 1}</span>
+                <span className="text-sm font-medium">{pagination?.totalPages ?? 1}</span>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange((pagination?.currentPage || 1) + 1)}
-                disabled={(pagination?.currentPage || 1) >= (pagination?.totalPages || 1) || loading}
+                onClick={() => handlePageChange((pagination?.currentPage ?? 1) + 1)}
+                disabled={(pagination?.currentPage ?? 1) >= (pagination?.totalPages ?? 1) || loading}
               >
                 Next
                 <ChevronRight className="h-4 w-4 ml-1" />

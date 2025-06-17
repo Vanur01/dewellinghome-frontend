@@ -196,7 +196,7 @@ export default function PaymentModal({
               toast.success('Payment successful!');
               onClose();
               // Optionally refresh the payment schedule
-              window.location.reload();
+              // window.location.reload();
             } else {
               throw new Error('Payment verification failed');
             }

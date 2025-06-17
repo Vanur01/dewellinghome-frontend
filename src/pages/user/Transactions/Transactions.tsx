@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useUserTransactionStore } from "../../../store/user/TransactionStore";
 import { format } from "date-fns";
@@ -30,10 +29,10 @@ export default function Transactions() {
     loadTransactions();
   }, []);
 
-  const loadTransactions = (pageNum = page) => {
+  const loadTransactions = (pageNum = page ?? 1) => {
     getUserTransactions({
       page: pageNum,
-      limit,
+      limit: limit ?? 10,
     });
   };
 
@@ -66,18 +65,18 @@ export default function Transactions() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : transactions.length ? (
-                  transactions.map((transaction) => (
+                ) : transactions?.length ? (
+                  transactions?.map((transaction) => (
                     <TableRow 
-                      key={transaction._id}
+                      key={transaction?._id}
                       className="hover:bg-muted/50"
                     >
-                      <TableCell>{transaction.razorpay_payment_id}</TableCell>
+                      <TableCell>{transaction?.razorpay_payment_id}</TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat("en-IN", {
                           style: "currency",
                           currency: "INR",
-                        }).format(transaction.amount)}
+                        }).format(transaction?.amount ?? 0)}
                       </TableCell>
                       <TableCell>
                         <span
@@ -86,22 +85,22 @@ export default function Transactions() {
                               'success': 'bg-green-100 text-green-800',
                               'processing': 'bg-yellow-100 text-yellow-800',
                               'failed': 'bg-red-100 text-red-800'
-                            }[transaction.status]
+                            }[transaction?.status?.toLowerCase() ?? 'processing']
                           }`}
                         >
-                          {transaction.status.charAt(0).toUpperCase() +
-                            transaction.status.slice(1)}
+                          {(transaction?.status?.charAt(0)?.toUpperCase() ?? '') +
+                            (transaction?.status?.slice(1) ?? '')}
                         </span>
                       </TableCell>
-                      <TableCell>{transaction.method}</TableCell>
+                      <TableCell>{transaction?.method}</TableCell>
                       <TableCell>
-                        {format(new Date(transaction.paidAt), "PPP")}
+                        {format(new Date(transaction?.paidAt ?? ''), "PPP")}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedTransactionId(transaction._id)}
+                          onClick={() => setSelectedTransactionId(transaction?._id ?? null)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -120,22 +119,22 @@ export default function Transactions() {
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <span className="text-sm text-muted-foreground">
-              Page {page} of {Math.ceil(total / limit)}
+              Page {page ?? 1} of {Math.ceil((total ?? 0) / (limit ?? 10))}
             </span>
             <div className="space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => loadTransactions(page - 1)}
-                disabled={page === 1 || isLoading}
+                onClick={() => loadTransactions((page ?? 1) - 1)}
+                disabled={(page ?? 1) === 1 || isLoading}
               >
                 Previous
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => loadTransactions(page + 1)}
-                disabled={page * limit >= total || isLoading}
+                onClick={() => loadTransactions((page ?? 1) + 1)}
+                disabled={((page ?? 1) * (limit ?? 10)) >= (total ?? 0) || isLoading}
               >
                 Next
               </Button>

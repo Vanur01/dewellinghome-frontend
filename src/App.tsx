@@ -6,7 +6,6 @@ import LoadingScreen from "./components/LoadingScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import { routes } from './routesConfig';
 import MetaWrapper from './components/MetaWrapper';
-import { API_URL } from "./utils/axiosInstance";
 
 // ✅ Safe UUID generation
 function generateUUID() {
@@ -27,7 +26,6 @@ function App() {
   const [showLoading, setShowLoading] = useState(true);
 
   useEffect(() => {
-    console.log(API_URL);
     const startTime = Date.now();
     const minimumLoadingTime = 2000;
 

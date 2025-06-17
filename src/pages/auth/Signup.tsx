@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone, FiMapPin } from 'react-icons/fi';
@@ -7,8 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 
 interface SignupFormData {
   fullName: string;
@@ -26,9 +24,10 @@ const Signup: React.FC = () => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm<SignupFormData>();
   const password = watch("password");
 
-  const signup = useAuthStore((state) => state.signup);
+  const { signup, user }= useAuthStore();
   const isLoading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
+
 
   useAuth(false);
 
@@ -36,7 +35,6 @@ const Signup: React.FC = () => {
     try {
       setError('');
       await signup(data.email, data.password, data.fullName, data.address, data.phone);
-      navigate('/');
     } catch (err) {
       if (err instanceof AxiosError) {
         setError(err.response?.data?.message || 'Failed to create account. Please try again.');
@@ -45,6 +43,16 @@ const Signup: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+  
+    if (user.role === 'admin') {
+      navigate('/admin/projects');
+    } else {
+      navigate('/dashboard/profile');
+    }
+  }, [user]);
 
   return (
     <div className="min-h-screen flex">

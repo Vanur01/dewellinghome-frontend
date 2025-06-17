@@ -9,10 +9,23 @@ import {
   MessageSquare,
   Image,
   Star,
-  Wallet
+  Wallet,
+  LogOut,
+  Building2
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -38,7 +51,8 @@ const Sidebar = () => {
     { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
     { name: 'Gallery', path: '/admin/gallery', icon: Image },
     { name: 'Testimonials', path: '/admin/testimonials', icon: Star },
-    {name: 'Transactions', path: '/admin/transactions', icon: Wallet},
+    { name: 'Partners', path: '/admin/partners', icon: Building2 },
+    { name: 'Transactions', path: '/admin/transactions', icon: Wallet },
   ];
 
   const menuItems = isAdmin ? adminMenuItems : userMenuItems;
@@ -83,12 +97,28 @@ const Sidebar = () => {
 
       {/* Logout */}
       <div className="px-4 py-6 mt-auto">
-        <button
-          onClick={logout}
-          className="w-full text-sm bg-red-500 hover:bg-red-600 text-white py-2 rounded-md transition"
-        >
-          Logout
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="w-full text-sm bg-red-600 hover:bg-red-700 text-white py-2 rounded-md transition"
+            >
+              <LogOut className="w-5 h-5 mr-2 inline" />
+              Logout
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will be redirected to the login page.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction className='bg-red-600 bg-red-700 text-white' onClick={logout}>Logout</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

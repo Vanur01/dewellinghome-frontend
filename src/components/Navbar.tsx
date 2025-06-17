@@ -26,7 +26,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center h-full gap-1">
             <img
-              className="w-12 h-11 object-contain"
+              className="w-14 h-11 object-contain"
               src="/images/Dwelling_home.png"
               alt="DwellingHome Logo"
             />

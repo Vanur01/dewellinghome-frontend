@@ -20,7 +20,7 @@ import {
 import ViewWarrantyClaim from './ViewWarrantyClaim';
 
 const AdminWarranty = () => {
-  const { claims, loading, error, filters, fetchClaims, updateClaimStatus, deleteClaim, setFilters } = useAdminWarrantyStore();
+  const { claims = [], loading = false, error = null, filters = {}, fetchClaims, updateClaimStatus, deleteClaim, setFilters } = useAdminWarrantyStore();
   const [searchField, setSearchField] = useState<'name' | 'ticketId'>('name');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClaim, setSelectedClaim] = useState<WarrantyClaim | null>(null);
@@ -131,7 +131,7 @@ const AdminWarranty = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   type="text"
-                  value={searchQuery}
+                  value={searchQuery ?? ''}
                   onChange={(e) => handleSearch(e.target.value)}
                   placeholder={`Search by ${searchField === 'name' ? 'customer name' : 'ticket ID'}...`}
                   className="pl-10 w-full"
@@ -139,7 +139,7 @@ const AdminWarranty = () => {
               </div>
             </div>
 
-            <Select value={filters.status || 'all'} onValueChange={handleStatusFilter}>
+            <Select value={filters?.status ?? 'all'} onValueChange={handleStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -177,32 +177,32 @@ const AdminWarranty = () => {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : claims.length === 0 ? (
+                ) : claims?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
                       No warranty claims found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  claims.map((claim) => (
-                    <TableRow key={claim._id}>
-                      <TableCell className="font-medium">{claim.ticketId}</TableCell>
-                      <TableCell>{claim.user.name}</TableCell>
-                      <TableCell>{claim.project}</TableCell>
-                      <TableCell>{claim.item}</TableCell>
+                  claims?.map((claim) => (
+                    <TableRow key={claim?._id ?? Math.random()}>
+                      <TableCell className="font-medium">{claim?.ticketId ?? 'N/A'}</TableCell>
+                      <TableCell>{claim?.user?.name ?? 'N/A'}</TableCell>
+                      <TableCell>{claim?.project ?? 'N/A'}</TableCell>
+                      <TableCell>{claim?.item ?? 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(claim.status)}>
-                          {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                        <Badge variant={getStatusBadgeVariant(claim?.status ?? 'pending')}>
+                          {(claim?.status?.charAt(0)?.toUpperCase() ?? '') + (claim?.status?.slice(1) ?? '')}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(claim.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell>{claim?.createdAt ? new Date(claim.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              setSelectedClaim(claim);
+                              setSelectedClaim(claim ?? null);
                               setIsViewDialogOpen(true);
                             }}
                           >
@@ -212,9 +212,9 @@ const AdminWarranty = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              setSelectedClaim(claim);
-                              setNewStatus(claim.status);
-                              setAdminNotes(claim.adminNotes);
+                              setSelectedClaim(claim ?? null);
+                              setNewStatus(claim?.status ?? 'pending');
+                              setAdminNotes(claim?.adminNotes ?? '');
                               setIsUpdateDialogOpen(true);
                             }}
                           >
@@ -225,7 +225,7 @@ const AdminWarranty = () => {
                             size="icon"
                             className="text-destructive hover:text-destructive/90"
                             onClick={() => {
-                              setSelectedClaim(claim);
+                              setSelectedClaim(claim ?? null);
                               setIsDeleteDialogOpen(true);
                             }}
                           >
@@ -267,7 +267,7 @@ const AdminWarranty = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Admin Notes</label>
               <Textarea
-                value={adminNotes}
+                value={adminNotes ?? ''}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 placeholder="Add notes about the status change..."
                 className="min-h-[100px]"

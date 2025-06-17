@@ -41,6 +41,7 @@ interface ProjectState {
   
   // Actions
   fetchUserProjects: (params?: {
+    userId: string;
     page?: number;
     limit?: number;
     status?: Project['status'];
@@ -64,12 +65,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
   fetchUserProjects: async (params) => {
     try {
       set({ isLoading: true, error: null });
-      const response = await projectApi.getUserProjects( params);
+      const response = await projectApi.getUserProjects(params);
       set({
-        projects: response.data.projects,
-        totalPages: response.data.pagination.totalPages,
-        currentPage: response.data.pagination.currentPage,
-        totalItems: response.data.pagination.totalItems,
+        projects: response.data.data.projects,
+        totalPages: response.data.data.pagination.totalPages,
+        currentPage: response.data.data.pagination.currentPage,
+        totalItems: response.data.data.pagination.totalItems,
         isLoading: false
       });
     } catch (error) {
@@ -85,7 +86,7 @@ export const useProjectStore = create<ProjectState>((set) => ({
       set({ isLoading: true, error: null });
       const response = await projectApi.getProjectById(id);
       set({ 
-        currentProject: response.data,
+        currentProject: response.data.data,
         isLoading: false 
       });
     } catch (error) {

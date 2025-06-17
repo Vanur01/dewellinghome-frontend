@@ -146,7 +146,7 @@ const Login: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <Link
-                to="/auth/forgot-password"
+                to="/forgot-password"
                 className="text-sm font-medium text-red-600 hover:text-red-500 transition-colors"
               >
                 Forgot your password?

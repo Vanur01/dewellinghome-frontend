@@ -9,7 +9,7 @@ export interface UserWarrantyClaim {
     description: string;
     images: string[];
     status: 'pending' | 'in-review' | 'approved' | 'rejected' | 'resolved';
-    adminNotes: string;
+    adminNotes?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -21,48 +21,53 @@ interface WarrantyState {
     submitting: boolean;
 
     // Actions
-    fetchUserClaims: () => Promise<void>; // <-- update signature
-    createClaim: (data: FormData) => Promise<void>;
-    resetError: () => void;
+    fetchUserClaims: (params?: { userId: string }) => Promise<void>;
+    createClaim: (formData: FormData) => Promise<void>;
+    clearError: () => void;
 }
 
-export const useWarrantyStore = create<WarrantyState>((set, get) => ({
+export const useWarrantyStore = create<WarrantyState>((set) => ({
     claims: [],
     loading: false,
     error: null,
     submitting: false,
 
-    fetchUserClaims: async () => {
-        set({ loading: true, error: null });
+    fetchUserClaims: async (params) => {
         try {
-            const response = await warrantyApi.getUserClaims();
+            set({ loading: true, error: null });
+            const response = await warrantyApi.getUserClaims(params);
             set({
                 claims: response.data.data.claims,
                 loading: false
             });
         } catch (error) {
-            set({ 
+            set({
                 error: error instanceof Error ? error.message : 'Failed to fetch claims',
-                loading: false 
+                loading: false
             });
         }
     },
 
-    createClaim: async (formData: FormData) => {
-        set({ submitting: true, error: null });
+    createClaim: async (formData) => {
         try {
+            set({ submitting: true, error: null });
             await warrantyApi.createWarrantyClaim(formData);
-            // Refresh claims after successful creation
-            await get().fetchUserClaims();
-            set({ submitting: false });
-        } catch (error) {
-            set({ 
-                error: error instanceof Error ? error.message : 'Failed to create warranty claim',
-                submitting: false 
+            // Refresh claims after creating new one
+            const response = await warrantyApi.getUserClaims();
+            set({
+                claims: response.data.data.claims,
+                submitting: false
             });
-            throw error; // Re-throw to handle in component
+        } catch (error) {
+            set({
+                error: error instanceof Error ? error.message : 'Failed to create claim',
+                submitting: false
+            });
+            throw error;
         }
     },
 
-    resetError: () => set({ error: null })
+    clearError: () => {
+        set({ error: null });
+    }
 }));

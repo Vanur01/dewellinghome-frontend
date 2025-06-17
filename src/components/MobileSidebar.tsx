@@ -12,7 +12,8 @@ import {
   Star,
   Headphones,
   ChevronRight,
-  Wallet
+  Wallet,
+  Building2
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
@@ -47,6 +48,7 @@ const MobileSidebar = ({ isOpen, onClose }: MobileSidebarProps) => {
     { name: 'Inquiries', path: '/admin/inquiries', icon: <MessageSquare className="w-5 h-5" /> },
     { name: 'Gallery', path: '/admin/gallery', icon: <Image className="w-5 h-5" /> },
     { name: 'Testimonials', path: '/admin/testimonials', icon: <Star className="w-5 h-5" /> },
+    { name: 'Partners', path: '/admin/partners', icon: <Building2 className="w-5 h-5" /> },
     { name: 'Transactions', path: '/admin/transactions', icon: <Wallet className="w-5 h-5" /> },
   ];
 

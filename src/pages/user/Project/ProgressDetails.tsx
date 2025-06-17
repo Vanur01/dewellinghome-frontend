@@ -4,7 +4,6 @@ import { useProjectStore } from '../../../store/user/ProjectStore';
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getImageUrl } from '@/utils/Image';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -34,7 +33,7 @@ const ProgressDetails = () => {
   };
 
   const renderPagination = () => {
-    const totalPages = pagination.totalPages;
+    const totalPages = pagination?.totalPages ?? 1;
     const pages = [];
 
     for (let i = 1; i <= totalPages; i++) {
@@ -86,7 +85,7 @@ const ProgressDetails = () => {
             <ArrowLeft className="w-5 h-5" />
             Back to Project
           </Link>
-          <h1 className="text-2xl font-bold">{currentProject.title} - Progress Updates</h1>
+          <h1 className="text-2xl font-bold">{currentProject?.title} - Progress Updates</h1>
         </div>
       </div>
 
@@ -95,37 +94,37 @@ const ProgressDetails = () => {
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold">All Progress Updates</h2>
           <p className="text-gray-600 mt-1">
-            Showing {progressEntries.length} of {pagination.totalItems} updates
+            Showing {progressEntries?.length ?? 0} of {pagination?.totalItems ?? 0} updates
           </p>
         </div>
 
         <div className="divide-y divide-gray-200">
-          {progressEntries.map((entry) => (
-            <div key={entry._id} className="p-6">
+          {progressEntries?.map((entry) => (
+            <div key={entry?._id} className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="font-medium text-gray-900">
-                    {new Date(entry.date).toLocaleDateString('en-US', {
+                    {new Date(entry?.date ?? '').toLocaleDateString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
                     })}
                   </h3>
-                  <p className="text-gray-600 mt-1">{entry.description}</p>
+                  <p className="text-gray-600 mt-1">{entry?.description}</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Posted by: {entry.postedBy.name}
+                    Posted by: {entry?.postedBy?.name}
                   </p>
                 </div>
               </div>
 
               {/* Photo Gallery */}
-              {entry.images.length > 0 && (
+              {entry?.images?.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                  {entry.images.map((image, photoIndex) => (
+                  {entry?.images?.map((image, photoIndex) => (
                     <div key={photoIndex} className="group relative">
                       <img
-                        src={getImageUrl(image)}
+                        src={image}
                         alt={`Progress update ${photoIndex + 1}`}
                         className="w-full h-48 object-cover rounded-lg"
                       />
@@ -140,11 +139,11 @@ const ProgressDetails = () => {
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div 
                     className="bg-blue-600 h-2.5 rounded-full" 
-                    style={{ width: `${entry.completionPercentage}%` }}
+                    style={{ width: `${entry?.completionPercentage ?? 0}%` }}
                   ></div>
                 </div>
                 <p className="text-gray-600 text-sm mt-2">
-                  {entry.completionPercentage}% Complete
+                  {entry?.completionPercentage ?? 0}% Complete
                 </p>
               </div>
             </div>
@@ -152,7 +151,7 @@ const ProgressDetails = () => {
         </div>
 
         {/* Pagination */}
-        {pagination.totalPages > 1 && renderPagination()}
+        {pagination?.totalPages > 1 && renderPagination()}
       </div>
     </div>
   );

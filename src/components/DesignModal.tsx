@@ -10,7 +10,6 @@ import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import ContactForm from "./Forms/ContactForm";
 import { Design } from "../utils/publicApi";
 import { motion, AnimatePresence } from "framer-motion";
-import { getImageUrl } from "@/utils/Image";
 
 interface KitchenData {
   title: string;
@@ -97,7 +96,7 @@ const DesignModal: React.FC<DesignModalProps> = ({
                 initial={{ opacity: 0, scale: 1.1 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                src={getImageUrl(data.images[currentImageIndex])}
+                src={data.images[currentImageIndex]}
                 alt={`${data.title} - Image ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
               />
@@ -273,7 +272,7 @@ const DesignModal: React.FC<DesignModalProps> = ({
                               aria-label={`View related design ${design.title}`}
                             >
                               <img
-                                src={getImageUrl(imgSrc)}
+                                src={imgSrc}
                                 alt={design.title}
                                 className="w-full aspect-video object-cover rounded-lg shadow-md"
                               />

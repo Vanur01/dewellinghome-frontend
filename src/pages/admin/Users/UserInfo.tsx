@@ -19,7 +19,6 @@ import {
   Users,
 } from "lucide-react";
 import { projectApi, referralApi, warrantyApi } from "@/utils/api";
-import { getImageUrl } from "@/utils/Image";
 import { FaRupeeSign } from "react-icons/fa";
 
 const UserInfo = () => {
@@ -44,9 +43,9 @@ const UserInfo = () => {
             referralApi.getReferrals({ userId })
           ]);
 
-          setProjects(projectsResponse.data.projects || []);
-          setClaims(claimsResponse.data.data.claims || []);
-          setReferrals(referralsResponse.data.data || []);
+          setProjects(projectsResponse?.data?.projects ?? []);
+          setClaims(claimsResponse?.data?.data?.claims ?? []);
+          setReferrals(referralsResponse?.data?.data ?? []);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -70,7 +69,7 @@ const UserInfo = () => {
       processing: "bg-blue-100 text-blue-800 border-blue-200",
     };
     return (
-      statusColors[status?.toLowerCase()] ||
+      statusColors[status?.toLowerCase()] ??
       "bg-gray-100 text-gray-800 border-gray-200"
     );
   };
@@ -146,23 +145,23 @@ const UserInfo = () => {
           <CardHeader className="bg-white text-black rounded-t-lg">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16 border-4 border-white/20">
-                {selectedUser.image ? (
+                {selectedUser?.image ? (
                   <img
-                    src={getImageUrl(selectedUser.image)}
-                    alt={selectedUser.name}
+                    src={selectedUser?.image}
+                    alt={selectedUser?.name}
                   />
                 ) : (
                   <AvatarFallback className="bg-gray-100 text-gray-600 text-xl font-semibold">
-                    {selectedUser.name.slice(0,1)
-                      .toUpperCase() || "U"}
+                    {selectedUser?.name?.slice(0,1)
+                      ?.toUpperCase() ?? "U"}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div>
                 <CardTitle className="text-2xl font-bold">
-                  {selectedUser.name}
+                  {selectedUser?.name}
                 </CardTitle>
-                <p className="text-gray-600">User ID: {selectedUser._id}</p>
+                <p className="text-gray-600">User ID: {selectedUser?._id}</p>
               </div>
             </div>
           </CardHeader>
@@ -178,7 +177,7 @@ const UserInfo = () => {
                   </span>
                 </div>
                 <p className="text-gray-900 font-medium break-all">
-                  {selectedUser.email}
+                  {selectedUser?.email}
                 </p>
               </div>
 
@@ -192,7 +191,7 @@ const UserInfo = () => {
                   </span>
                 </div>
                 <p className="text-gray-900 font-medium">
-                  {selectedUser.phone || "Not provided"}
+                  {selectedUser?.phone ?? "Not provided"}
                 </p>
               </div>
 
@@ -206,7 +205,7 @@ const UserInfo = () => {
                   </span>
                 </div>
                 <p className="text-gray-900 font-medium">
-                  {selectedUser.address || "Not provided"}
+                  {selectedUser?.address ?? "Not provided"}
                 </p>
               </div>
             </div>
@@ -220,7 +219,7 @@ const UserInfo = () => {
                       Total Projects
                     </p>
                     <p className="text-3xl font-bold text-red-900">
-                      {projects.length}
+                      {projects?.length ?? 0}
                     </p>
                   </div>
                   <Building2 className="w-10 h-10 text-red-600/60" />
@@ -234,7 +233,7 @@ const UserInfo = () => {
                       Warranty Claims
                     </p>
                     <p className="text-3xl font-bold text-purple-900">
-                      {claims.length}
+                      {claims?.length ?? 0}
                     </p>
                   </div>
                   <Shield className="w-10 h-10 text-purple-600/60" />
@@ -250,11 +249,11 @@ const UserInfo = () => {
                     <p className="text-3xl font-bold text-green-900">
                       ₹
                       {projects
-                        .reduce(
-                          (sum, project) => sum + (project.budget || 0),
+                        ?.reduce(
+                          (sum, project) => sum + (project?.budget ?? 0),
                           0
                         )
-                        .toLocaleString()}
+                        ?.toLocaleString() ?? '0'}
                     </p>
                   </div>
                   <FaRupeeSign className="w-10 h-10 text-green-600/60" />
@@ -281,29 +280,29 @@ const UserInfo = () => {
                   </p>
                 </div>
               </div>
-              <Badge variant="secondary">{projects.length} total</Badge>
+              <Badge variant="secondary">{projects?.length ?? 0} total</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-8">
-            {projects.length > 0 ? (
+            {projects?.length > 0 ? (
               <div className="grid gap-6">
                 {projects.map((project, index) => (
                   <div
-                    key={project._id}
+                    key={project?._id}
                     className="group p-6 rounded-xl border border-gray-200 hover:border-red-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-xl font-semibold text-gray-900 group-hover:text-red-700 transition-colors">
-                            {project.title}
+                            {project?.title}
                           </h4>
                           <Badge
                             className={`${getStatusColor(
-                              project.status
+                              project?.status
                             )} text-xs font-medium`}
                           >
-                            {project.status}
+                            {project?.status}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -311,14 +310,14 @@ const UserInfo = () => {
                             <Calendar className="w-4 h-4" />
                             <span>
                               Started:{" "}
-                              {new Date(project.startDate).toLocaleDateString()}
+                              {new Date(project?.startDate ?? '').toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <FaRupeeSign className="w-4 h-4" />
                             <span>
                               Budget: ₹
-                              {project.budget?.toLocaleString() || "N/A"}
+                              {project?.budget?.toLocaleString() ?? "N/A"}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -328,7 +327,7 @@ const UserInfo = () => {
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleViewProject(project._id)}
+                        onClick={() => handleViewProject(project?._id)}
                         size="sm"
                         className="ml-4 bg-red-600 hover:bg-red-700 text-white shadow-sm"
                       >
@@ -368,45 +367,45 @@ const UserInfo = () => {
                   </p>
                 </div>
               </div>
-              <Badge variant="secondary">{claims.length} total</Badge>
+              <Badge variant="secondary">{claims?.length ?? 0} total</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-8">
-            {claims.length > 0 ? (
+            {claims?.length > 0 ? (
               <div className="grid gap-6">
                 {claims.map((claim, index) => (
                   <div
-                    key={claim._id}
+                    key={claim?._id}
                     className="p-6 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-lg font-semibold text-gray-900">
-                            {claim.project}
+                            {claim?.project}
                           </h4>
                           <Badge
                             className={`${getStatusColor(
-                              claim.status
+                              claim?.status
                             )} text-xs font-medium`}
                           >
-                            {claim.status}
+                            {claim?.status}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <FileText className="w-4 h-4" />
-                            <span>Item: {claim.item}</span>
+                            <span>Item: {claim?.item}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <FileText className="w-4 h-4" />
-                            <span>Ticker ID: {claim.ticketId}</span>
+                            <span>Ticker ID: {claim?.ticketId}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
                             <span>
                               Created:{" "}
-                              {new Date(claim.createdAt).toLocaleDateString()}
+                              {new Date(claim?.createdAt ?? '').toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -448,40 +447,40 @@ const UserInfo = () => {
                   </p>
                 </div>
               </div>
-              <Badge variant="secondary">{referrals.length} total</Badge>
+              <Badge variant="secondary">{referrals?.length ?? 0} total</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-8">
-            {referrals.length > 0 ? (
+            {referrals?.length > 0 ? (
               <div className="grid gap-6">
-                {referrals.map((referral, index) => (
-                  <div key={referral._id} className="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50">
+                {referrals.map((referral) => (
+                  <div key={referral?._id} className="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-lg font-semibold text-gray-900">
-                            {referral.referralName}
+                            {referral?.referralName}
                           </h4>
-                          <Badge className={`${getStatusColor(referral.status)} text-xs font-medium`}>
-                            {referral.status}
+                          <Badge className={`${getStatusColor(referral?.status)} text-xs font-medium`}>
+                            {referral?.status}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Mail className="w-4 h-4" />
-                            <span>Ref ID: {referral.refId}</span>
+                            <span>Ref ID: {referral?.refId}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Mail className="w-4 h-4" />
-                            <span>Email: {referral.referralEmail}</span>
+                            <span>Email: {referral?.referralEmail}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Phone className="w-4 h-4" />
-                            <span>Phone: {referral.referralPhone}</span>
+                            <span>Phone: {referral?.referralPhone}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            <span>Created: {new Date(referral.createdAt).toLocaleDateString()}</span>
+                            <span>Created: {new Date(referral?.createdAt ?? '').toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>

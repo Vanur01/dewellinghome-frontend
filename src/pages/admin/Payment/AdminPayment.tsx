@@ -25,17 +25,20 @@ import { format } from 'date-fns';
 export default function AdminPayment() {
   const navigate = useNavigate();
   const {
-    paymentSchedules,
-    loading,
-    error,
+    paymentSchedules = [],
+    loading = false,
+    error = null,
     fetchAllSchedules,
   } = useAdminPaymentStore();
 
   useEffect(() => {
-    fetchAllSchedules();
+    if (paymentSchedules?.length === 0) {
+      fetchAllSchedules();
+    }
   }, []);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined) return '₹ 0';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -44,8 +47,8 @@ export default function AdminPayment() {
   };
 
   const getPaymentStatus = (schedule: PaymentSchedule) => {
-    if (schedule.totalRemaining === 0) return 'completed';
-    if (schedule.totalPaid > 0) return 'partial';
+    if (schedule?.totalRemaining === 0) return 'completed';
+    if (schedule?.totalPaid > 0) return 'partial';
     return 'pending';
   };
 
@@ -110,25 +113,25 @@ export default function AdminPayment() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paymentSchedules.map((schedule) => (
-                <TableRow key={schedule._id}>
+              {paymentSchedules?.map((schedule) => (
+                <TableRow key={schedule?._id ?? Math.random()}>
                   <TableCell className="font-medium">
-                    {schedule.projectId.title}
+                    {schedule?.projectId?.title ?? 'Untitled Project'}
                   </TableCell>
                   <TableCell>
-                    {schedule.projectId?.clientId?.name || 'N/A'}
+                    {schedule?.projectId?.clientId?.name ?? 'N/A'}
                   </TableCell>
                   <TableCell>
-                    {formatCurrency(schedule.totalProjectValue)}
+                    {formatCurrency(schedule?.totalProjectValue)}
                   </TableCell>
                   <TableCell>
-                    {formatCurrency(schedule.totalPaid)}
+                    {formatCurrency(schedule?.totalPaid)}
                   </TableCell>
                   <TableCell>
-                    {formatCurrency(schedule.totalRemaining)}
+                    {formatCurrency(schedule?.totalRemaining)}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(schedule.lastUpdated), 'dd/MM/yyyy HH:mm')}
+                    {schedule?.lastUpdated ? format(new Date(schedule.lastUpdated), 'dd/MM/yyyy HH:mm') : 'N/A'}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge 
@@ -142,16 +145,16 @@ export default function AdminPayment() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/admin/payments/${schedule.projectId._id}`)}
+                      onClick={() => schedule?.projectId?._id && navigate(`/admin/payments/${schedule.projectId._id}`)}
                     >
                       View Details
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
-              {paymentSchedules.length === 0 && (
+              {paymentSchedules?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     No payment schedules found
                   </TableCell>
                 </TableRow>

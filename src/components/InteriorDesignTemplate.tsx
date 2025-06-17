@@ -3,7 +3,6 @@ import { ArrowRight, Clock, Sparkles, CheckCircle2 } from "lucide-react";
 import ContactForm from "./Forms/ContactForm";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
-import { getImageUrl } from "@/utils/Image";
 
 // interface GalleryItem {
 //   id: string | number;
@@ -71,7 +70,7 @@ const InteriorDesignTemplate:any = ({
       {/* Hero Banner with Title */}
       <div className="relative w-full h-[40vh] md:h-[60vh] bg-gray-900">
         <img
-          src={getImageUrl(heroImage)}
+          src={heroImage}
           alt={heroTitle}
           className="w-full h-full object-cover opacity-80"
         />
@@ -121,7 +120,7 @@ const InteriorDesignTemplate:any = ({
                     <>
                       <div className="relative group">
                         <img
-                          src={getImageUrl(item.image)}
+                          src={item.image}
                           alt={item.title}
                           className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                         />

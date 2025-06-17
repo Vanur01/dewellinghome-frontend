@@ -42,10 +42,10 @@ export default function Payment() {
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    {schedule.projectId.title}
+                    {schedule?.projectId?.title}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Project Value: {formatCurrency(schedule.totalProjectValue)}
+                    Project Value: {formatCurrency(schedule?.totalProjectValue ?? 0)}
                   </p>
                 </div>
 
@@ -53,11 +53,11 @@ export default function Payment() {
                   <div className="flex items-center gap-2 text-gray-500 text-sm">
                     <span>Payment Status</span>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      schedule.totalRemaining === 0 
+                      schedule?.totalRemaining === 0 
                         ? 'bg-green-100 text-green-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {schedule.totalRemaining === 0 ? 'Completed' : 'In Progress'}
+                      {schedule?.totalRemaining === 0 ? 'Completed' : 'In Progress'}
                     </span>
                   </div>
                 </div>
@@ -66,16 +66,16 @@ export default function Payment() {
               <div className="mt-4 space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">Amount Paid</span>
-                  <span className="font-medium text-green-600">{formatCurrency(schedule.totalPaid)}</span>
+                  <span className="font-medium text-green-600">{formatCurrency(schedule?.totalPaid ?? 0)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">Amount Remaining</span>
-                  <span className="font-medium text-blue-600">{formatCurrency(schedule.totalRemaining)}</span>
+                  <span className="font-medium text-blue-600">{formatCurrency(schedule?.totalRemaining ?? 0)}</span>
                 </div>
-                {schedule.totalOverpayment > 0 && (
+                {schedule?.totalOverpayment > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Overpayment</span>
-                    <span className="font-medium text-green-600">{formatCurrency(schedule.totalOverpayment)}</span>
+                    <span className="font-medium text-green-600">{formatCurrency(schedule?.totalOverpayment ?? 0)}</span>
                   </div>
                 )}
 
@@ -85,13 +85,13 @@ export default function Payment() {
                     <div 
                       className="h-full bg-red-600 rounded-full transition-all duration-500"
                       style={{ 
-                        width: `${(schedule.totalPaid / schedule.totalProjectValue) * 100}%`
+                        width: `${((schedule?.totalPaid ?? 0) / (schedule?.totalProjectValue ?? 1)) * 100}%`
                       }}
                     ></div>
                   </div>
                   <div className="flex justify-end mt-1">
                     <span className="text-sm text-gray-500">
-                      {Math.round((schedule.totalPaid / schedule.totalProjectValue) * 100)}% Complete
+                      {Math.round(((schedule?.totalPaid ?? 0) / (schedule?.totalProjectValue ?? 1)) * 100)}% Complete
                     </span>
                   </div>
                 </div>
@@ -99,8 +99,7 @@ export default function Payment() {
 
               <div className="mt-6 flex justify-end">
                 <Button
-
-                  onClick={() => navigate(`/dashboard/payment/${schedule.projectId._id}`)}
+                  onClick={() => navigate(`/dashboard/payment/${schedule?.projectId?._id}`)}
                   className="flex items-center gap-2 bg-red-600 text-white"
                 >
                   View Details

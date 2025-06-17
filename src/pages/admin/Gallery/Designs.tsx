@@ -26,7 +26,6 @@ import type { Design } from "@/store/admin/adminGallery.store";
 import { ImageGalleryDialog } from "@/components/gallery/ImageGalleryDialog";
 import { AddDesignDialog } from "@/components/admin/gallery/AddDesignDialog";
 import { UpdateDesignSheet } from "@/components/admin/gallery/UpdateDesignSheet";
-import { getImageUrl } from "@/utils/Image";
 
 interface DeleteDialogProps {
   open: boolean;
@@ -229,7 +228,7 @@ export default function Designs() {
                   onClick={() => setSelectedImages({ images: design.images, title: design.title })}
                 >
                   <img
-                    src={getImageUrl(design.images[0]?.url)}
+                    src={design.images[0]?.url}
                     alt={design.title}
                     className="object-cover w-full h-full"
                   />

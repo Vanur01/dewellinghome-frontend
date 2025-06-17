@@ -34,9 +34,9 @@ export default function GalleryList() {
   const navigate = useNavigate();
   
   const { 
-    galleries, 
-    loading, 
-    error,
+    galleries = [], 
+    loading = false, 
+    error = null,
     fetchGalleries, 
     createGallery, 
     deleteGallery,
@@ -44,45 +44,66 @@ export default function GalleryList() {
   } = useAdminGalleryStore();
 
   useEffect(() => {
-    fetchGalleries();
-  }, [fetchGalleries]);
+    if (galleries?.length === 0) {
+      fetchGalleries();
+    }
+  }, [fetchGalleries, galleries]);
 
   const handleAddGallery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    await createGallery({
-      title: formData.get("title") as string,
-      category: formData.get("category") as string,
-      description: formData.get("description") as string,
-    });
-    setIsAddDialogOpen(false);
+    try {
+      await createGallery({
+        title: formData.get("title") as string ?? '',
+        category: formData.get("category") as string ?? '',
+        description: formData.get("description") as string ?? '',
+      });
+      setIsAddDialogOpen(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create gallery';
+      console.error('Gallery creation failed:', errorMessage);
+    }
   };
 
   const handleDeleteGallery = async (id: string) => {
-    await deleteGallery(id);
+    try {
+      await deleteGallery(id);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete gallery';
+      console.error('Gallery deletion failed:', errorMessage);
+    }
   };
 
   const handleEditGallery = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!editingGallery) return;
+    if (!editingGallery?._id) return;
 
-    const formData = new FormData(e.currentTarget);
-    await updateGallery(editingGallery._id, {
-      title: formData.get("title") as string,
-      category: formData.get("category") as string,
-      description: formData.get("description") as string,
-    });
-    setIsEditDialogOpen(false);
-    setEditingGallery(null);
+    try {
+      const formData = new FormData(e.currentTarget);
+      await updateGallery(editingGallery._id, {
+        title: formData.get("title") as string ?? '',
+        category: formData.get("category") as string ?? '',
+        description: formData.get("description") as string ?? '',
+      });
+      setIsEditDialogOpen(false);
+      setEditingGallery(null);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update gallery';
+      console.error('Gallery update failed:', errorMessage);
+    }
   };
 
   const openEditDialog = (gallery: typeof editingGallery) => {
-    setEditingGallery(gallery);
-    setIsEditDialogOpen(true);
+    if (gallery) {
+      setEditingGallery(gallery);
+      setIsEditDialogOpen(true);
+    }
   };
 
   const navigateToDesigns = (galleryId: string) => {
-    navigate(`/admin/gallery/${galleryId}/designs`);
+    if (galleryId) {
+      navigate(`/admin/gallery/${galleryId}/designs`);
+    }
   };
 
   if (error) {
@@ -178,7 +199,7 @@ export default function GalleryList() {
                 <Input
                   id="edit-title"
                   name="title"
-                  defaultValue={editingGallery?.title}
+                  defaultValue={editingGallery?.title ?? ''}
                   placeholder="e.g., Modern Bedrooms"
                   required
                 />
@@ -188,7 +209,7 @@ export default function GalleryList() {
                 <Input
                   id="edit-category"
                   name="category"
-                  defaultValue={editingGallery?.category}
+                  defaultValue={editingGallery?.category ?? ''}
                   placeholder="e.g., Bedroom"
                   required
                 />
@@ -198,7 +219,7 @@ export default function GalleryList() {
                 <Textarea
                   id="edit-description"
                   name="description"
-                  defaultValue={editingGallery?.description}
+                  defaultValue={editingGallery?.description ?? ''}
                   placeholder="Describe this gallery category..."
                   required
                 />
@@ -214,17 +235,17 @@ export default function GalleryList() {
         </DialogContent>
       </Dialog>
 
-      {loading && !galleries.length ? (
+      {loading && !galleries?.length ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {galleries.map((gallery) => (
-            <Card key={gallery._id} className="group">
+          {galleries?.map((gallery) => (
+            <Card key={gallery?._id ?? Math.random()} className="group">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
-                  <span>{gallery.title}</span>
+                  <span>{gallery?.title ?? 'Untitled'}</span>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button 
                       variant="ghost" 
@@ -236,25 +257,25 @@ export default function GalleryList() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDeleteGallery(gallery._id)}
+                      onClick={() => gallery?._id && handleDeleteGallery(gallery._id)}
                       disabled={loading}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </CardTitle>
-                <CardDescription>{gallery.category}</CardDescription>
+                <CardDescription>{gallery?.category ?? 'Uncategorized'}</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  {gallery.description}
+                  {gallery?.description ?? 'No description available'}
                 </p>
               </CardContent>
               <CardFooter>
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => navigateToDesigns(gallery._id)}
+                  onClick={() => gallery?._id && navigateToDesigns(gallery._id)}
                 >
                   <Image className="mr-2 h-4 w-4" />
                   Manage Designs

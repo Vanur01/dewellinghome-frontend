@@ -5,7 +5,6 @@ import { useTestimonialsStore } from '../../store/public/Testimonials.store';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './Reviews.css';
-import { getImageUrl } from '@/utils/Image';
 
 interface ArrowProps {
   onClick?: () => void;
@@ -90,11 +89,12 @@ const Reviews: React.FC = () => {
         <div className="relative">
           <Slider {...settings} className="reviews-slider">
             {testimonials.map((testimonial) => (
+              testimonial.showOnWebsite && (
               <div key={testimonial._id} className="px-3 h-full">
                 <div className="overflow-hidden h-full flex flex-col">
                   <div className="aspect-w-16 aspect-h-9 flex-shrink-0">
                     <img
-                      src={getImageUrl(testimonial.image) || 'https://via.placeholder.com/400x300?text=No+Image'}
+                      src={testimonial.image || 'https://via.placeholder.com/400x300?text=No+Image'}
                       alt={testimonial.name}
                       className="w-full h-48 object-cover rounded-lg"
                     />
@@ -122,7 +122,7 @@ const Reviews: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
+           ) ))}
           </Slider>
         </div>
       </div>

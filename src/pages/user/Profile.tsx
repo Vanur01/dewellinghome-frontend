@@ -20,7 +20,6 @@ import {
   Send
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getImageUrl } from '@/utils/Image';
 
 interface ErrorState {
   phone: string;
@@ -55,9 +54,9 @@ const Profile: React.FC = () => {
   useEffect(() => {
     if (profile) {
       setFormData({
-        name: profile.name || '',
-        phone: profile.phone || '',
-        address: profile.address || '',
+        name: profile?.name ?? '',
+        phone: profile?.phone ?? '',
+        address: profile?.address ?? '',
       });
     }
   }, [profile]);
@@ -156,16 +155,16 @@ const Profile: React.FC = () => {
       setErrors({ phone: '', address: '' });
       toast.success("Profile updated successfully");
     } catch {
-      toast.error(updateError || "Failed to update profile");
+      toast.error(updateError ?? "Failed to update profile");
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setFormData({
-      name: profile.name || '',
-      phone: profile.phone || '',
-      address: profile.address || '',
+      name: profile?.name ?? '',
+      phone: profile?.phone ?? '',
+      address: profile?.address ?? '',
     });
     setPreviewImage(null);
     setSelectedImage(null);
@@ -219,15 +218,15 @@ const Profile: React.FC = () => {
                     alt="Profile preview"
                     className="w-full h-full object-cover"
                   />
-                ) : profile.image ? (
+                ) : profile?.image ? (
                   <img
-                    src={getImageUrl(profile.image)}
-                    alt={profile.name || 'Profile'}
+                    src={profile.image}
+                    alt={profile?.name ?? 'Profile'}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <span className="text-4xl text-white">
-                    {profile.name?.[0]?.toUpperCase() || profile.email[0].toUpperCase()}
+                    {profile?.name?.[0]?.toUpperCase() ?? profile?.email?.[0]?.toUpperCase() ?? '?'}
                   </span>
                 )}
                 {isEditing && (
@@ -275,7 +274,7 @@ const Profile: React.FC = () => {
                     placeholder="Your Name"
                   />
                 ) : (
-                  profile.name || 'No Name Set'
+                  profile?.name ?? 'No Name Set'
                 )}
               </h1>
             </div>
@@ -292,7 +291,7 @@ const Profile: React.FC = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium">{profile.email}</p>
+                    <p className="text-sm font-medium">{profile?.email}</p>
                   </div>
                 </div>
 
@@ -356,7 +355,7 @@ const Profile: React.FC = () => {
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Member Since</p>
                     <p className="text-sm font-medium">
-                      {new Date(profile.createdAt).toLocaleDateString('en-US', {
+                      {new Date(profile?.createdAt ?? '').toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

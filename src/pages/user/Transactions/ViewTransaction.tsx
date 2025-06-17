@@ -27,15 +27,15 @@ export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransact
     }
   }, [isOpen, transactionId, getTransactionById, clearSelectedTransaction]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
-    }).format(amount);
+    }).format(amount ?? 0);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch(status.toLowerCase()) {
+  const getStatusBadge = (status: string | undefined) => {
+    switch(status?.toLowerCase() ?? '') {
       case 'success':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-200"><CheckCircle2 className="w-3 h-3 mr-1" /> {status}</Badge>;
       case 'processing':
@@ -43,7 +43,7 @@ export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransact
       case 'failed':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-200"><XCircle className="w-3 h-3 mr-1" /> {status}</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{status ?? 'Unknown'}</Badge>;
     }
   };
 
@@ -62,27 +62,27 @@ export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransact
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Payment ID</p>
-                <p className="text-sm font-medium">{selectedTransaction.razorpay_payment_id}</p>
+                <p className="text-sm font-medium">{selectedTransaction?.razorpay_payment_id}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Amount</p>
-                <p className="text-sm font-medium">{formatCurrency(selectedTransaction.amount)}</p>
+                <p className="text-sm font-medium">{formatCurrency(selectedTransaction?.amount)}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <div>{getStatusBadge(selectedTransaction.status)}</div>
+                <div>{getStatusBadge(selectedTransaction?.status)}</div>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
-                <p className="text-sm font-medium">{selectedTransaction.method}</p>
+                <p className="text-sm font-medium">{selectedTransaction?.method}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Project</p>
-                <p className="text-sm font-medium">{selectedTransaction.projectId.title}</p>
+                <p className="text-sm font-medium">{selectedTransaction?.projectId?.title}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Paid On</p>
-                <p className="text-sm font-medium">{format(new Date(selectedTransaction.paidAt), "PPP")}</p>
+                <p className="text-sm font-medium">{format(new Date(selectedTransaction?.paidAt ?? ''), "PPP")}</p>
               </div>
             </div>
           </div>

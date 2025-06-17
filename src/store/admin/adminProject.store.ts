@@ -145,7 +145,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       set({ searchLoading: true, error: null });
       const response = await projectApi.searchProjects(query);
       set({
-        searchResults: response.data,
+        searchResults: response.data.data,
         searchLoading: false
       });
     } catch (error) {
@@ -167,8 +167,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       });
       
       set({
-        projects: response.data.projects,
-        pagination: response.data.pagination,
+        projects: response.data.data.projects,
+        pagination: response.data.data.pagination,
         loading: false
       });
     } catch (error) {
@@ -184,7 +184,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     try {
       set({ loading: true, error: null });
       const response = await projectApi.getProjectById(id);
-      const project = response.data;
+      const project = response.data.data;
       set({ currentProject: project, loading: false });
       return project;
     } catch (error) {

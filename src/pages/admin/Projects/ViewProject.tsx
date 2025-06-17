@@ -35,7 +35,6 @@ import {
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ConfirmDialog } from "@/components/admin/ProjectProgress/ConfirmDialog";
-import { getImageUrl } from "@/utils/Image";
 
 const statusColors = {
   planning: "bg-purple-100 text-purple-800",
@@ -43,17 +42,22 @@ const statusColors = {
   in_progress: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
   on_hold: "bg-yellow-100 text-yellow-800",
-};
+} as const;
 
 const ViewProject = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentProject, loading, error, fetchProjectById, deleteProject } =
-    useProjectStore();
+  const { 
+    currentProject = null, 
+    loading = false, 
+    error = null, 
+    fetchProjectById, 
+    deleteProject 
+  } = useProjectStore();
   const {
-    progressEntries,
-    loading: progressLoading,
-    pagination,
+    progressEntries = [],
+    loading: progressLoading = false,
+    pagination = { totalPages: 1, totalItems: 0 },
     fetchProjectProgress,
   } = useProgressStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -66,7 +70,7 @@ const ViewProject = () => {
   }, [id, fetchProjectById, fetchProjectProgress]);
 
   const handleDeleteProject = async () => {
-    if (currentProject) {
+    if (currentProject?._id) {
       try {
         await deleteProject(currentProject._id);
         navigate("/admin/projects");
@@ -97,11 +101,13 @@ const ViewProject = () => {
     return <div className="p-6">Project not found</div>;
   }
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | undefined) => {
+    if (!date) return 'N/A';
     return format(new Date(date), "PPP");
   };
 
   const calculateDuration = () => {
+    if (!currentProject?.startDate || !currentProject?.estimatedEndDate) return 'N/A';
     const start = new Date(currentProject.startDate);
     const end = new Date(currentProject.estimatedEndDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -120,10 +126,10 @@ const ViewProject = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">{currentProject.title}</h1>
+            <h1 className="text-2xl font-bold">{currentProject?.title ?? 'Untitled Project'}</h1>
             <p className="text-gray-500 flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              {currentProject.location}
+              {currentProject?.location ?? 'No location specified'}
             </p>
           </div>
         </div>
@@ -131,7 +137,7 @@ const ViewProject = () => {
           <Button
             variant="outline"
             onClick={() =>
-              navigate(`/admin/projects/edit/${currentProject._id}`)
+              navigate(`/admin/projects/edit/${currentProject?._id ?? ''}`)
             }
           >
             Edit Project
@@ -158,9 +164,9 @@ const ViewProject = () => {
                 <p className="text-sm text-gray-500 mb-1">Status</p>
                 <Badge
                   variant="secondary"
-                  className={statusColors[currentProject.status]}
+                  className={statusColors[currentProject?.status ?? 'planning']}
                 >
-                  {currentProject.status
+                  {(currentProject?.status ?? 'planning')
                     .replace("_", " ")
                     .split("_")
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -170,14 +176,14 @@ const ViewProject = () => {
               <div>
                 <p className="text-sm text-gray-500 mb-1">Budget</p>
                 <p className="text-lg font-semibold">
-                  ₹{currentProject.budget.toLocaleString()}
+                  ₹{(currentProject?.budget ?? 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Start Date</p>
                 <p className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {formatDate(currentProject.startDate)}
+                  {formatDate(currentProject?.startDate)}
                 </p>
               </div>
               <div>
@@ -186,7 +192,7 @@ const ViewProject = () => {
                 </p>
                 <p className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {formatDate(currentProject.estimatedEndDate)}
+                  {formatDate(currentProject?.estimatedEndDate)}
                 </p>
               </div>
               <div>
@@ -200,7 +206,7 @@ const ViewProject = () => {
                 <p className="text-sm text-gray-500 mb-1">Created</p>
                 <p className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {formatDate(currentProject.createdAt)}
+                  {formatDate(currentProject?.createdAt)}
                 </p>
               </div>
             </CardContent>
@@ -215,7 +221,7 @@ const ViewProject = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {currentProject.items && currentProject.items.length > 0 ? (
+              {currentProject?.items?.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -229,15 +235,15 @@ const ViewProject = () => {
                   </TableHeader>
                   <TableBody>
                     {currentProject.items.map((item, index) => (
-                      <TableRow key={item._id || index}>
+                      <TableRow key={item?._id ?? index}>
                         <TableCell className="font-medium">
-                          {item.category}
+                          {item?.category ?? 'N/A'}
                         </TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.size}</TableCell>
-                        <TableCell>{item.units}</TableCell>
-                        <TableCell>{item.materials}</TableCell>
-                        <TableCell>{item.notes}</TableCell>
+                        <TableCell>{item?.name ?? 'N/A'}</TableCell>
+                        <TableCell>{item?.size ?? 'N/A'}</TableCell>
+                        <TableCell>{item?.units ?? 'N/A'}</TableCell>
+                        <TableCell>{item?.materials ?? 'N/A'}</TableCell>
+                        <TableCell>{item?.notes ?? 'N/A'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -260,12 +266,12 @@ const ViewProject = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {currentProject.gallery && currentProject.gallery.length > 0 ? (
+              {currentProject?.gallery?.length > 0 ? (
                 <div className="grid grid-cols-3 gap-4">
                   {currentProject.gallery.map((image, index) => (
                     <div key={index} className="relative aspect-square group">
                       <img
-                        src={getImageUrl(image)}
+                        src={image}
                         alt={`Project image ${index + 1}`}
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -284,7 +290,7 @@ const ViewProject = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() =>
-                  navigate(`/admin/projects/edit/${currentProject._id}`)
+                  navigate(`/admin/projects/edit/${currentProject?._id ?? ''}`)
                 }
               >
                 Manage Gallery
@@ -301,7 +307,7 @@ const ViewProject = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {currentProject.notes ? (
+              {currentProject?.notes ? (
                 <p className="whitespace-pre-wrap text-gray-700">
                   {currentProject.notes}
                 </p>
@@ -323,7 +329,7 @@ const ViewProject = () => {
               <Button
                 variant="outline"
                 onClick={() =>
-                  navigate(`/admin/projects/${currentProject._id}/progress`)
+                  navigate(`/admin/projects/${currentProject?._id ?? ''}/progress`)
                 }
               >
                 Add Progress
@@ -334,24 +340,24 @@ const ViewProject = () => {
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
-              ) : progressEntries && progressEntries.length > 0 ? (
+              ) : progressEntries?.length > 0 ? (
                 <div className="space-y-6">
                   {progressEntries.map((progress) => (
                     <div
-                      key={progress._id}
+                      key={progress?._id ?? Math.random()}
                       className="border-b pb-4 last:border-b-0 last:pb-0"
                     >
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
                         <div className="space-y-1">
                           <h3 className="font-medium text-lg">
-                            {progress.title}
+                            {progress?.title ?? 'Untitled Progress'}
                           </h3>
                           <p className="text-sm text-gray-500 flex items-center gap-2">
                             <Calendar className="h-3 w-3" />
-                            {formatDate(progress.date)}
+                            {formatDate(progress?.date)}
                             <span className="text-gray-400">•</span>
                             <span className="text-gray-500">
-                              by {progress.postedBy.name}
+                              by {progress?.postedBy?.name ?? 'Unknown'}
                             </span>
                           </p>
                         </div>
@@ -359,13 +365,13 @@ const ViewProject = () => {
                           variant="secondary"
                           className="bg-blue-100 text-blue-800 self-start"
                         >
-                          {progress.completionPercentage}% Complete
+                          {progress?.completionPercentage ?? 0}% Complete
                         </Badge>
                       </div>
                       <p className="text-gray-700 mb-3">
-                        {progress.description}
+                        {progress?.description ?? 'No description provided'}
                       </p>
-                      {progress.images && progress.images.length > 0 && (
+                      {progress?.images?.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {progress.images.map((image, imgIndex) => (
                             <div
@@ -373,7 +379,7 @@ const ViewProject = () => {
                               className="relative aspect-square"
                             >
                               <img
-                                src={getImageUrl(image)}
+                                src={image}
                                 alt={`Progress image ${imgIndex + 1}`}
                                 className="w-full h-full object-cover rounded-md"
                               />
@@ -390,16 +396,15 @@ const ViewProject = () => {
                   <p>No daily progress updates yet</p>
                 </div>
               )}
-              {progressEntries &&
-                progressEntries.length > 0 &&
-                pagination.totalPages > 1 && (
+              {progressEntries?.length > 0 &&
+                pagination?.totalPages > 1 && (
                   <div className="mt-4 flex justify-center">
                     <Button
                       variant="outline"
                       className="w-full"
                       onClick={() => navigate(`/admin/projects/${id}/progress`)}
                     >
-                      View All Progress ({pagination.totalItems} entries)
+                      View All Progress ({pagination?.totalItems ?? 0} entries)
                     </Button>
                   </div>
                 )}
@@ -418,7 +423,7 @@ const ViewProject = () => {
               <div>
                 <p className="text-sm text-gray-500 mb-1">Name</p>
                 <p className="text-lg font-semibold">
-                  {currentProject.clientId.name}
+                  {currentProject?.clientId?.name ?? 'Unknown Client'}
                 </p>
               </div>
               <div>
@@ -426,15 +431,15 @@ const ViewProject = () => {
                 <div className="space-y-2">
                   <p className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-gray-500" />
-                    {currentProject.clientId.phone}
+                    {currentProject?.clientId?.phone ?? 'No phone number'}
                   </p>
                   <p className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-gray-500" />
-                    {currentProject.clientId.email}
+                    {currentProject?.clientId?.email ?? 'No email address'}
                   </p>
                   <p className="flex items-center gap-2">
                     <Home className="h-4 w-4 text-gray-500" />
-                    {currentProject.clientId.address}
+                    {currentProject?.clientId?.address ?? 'No address'}
                   </p>
                 </div>
               </div>
@@ -444,7 +449,7 @@ const ViewProject = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() =>
-                  navigate(`/admin/clients/${currentProject.clientId._id}`)
+                  navigate(`/admin/clients/${currentProject?.clientId?._id ?? ''}`)
                 }
               >
                 View Client Profile
@@ -461,7 +466,7 @@ const ViewProject = () => {
               <Button
                 className="w-full bg-red-500 hover:bg-red-700"
                 onClick={() =>
-                  navigate(`/admin/projects/edit/${currentProject._id}`)
+                  navigate(`/admin/projects/edit/${currentProject?._id ?? ''}`)
                 }
               >
                 Add New Item
@@ -470,7 +475,7 @@ const ViewProject = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() =>
-                  navigate(`/admin/projects/${currentProject._id}/progress`)
+                  navigate(`/admin/projects/${currentProject?._id ?? ''}/progress`)
                 }
               >
                 View Progress
@@ -479,18 +484,18 @@ const ViewProject = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() =>
-                  navigate(`/admin/projects/${currentProject._id}/transactions`)
+                  navigate(`/admin/projects/${currentProject?._id ?? ''}/transactions`)
                 }
               >
                 View Transactions
               </Button>
-              {!currentProject.paymentSchedule ? (
+              {!currentProject?.paymentSchedule ? (
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() =>
                     navigate(
-                      `/admin/payments/new?projectId=${currentProject._id}`
+                      `/admin/payments/new?projectId=${currentProject?._id ?? ''}`
                     )
                   }
                 >
@@ -502,7 +507,7 @@ const ViewProject = () => {
                   className="w-full"
                   onClick={() =>
                     navigate(
-                      `/admin/payments/${currentProject._id}`
+                      `/admin/payments/${currentProject?._id ?? ''}`
                     )
                   }
                 >

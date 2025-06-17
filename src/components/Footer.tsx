@@ -1,7 +1,6 @@
 import {
   FaInstagram,
   FaYoutube,
-  FaPinterest,
   FaLinkedin,
   FaFacebookF,
   FaPhoneAlt,
@@ -68,7 +67,7 @@ const Footer = () => {
           {/* Quick Links */}
           <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="space-y-6">
-              <h4 className="text-lg font-medium text-gray-900">Company</h4>
+              <h4 className="text-lg font-medium text-gray-900">Dewelling Home</h4>
               <ul className="space-y-4">
                 <li>
                   <Link to="/team" className="text-gray-600 hover:text-gray-900 transition-colors">Our Team</Link>

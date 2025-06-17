@@ -1,16 +1,17 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { AuthState, AuthStore, AuthUser } from '../types/auth';
-import { authApi } from '../utils/api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import Cookies from "js-cookie";
+import { AuthState, AuthStore, AuthUser } from "../types/auth";
+import { authApi } from "../utils/api";
 
-// Initial state with proper typing
 const initialState: AuthState = {
-  userId: '',
+  userId: "",
   user: null,
-  accessToken: '',
+  accessToken: "",
   isAuthenticated: false,
   isLoading: false,
 };
+
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthStore>()(
       ...initialState,
 
       setAccessToken: (token: string) => {
+        Cookies.set("access_token", token);
         set({ accessToken: token });
       },
 
@@ -26,7 +28,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       clearAuth: () => {
+        Cookies.remove("access_token");
         set(initialState);
+        // Optional: Clear localStorage manually if needed
+        localStorage.removeItem("auth-storage");
       },
 
       login: async (email: string, password: string) => {
@@ -34,38 +39,30 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const response = await authApi.login(email, password);
           const { user, accessToken } = response.data.data;
-          
-          if (!accessToken || !user) {
-            throw new Error('Invalid response data');
-          }
-          
+
+          if (!user || !accessToken) throw new Error("Invalid login response");
+
+          Cookies.set("access_token", accessToken);
           set({ accessToken, user, isAuthenticated: true });
           return { user, accessToken };
-        } catch (error) {
-          set(initialState);
-          throw error;
         } finally {
-          set(state => ({ ...state, isLoading: false }));
+          set({ isLoading: false });
         }
       },
 
-      signup: async (email: string, password: string, name: string, address: string, phone: string) => {
+      signup: async (email, password, name, address, phone) => {
         set({ isLoading: true });
         try {
           const response = await authApi.register(email, password, name, address, phone);
           const { user, accessToken } = response.data.data;
-          
-          if (!accessToken || !user) {
-            throw new Error('Invalid response data');
-          }
-          
+
+          if (!user || !accessToken) throw new Error("Invalid signup response");
+
+          Cookies.set("access_token", accessToken);
           set({ accessToken, user, isAuthenticated: true });
           return { user, accessToken };
-        } catch (error) {
-          set(initialState);
-          throw error;
         } finally {
-          set(state => ({ ...state, isLoading: false }));
+          set({ isLoading: false });
         }
       },
 
@@ -73,72 +70,92 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
         try {
           await authApi.logout();
-        } catch (error) {
-          console.error('Logout error:', error);
+        } catch (err) {
+          console.warn("Logout failed:", err);
         } finally {
-          set(initialState);
+          get().clearAuth(); // 🔁 Use consistent cleanup
         }
       },
 
       refreshTokens: async () => {
-        // Don't set loading state for refresh token requests
+        const currentToken = get().accessToken || Cookies.get("access_token");
+
+        if (currentToken) {
+          set({ accessToken: currentToken });
+          return currentToken;
+        }
+
         try {
           const response = await authApi.refresh();
           const { accessToken } = response.data.data;
-          
-          if (!accessToken) {
-            set(initialState);
-            throw new Error('No access token received');
-          }
-          
-          set(state => ({ ...state, accessToken }));
+
+          if (!accessToken) throw new Error("No access token received");
+
+          Cookies.set("access_token", accessToken);
+          set({ accessToken });
           return accessToken;
         } catch (error) {
-          set(initialState);
+          await get().logout(); // ✅ Consistent cleanup
           throw error;
         }
       },
-      
+
       restoreSession: async () => {
-        // Prevent multiple simultaneous restore attempts
-        if (get().isLoading) {
-          return;
-        }
+        if (get().isLoading) return;
 
         set({ isLoading: true });
+
         try {
-          // First try to refresh the token
-          const accessToken = await get().refreshTokens();
-          
-          if (!accessToken) {
-            set(initialState);
-            return;
+          // Step 1: Get token from Zustand or cookie
+          let token = get().accessToken;
+
+          if (!token) {
+            const cookieToken = Cookies.get("access_token");
+            if (cookieToken) {
+              token = cookieToken;
+              set({ accessToken: token });
+            }
           }
 
-          // Then fetch user data
+          // Step 2: If still no token, try refresh
+          if (!token) {
+            token = await get().refreshTokens();
+          }
+
+          // Step 3: Try getting user from localStorage
+          if (typeof window !== "undefined") {
+            const persistedAuth = localStorage.getItem("auth-storage");
+            const parsed = persistedAuth ? JSON.parse(persistedAuth) : null;
+
+            if (parsed?.state?.user) {
+              set({
+                user: parsed.state.user,
+                isAuthenticated: true,
+              });
+              return;
+            }
+          }
+
+          // Step 4: Fallback — call /me
           const meResponse = await authApi.me();
           const { user } = meResponse.data.data;
-          
-          if (!user) {
-            throw new Error('No user data received');
-          }
 
-          set({ user, isAuthenticated: true, accessToken });
+          if (!user) throw new Error("No user data received from /me");
+
+          set({ user, isAuthenticated: true });
         } catch (error) {
-          // Any error in the process should clear the auth state
-          set(initialState);
-          // Don't throw the error as this is a background operation
+          await get().logout(); // ✅ Call consistent logout
+          console.error("Session restoration failed:", error);
         } finally {
-          set(state => ({ ...state, isLoading: false }));
+          set({ isLoading: false });
         }
-      }
+      },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
       }),
     }
   )
-); 
+);

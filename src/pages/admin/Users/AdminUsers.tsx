@@ -60,22 +60,24 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth.store";
 
 type RoleType = "client" | "admin";
 
 const AdminUsersPage = () => {
   const {
-    users,
-    loading,
-    error,
-    pagination,
+    users = [],
+    loading = false,
+    error = null,
+    pagination = { currentPage: 1, totalPages: 1, totalRecords: 0, limit: 10 },
     fetchAllUsers,
     fetchUserById,
     deleteUser,
     createUser,
     updateUser,
-    selectedUser,
+    selectedUser = null,
   } = useAdminUsersStore();
+  const { user } = useAuthStore();
 
   const [filterType, setFilterType] = useState("name");
   const [filterValue, setFilterValue] = useState("");
@@ -104,26 +106,26 @@ const AdminUsersPage = () => {
   });
 
   useEffect(() => {
-    if (users.length === 0) {
+    if (users?.length === 0) {
       fetchAllUsers();
     }
-  }, []);
+  }, [fetchAllUsers, users]);
 
   useEffect(() => {
     if (selectedUser && editDialogOpen) {
       setEditFormData({
-        name: selectedUser.name,
-        email: selectedUser.email,
-        phone: selectedUser.phone,
-        address: selectedUser.address,
-        role: selectedUser.role,
+        name: selectedUser?.name ?? '',
+        email: selectedUser?.email ?? '',
+        phone: selectedUser?.phone ?? '',
+        address: selectedUser?.address ?? '',
+        role: selectedUser?.role ?? 'client',
       });
     }
   }, [selectedUser, editDialogOpen]);
 
   const handlePageChange = (page: number) => {
     const searchParams = buildSearchParams();
-    fetchAllUsers(page, pagination.limit, searchParams);
+    fetchAllUsers(page, pagination?.limit ?? 10, searchParams);
   };
 
   const buildSearchParams = () => {
@@ -142,7 +144,7 @@ const AdminUsersPage = () => {
 
   const handleSearch = () => {
     const searchParams = buildSearchParams();
-    fetchAllUsers(1, pagination.limit, searchParams);
+    fetchAllUsers(1, pagination?.limit ?? 10, searchParams);
   };
 
   const handleReset = () => {
@@ -165,7 +167,6 @@ const AdminUsersPage = () => {
     }
   };
 
-
   const handleEditClick = async (userId: string) => {
     await fetchUserById(userId);
     setEditDialogOpen(true);
@@ -185,28 +186,43 @@ const AdminUsersPage = () => {
         role: "client",
       });
       toast.success("User created successfully");
-      fetchAllUsers(1, pagination.limit);
-    } catch (error) {
-      toast.error("Failed to create user");
+      fetchAllUsers(1, pagination?.limit ?? 10);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
+      toast.error(errorMessage);
     }
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedUser) {
+    if (selectedUser?._id) {
       try {
         await updateUser(selectedUser._id, editFormData);
         setEditDialogOpen(false);
         toast.success("User updated successfully");
-        fetchAllUsers(pagination.currentPage, pagination.limit);
-      } catch (error) {
-        toast.error("Failed to update user");
+        fetchAllUsers(pagination?.currentPage ?? 1, pagination?.limit ?? 10);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update user';
+        toast.error(errorMessage);
       }
     }
   };
 
+  const canDeleteUser = (targetUser: any) => {
+    const currentUser = user;
+    if (!targetUser || !currentUser) return false;
+    if (targetUser?._id === currentUser?._id) return false;
+    if (targetUser?.isOwner) return false;
+    if (currentUser?.isOwner) return true;
+    if (currentUser?.role === "admin") {
+      return targetUser?.role === "user";
+    }
+    return false;
+  };
+
   const renderPagination = () => {
-    const { currentPage, totalPages } = pagination;
+    const currentPage = pagination?.currentPage ?? 1;
+    const totalPages = pagination?.totalPages ?? 1;
     const pageItems = [];
 
     // Always show first page
@@ -313,7 +329,7 @@ const AdminUsersPage = () => {
                 <Input
                   type="text"
                   placeholder={`Search by ${filterType}...`}
-                  value={filterValue}
+                  value={filterValue ?? ''}
                   onChange={(e) => setFilterValue(e.target.value)}
                   className="pl-10"
                 />
@@ -355,33 +371,39 @@ const AdminUsersPage = () => {
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Phone</TableHead>
-                    <TableHead>Role</TableHead> {/* Added Role column header */}
+                    <TableHead>Role</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.length === 0 ? (
+                  {users?.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8">
                         No users found. Try adjusting your search criteria.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    users.map((user) => (
-                      <TableRow key={user._id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell>{user.role}</TableCell> {/* Display user role */}
-                        <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    users?.map((user) => (
+                      <TableRow key={user?._id ?? Math.random()}>
+                        <TableCell className="font-medium">
+                          {user?.name ?? 'N/A'}
+                        </TableCell>
+                        <TableCell>{user?.email ?? 'N/A'}</TableCell>
+                        <TableCell>{user?.phone ?? 'N/A'}</TableCell>
+                        <TableCell>{user?.role ?? 'N/A'}</TableCell>
+                        <TableCell>
+                          {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => navigate(`/admin/users/${user._id}`)}
+                              onClick={() =>
+                                navigate(`/admin/users/${user?._id}`)
+                              }
                             >
                               <UserCog className="h-4 w-4" />
                             </Button>
@@ -390,19 +412,21 @@ const AdminUsersPage = () => {
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleEditClick(user._id)}
+                              onClick={() => handleEditClick(user?._id ?? '')}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
 
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDeleteClick(user._id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDeleteUser(user) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => handleDeleteClick(user?._id ?? '')}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -413,15 +437,15 @@ const AdminUsersPage = () => {
             </div>
           )}
 
-          {!loading && users.length > 0 && (
+          {!loading && users?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-gray-500">
-                Showing {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
+                Showing {((pagination?.currentPage ?? 1) - 1) * (pagination?.limit ?? 10) + 1} to{" "}
                 {Math.min(
-                  pagination.currentPage * pagination.limit,
-                  pagination.totalRecords
+                  (pagination?.currentPage ?? 1) * (pagination?.limit ?? 10),
+                  pagination?.totalRecords ?? 0
                 )}{" "}
-                of {pagination.totalRecords} users
+                of {pagination?.totalRecords ?? 0} users
               </div>
 
               <Pagination>
@@ -429,11 +453,11 @@ const AdminUsersPage = () => {
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() =>
-                        pagination.currentPage > 1 &&
-                        handlePageChange(pagination.currentPage - 1)
+                        (pagination?.currentPage ?? 1) > 1 &&
+                        handlePageChange((pagination?.currentPage ?? 1) - 1)
                       }
                       className={
-                        pagination.currentPage === 1
+                        (pagination?.currentPage ?? 1) === 1
                           ? "pointer-events-none opacity-50"
                           : ""
                       }
@@ -445,11 +469,11 @@ const AdminUsersPage = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() =>
-                        pagination.currentPage < pagination.totalPages &&
-                        handlePageChange(pagination.currentPage + 1)
+                        (pagination?.currentPage ?? 1) < (pagination?.totalPages ?? 1) &&
+                        handlePageChange((pagination?.currentPage ?? 1) + 1)
                       }
                       className={
-                        pagination.currentPage === pagination.totalPages
+                        (pagination?.currentPage ?? 1) === (pagination?.totalPages ?? 1)
                           ? "pointer-events-none opacity-50"
                           : ""
                       }
@@ -461,8 +485,6 @@ const AdminUsersPage = () => {
           )}
         </CardContent>
       </Card>
-
-   
 
       {/* Create User Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -658,7 +680,7 @@ const AdminUsersPage = () => {
                 <div className="col-span-3">
                   <Select
                     value={editFormData.role}
-                    onValueChange={(value:RoleType) =>
+                    onValueChange={(value: RoleType) =>
                       setEditFormData({ ...editFormData, role: value })
                     }
                   >

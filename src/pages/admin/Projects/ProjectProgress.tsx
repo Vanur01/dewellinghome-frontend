@@ -30,7 +30,6 @@ import { toast } from "sonner";
 import { ProgressDialog } from "@/components/admin/ProjectProgress/ProgressDialog";
 import { EditProgressSheet } from "@/components/admin/ProjectProgress/EditProgressSheet";
 import { ConfirmDialog } from "@/components/admin/ProjectProgress/ConfirmDialog";
-import { getImageUrl } from "@/utils/Image";
 
 const ProjectProgress = () => {
   const { id } = useParams<{ id: string }>();
@@ -187,7 +186,7 @@ const ProjectProgress = () => {
                       {progress.images.map((image, index) => (
                         <div key={index} className="relative aspect-square">
                           <img
-                            src={getImageUrl(image)}
+                            src={image}
                             alt={`Progress image ${index + 1}`}
                             className="w-full h-full object-cover rounded-md"
                           />

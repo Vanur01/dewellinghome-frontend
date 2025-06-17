@@ -4,7 +4,6 @@ import DesignModal from './DesignModal';
 import { Link } from 'react-router-dom';
 import useGalleryStore from '../store/public/gallery.store';
 import { Design } from '../utils/publicApi';
-import { getImageUrl } from '@/utils/Image';
 
 interface ImageSliderTemplateProps {
   galleryId: string;
@@ -155,7 +154,7 @@ const ImageSliderTemplate: React.FC<ImageSliderTemplateProps> = ({
                     <div className="absolute inset-0 bg-gray-100 animate-pulse" />
                   )}
                   <img 
-                    src={getImageUrl(design.images[0]?.url)} 
+                    src={design.images[0]?.url} 
                     alt={design.title || `Design ${index + 1}`} 
                     loading="lazy"
                     onLoad={() => handleImageLoad(index)}
