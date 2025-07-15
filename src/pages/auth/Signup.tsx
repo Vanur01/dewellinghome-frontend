@@ -48,7 +48,7 @@ const Signup: React.FC = () => {
     if (!user) return;
   
     if (user.role === 'admin') {
-      navigate('/admin/projects');
+      navigate('/admin/dashboard');
     } else {
       navigate('/dashboard/profile');
     }

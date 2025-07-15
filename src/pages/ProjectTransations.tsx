@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, MoreHorizontal, Pencil, Eye } from "lucide-react";
 import { formatDateToLocal, formatPrice } from "@/lib/utils";
 import TransactionViewModal from "@/components/modals/TransactionViewModal";
 import {
@@ -31,12 +31,23 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import EditTransactionModal from "@/pages/admin/Transactions/EditTransactionModal";
 
 const ProjectTransactions = () => {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState<string>("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTransaction, setEditTransaction] = useState(null);
 
   const {
     transactions,
@@ -48,6 +59,7 @@ const ProjectTransactions = () => {
     selectedTransaction,
     isViewModalOpen,
     clearSelectedTransaction,
+    updateTransaction,
   } = useTransactionStore();
 
   useEffect(() => {
@@ -71,6 +83,31 @@ const ProjectTransactions = () => {
 
   const handleViewTransaction = (transactionId: string) => {
     getTransactionById(transactionId);
+  };
+
+  const handleEditClick = (transaction) => {
+    setEditTransaction(transaction);
+    setEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (amount) => {
+    if (!editTransaction) return;
+    await updateTransaction(editTransaction._id, amount);
+    setEditModalOpen(false);
+    setEditTransaction(null);
+    // Refresh the list
+    if (id) {
+      getProjectTransactions(id, {
+        page: currentPage,
+        limit: 10,
+        status: status === "all" ? undefined : status,
+      });
+    }
+  };
+
+  const handleEditModalClose = () => {
+    setEditModalOpen(false);
+    setEditTransaction(null);
   };
 
   if (!id) {
@@ -136,6 +173,7 @@ const ProjectTransactions = () => {
                     <TableRow>
                       <TableHead>Transaction ID</TableHead>
                       <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -145,7 +183,7 @@ const ProjectTransactions = () => {
                     {transactions.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={5}
+                          colSpan={6}
                           className="text-center h-32 text-muted-foreground"
                         >
                           No transactions found
@@ -155,10 +193,13 @@ const ProjectTransactions = () => {
                       transactions.map((transaction) => (
                         <TableRow key={transaction._id}>
                           <TableCell className="font-medium">
-                            {transaction.razorpay_payment_id}
+                            {transaction.razorpay_payment_id ?? "N/A"}
                           </TableCell>
                           <TableCell>
                             {formatPrice(transaction.amount)}
+                          </TableCell>
+                          <TableCell>
+                            {transaction.method === 'manual' ? 'Manual' : 'Razorpay'}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -172,13 +213,29 @@ const ProjectTransactions = () => {
                             {formatDateToLocal(new Date().toISOString())}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewTransaction(transaction._id)}
-                            >
-                              View Details
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-[160px]">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleViewTransaction(transaction._id)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                {/* Only show edit for admin and manual transactions */}
+                                {transaction.method === 'manual' && (
+                                  <DropdownMenuItem onClick={() => handleEditClick(transaction)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Amount
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))
@@ -311,6 +368,12 @@ const ProjectTransactions = () => {
           transaction={selectedTransaction}
         />
       )}
+      <EditTransactionModal
+        open={editModalOpen}
+        onClose={handleEditModalClose}
+        transaction={editTransaction}
+        onSubmit={handleEditSubmit}
+      />
     </div>
   );
 };

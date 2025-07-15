@@ -20,22 +20,26 @@ const TransactionViewModal = ({
 }: TransactionViewModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Transaction Details</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Payment ID:</span>
-            <span>{transaction.razorpay_payment_id}</span>
+            <span className="break-all">{transaction.razorpay_payment_id}</span>
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Order ID:</span>
-            <span>{transaction.razorpay_order_id}</span>
+            <span className="break-all">{transaction.razorpay_order_id}</span>
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Amount:</span>
             <span>{formatPrice(transaction.amount)}</span>
+          </div>
+          <div className="grid grid-cols-2 items-center gap-4">
+            <span className="font-semibold">Method:</span>
+            <span>{transaction.method === 'manual' ? 'Manual' : 'Razorpay'}</span>
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Status:</span>
@@ -49,11 +53,11 @@ const TransactionViewModal = ({
             <>
               <div className="grid grid-cols-2 items-center gap-4">
                 <span className="font-semibold">User Name:</span>
-                <span>{transaction.userId.name}</span>
+                <span className="break-words">{transaction.userId.name}</span>
               </div>
               <div className="grid grid-cols-2 items-center gap-4">
                 <span className="font-semibold">User Email:</span>
-                <span>{transaction.userId.email}</span>
+                <span className="break-all">{transaction.userId.email}</span>
               </div>
             </>
           )}

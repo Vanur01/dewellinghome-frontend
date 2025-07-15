@@ -24,8 +24,10 @@ interface AdminTransactionState {
     paymentId?: string;
     orderId?: string;
   }) => Promise<void>;
+  setSelectedTransaction: (transaction: Transaction) => void;
   clearSelectedTransaction: () => void;
   clearError: () => void;
+  editTransaction: (id: string, amount: number) => Promise<{ transaction: Transaction } | void>;
 }
 
 export const useAdminTransactionStore = create<AdminTransactionState>((set) => ({
@@ -65,6 +67,32 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
     }
   },
 
+  setSelectedTransaction: (transaction) => set({ selectedTransaction: transaction, isViewModalOpen: true }),
   clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
   clearError: () => set({ error: null }),
+
+  editTransaction: async (id, amount) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await transactionApi.updateTransaction(id, amount);
+      const { transaction } = response.data.data;
+      // Update transactions array if present
+      set((state) => ({
+        transactions: state.transactions.map((txn) =>
+          txn._id === transaction._id ? transaction : txn
+        ),
+        selectedTransaction:
+          state.selectedTransaction && state.selectedTransaction._id === transaction._id
+            ? transaction
+            : state.selectedTransaction,
+        loading: false,
+      }));
+      return { transaction };
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to update transaction',
+        loading: false,
+      });
+    }
+  },
 }));

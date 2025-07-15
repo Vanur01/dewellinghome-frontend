@@ -1,93 +1,18 @@
-import React from 'react';
-import { Linkedin, Twitter, Instagram, Award, ThumbsUp, Users, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Linkedin, Twitter, Instagram, Award, ThumbsUp, Users } from 'lucide-react';
+import { useAdminTeamStore } from '../store/admin/adminTeam.store';
 
 const TeamPage = () => {
-  // Team members data remains the same
-  const leadershipTeam = [
-    // {
-    //   name: 'Rajiv Sharma',
-    //   position: 'Chief Executive Officer',
-    //   image: '/api/placeholder/400/400',
-    //   bio: 'With over 20 years of experience in the interior design industry, Rajiv has transformed HomeLane into one of India\'s leading home interior companies.',
-    //   social: {
-    //     linkedin: '#',
-    //     twitter: '#',
-    //     instagram: '#'
-    //   }
-    // },
-    // {
-    //   name: 'Priya Patel',
-    //   position: 'Chief Design Officer',
-    //   image: '/api/placeholder/400/400',
-    //   bio: 'Award-winning designer with a passion for creating functional, beautiful spaces. Prior to HomeLane, Priya led design teams at top architecture firms.',
-    //   social: {
-    //     linkedin: '#',
-    //     twitter: '#',
-    //     instagram: '#'
-    //   }
-    // },
-    {
-      name: 'Pratyush Meher',
-      position: 'Chief Operation Officer',
-      image: '/images/pratyush.jpeg',
-      bio: 'Pratyush brings operational excellence to DewellingHome, streamlining processes to ensure timely project delivery and customer satisfaction.',
-      social: {
-        linkedin: '#',
-        twitter: '#',
-        instagram: '#'
-      }
-    }
-  ];
+  const { team, loading, error, fetchTeam } = useAdminTeamStore();
 
-  const designTeam = [
-    {
-      name: 'Ananya Mehta',
-      position: 'Senior Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Mumbai',
-      specialty: 'Modern Minimalist'
-    },
-    {
-      name: 'Rohan Kapoor',
-      position: 'Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Delhi NCR',
-      specialty: 'Contemporary'
-    },
-    {
-      name: 'Shreya Gupta',
-      position: 'Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Bengaluru',
-      specialty: 'Traditional Fusion'
-    },
-    {
-      name: 'Arjun Varma',
-      position: 'Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Hyderabad',
-      specialty: 'Industrial Chic'
-    },
-    {
-      name: 'Neha Singh',
-      position: 'Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Chennai',
-      specialty: 'Scandinavian'
-    },
-    {
-      name: 'Karan Desai',
-      position: 'Interior Designer',
-      image: '/api/placeholder/400/400',
-      location: 'Pune',
-      specialty: 'Mid-Century Modern'
-    }
-  ];
+  useEffect(() => {
+    fetchTeam();
+    // eslint-disable-next-line
+  }, []);
 
   // Company stats
   const stats = [
-    { number: '10+', label: 'Design Experts', icon: <Users className="h-8 w-8" /> },
+    { number: team?.leadership?.length ? `${team.leadership.length}+` : '10+', label: 'Design Experts', icon: <Users className="h-8 w-8" /> },
     { number: '200+', label: 'Happy Customers', icon: <ThumbsUp className="h-8 w-8" /> },
     { number: '5+', label: 'Design Awards', icon: <Award className="h-8 w-8" /> }
   ];
@@ -124,86 +49,92 @@ const TeamPage = () => {
       </div>
 
       {/* Leadership Team Section - Modern cards with hover effects */}
-      <div className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6 text-gray-800">Our Leadership</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Meet the visionaries guiding DewellingHome to redefine home interior experiences across India.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {leadershipTeam.map((member, index) => (
-              <div key={index} className="flex flex-col justify-between group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
-                <div className="aspect-w-4 aspect-h-5 bg-gray-200 relative overflow-hidden">
-                  <img 
-                    src={member.image} 
-                    alt={member.name} 
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    {/* <div className="flex justify-center space-x-4">
-                      <a href={member.social.linkedin} className="text-white hover:text-red-400 transition-colors">
-                        <Linkedin size={24} />
-                      </a>
-                      <a href={member.social.twitter} className="text-white hover:text-red-400 transition-colors">
-                        <Twitter size={24} />
-                      </a>
-                      <a href={member.social.instagram} className="text-white hover:text-red-400 transition-colors">
-                        <Instagram size={24} />
-                      </a>
-                    </div> */}
+      {team?.leadership?.length ? (
+        <div className="py-24 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold mb-6 text-gray-800">Our Leadership</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Meet the visionaries guiding DewellingHome to redefine home interior experiences across India.
+              </p>
+            </div>
+            {loading && <div className="text-center text-lg text-gray-500">Loading team...</div>}
+            {error && <div className="text-center text-lg text-red-500">{error}</div>}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {team.leadership.map((member, index) => (
+                <div key={index} className="flex flex-col justify-between group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+                  <div className="aspect-w-4 aspect-h-5 bg-gray-200 relative overflow-hidden">
+                    <img 
+                      src={member.image} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <div className="flex justify-center space-x-4">
+                        {member.social?.linkedin && (
+                          <a href={member.social.linkedin} className="text-white hover:text-red-400 transition-colors" target="_blank" rel="noopener noreferrer">
+                            <Linkedin size={24} />
+                          </a>
+                        )}
+                        {member.social?.twitter && (
+                          <a href={member.social.twitter} className="text-white hover:text-red-400 transition-colors" target="_blank" rel="noopener noreferrer">
+                            <Twitter size={24} />
+                          </a>
+                        )}
+                        {member.social?.instagram && (
+                          <a href={member.social.instagram} className="text-white hover:text-red-400 transition-colors" target="_blank" rel="noopener noreferrer">
+                            <Instagram size={24} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-8">
+                    <h3 className="text-2xl font-bold mb-2 text-gray-800">{member.name}</h3>
+                    <p className="text-red-600 font-medium mb-4">{member.position}</p>
+                    <p className="text-gray-600 leading-relaxed">{member.bio}</p>
                   </div>
                 </div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-800">{member.name}</h3>
-                  <p className="text-red-600 font-medium mb-4">{member.position}</p>
-                  <p className="text-gray-600 leading-relaxed">{member.bio}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-      
+      ) : null}
+
       {/* Design Team Section - Creative grid layout */}
-      {/* <div className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6 text-gray-800">Design Experts</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Our talented team of interior designers brings creativity, expertise, and passion to every project.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {designTeam.map((designer, index) => (
-              <div key={index} className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-6 relative">
-                    <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-red-100 group-hover:ring-red-200 transition-all duration-300">
-                      <img 
-                        src={designer.image} 
-                        alt={designer.name} 
-                        className="w-full h-full object-cover"
-                      />
+      {team?.employees?.length ? (
+        <div className="py-24">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold mb-6 text-gray-800">Design Experts</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Our talented team of interior designers brings creativity, expertise, and passion to every project.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {team.employees.map((designer, index) => (
+                <div key={index} className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-6 relative">
+                      <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-red-100 group-hover:ring-red-200 transition-all duration-300">
+                        <img 
+                          src={designer.image} 
+                          alt={designer.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </div>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-sm">
-                      {designer.specialty}
-                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-gray-800">{designer.name}</h3>
+                    <p className="text-red-600 mb-3">{designer.position}</p>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">{designer.name}</h3>
-                  <p className="text-red-600 mb-3">{designer.position}</p>
-                  <p className="text-gray-600">{designer.location}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div> */}
-      
+      ) : null}
+
       {/* Company Culture Section - Modern layout with animated elements */}
       <div className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -224,7 +155,6 @@ const TeamPage = () => {
                 ))}
               </div>
             </div>
-            
             <div className="w-full lg:w-1/2">
               <div className="grid grid-cols-2 gap-6">
                 <div className="aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -260,24 +190,6 @@ const TeamPage = () => {
           </div>
         </div>
       </div>
-      
-      {/* Join Our Team CTA - Creative design */}
-      {/* <div className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-red-600 transform -skew-y-6 origin-top-left"></div>
-        <div className="relative container mx-auto px-4 text-center text-white">
-          <h2 className="text-4xl font-bold mb-6">Join Our Team</h2>
-          <p className="text-xl mb-10 max-w-2xl mx-auto opacity-90">
-            Are you passionate about interior design? We're always looking for talented individuals to help us create beautiful homes.
-          </p>
-          <Link 
-            to="#" 
-            className="inline-flex items-center bg-white text-red-600 hover:bg-red-50 font-medium py-4 px-8 rounded-full text-lg transition-colors duration-300 group"
-          >
-            View Open Positions
-            <ArrowRight className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-          </Link>
-        </div>
-      </div> */}
     </div>
   );
 };

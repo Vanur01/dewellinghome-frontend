@@ -274,6 +274,10 @@ export const userApi = {
     }),
 };
 
+export const dashboardApi = {
+  getOverview: () => api.get("/dashboard/overview"),
+};
+
 export const warrantyApi = {
   createWarrantyClaim: (formData: FormData) =>
     api.post("/warranty", formData, {
@@ -550,6 +554,17 @@ export const paymentApi = {
     projectId: string;
     userId: string;
   }) => api.post("/payments/verify-payment", data),
+
+  // Check transaction status
+  checkTransactionStatus: (orderId: string) =>
+    api.get("/payments/transaction-status", { params: { orderId } }),
+
+  // Add manual payment (admin only)
+  addManualPayment: (data: {
+    amount: number;
+    projectId: string;
+    userId: string;
+  }) => api.post("/payments/manual-payment", data),
 };
 
 export interface Transaction {
@@ -566,8 +581,8 @@ export interface Transaction {
     title: string;
   };
   amount: number;
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
   status: string;
   paidAt: string;
 }
@@ -608,6 +623,13 @@ export const transactionApi = {
   // Get transaction by ID (admin only)
   getTransactionById: (id: string) =>
     api.get<{data:{ transaction: Transaction }}>(`/transactions/${id}`),
+
+   // Update a manual transaction (admin only)
+   updateTransaction: (id: string, amount: number) =>
+    api.put<{ data: { transaction: Transaction } }>(
+      `/transactions/${id}`,
+      { amount }
+    ),
 
   // Get transactions by project ID
   getProjectTransactions: (projectId: string, params?: {
@@ -669,6 +691,43 @@ export const partnerApi = {
   // Delete partner (admin)
   deletePartner: (id: string) =>
     api.delete<{ message: string }>(`/partners/${id}`),
+};
+
+export const teamApi = {
+  // Public: Get the team (leadership and employees)
+  getTeam: () => api.get('/team'),
+
+  // Admin: Add a leadership member
+  addLeadershipMember: (formData: FormData) =>
+    api.post('/team/leadership', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Admin: Add an employee
+  addEmployee: (formData: FormData) =>
+    api.post('/team/employees', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Admin: Update a leadership member by index
+  updateLeadershipMember: (index: number, formData: FormData) =>
+    api.put(`/team/leadership/${index}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Admin: Update an employee by index
+  updateEmployee: (index: number, formData: FormData) =>
+    api.put(`/team/employees/${index}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Admin: Delete a leadership member by index
+  deleteLeadershipMember: (index: number) =>
+    api.delete(`/team/leadership/${index}`),
+
+  // Admin: Delete an employee by index
+  deleteEmployee: (index: number) =>
+    api.delete(`/team/employees/${index}`),
 };
 
 export default api;

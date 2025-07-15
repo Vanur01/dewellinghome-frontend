@@ -23,6 +23,7 @@ interface TransactionState {
   getTransactionById: (id: string) => Promise<void>;
   clearSelectedTransaction: () => void;
   clearError: () => void;
+  updateTransaction: (id: string, amount: number) => Promise<{ transaction: Transaction } | void>;
 }
 
 export const useTransactionStore = create<TransactionState>((set) => ({
@@ -81,4 +82,28 @@ export const useTransactionStore = create<TransactionState>((set) => ({
 
   clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
   clearError: () => set({ error: null }),
+
+  updateTransaction: async (id, amount) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await transactionApi.updateTransaction(id, amount);
+      const { transaction } = response.data.data;
+      set((state) => ({
+        transactions: state.transactions.map((txn) =>
+          txn._id === transaction._id ? transaction : txn
+        ),
+        selectedTransaction:
+          state.selectedTransaction && state.selectedTransaction._id === transaction._id
+            ? transaction
+            : state.selectedTransaction,
+        loading: false,
+      }));
+      return { transaction };
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to update transaction',
+        loading: false,
+      });
+    }
+  },
 }));

@@ -5,6 +5,7 @@ export interface AuthUser {
   role: string;
   address?: string;
   phone?: string;
+  isOwner?: boolean;
 }
 
 export interface AuthTokens {

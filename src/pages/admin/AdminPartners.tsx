@@ -214,15 +214,16 @@ const AdminPartners: React.FC = () => {
 
   // Memoized filtered partners
   const filteredPartners = useMemo(() => {
-    return partners?.filter(partner => {
-      const matchesSearch = partner?.name?.toLowerCase()?.includes(searchTerm?.toLowerCase() ?? '');
-      const matchesFilter = filterStatus === 'all' || 
-        (filterStatus === 'active' && partner?.isActive) ||
-        (filterStatus === 'inactive' && !partner?.isActive);
-      
-      return matchesSearch && matchesFilter;
-    }) ?? [];
-  }, [partners, searchTerm, filterStatus]);
+  return partners?.filter(partner => {
+    const matchesSearch = partner?.name?.toLowerCase()?.includes(searchTerm?.toLowerCase() ?? '');
+    const matchesFilter = filterStatus === 'all' || 
+      (filterStatus === 'active' && partner?.isActive) ||
+      (filterStatus === 'inactive' && !partner?.isActive);
+    
+    return matchesSearch && matchesFilter;
+  }) ?? [];
+}, [searchTerm, filterStatus,partners]);
+
 
   // Stats
   const stats = useMemo(() => ({
@@ -232,10 +233,8 @@ const AdminPartners: React.FC = () => {
   }), [partners]);
 
   useEffect(() => {
-    if (partners?.length === 0) {
       fetchPartners();
-    }
-  }, [fetchPartners, partners]);
+  }, []);
 
   // Cleanup preview URL on unmount
   useEffect(() => {
@@ -326,11 +325,14 @@ const AdminPartners: React.FC = () => {
     setIsSubmitting(true);
 
     const submitData = new FormData();
+    console.log('formData before submit:', formData);
+
     submitData.append('name', formData?.name?.trim() ?? '');
     if (formData?.logo) {
+
       submitData.append('logo', formData.logo);
     }
-    submitData.append('isActive', String(formData?.isActive ?? true));
+    submitData.append('isActive', formData.isActive ? 'true' : 'false');
 
     try {
       if (selectedPartner?._id) {
@@ -513,9 +515,10 @@ const AdminPartners: React.FC = () => {
                   id="isActive"
                   checked={formData?.isActive ?? true}
                   disabled={isSubmitting}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) => {
+                    console.log('Switch toggled:', checked);
                     setFormData(prev => ({ ...prev, isActive: checked }))
-                  }
+                   } }
                 />
                 <Label htmlFor="isActive">Active (visible to users)</Label>
               </div>

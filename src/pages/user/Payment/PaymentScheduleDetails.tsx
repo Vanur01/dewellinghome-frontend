@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import PaymentModal from '@/components/admin/payment/PaymentModal';
+import { toast } from 'sonner';
 
 interface Milestone {
   slNo: number;
@@ -27,7 +28,7 @@ interface Milestone {
 export default function PaymentScheduleDetails() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { currentSchedule, loading, getPaymentScheduleByProject ,clearSchedule} = usePaymentStore();
+  const { currentSchedule, loading, getPaymentScheduleByProject, clearSchedule } = usePaymentStore();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [milestonesWithPreviousDues, setMilestonesWithPreviousDues] = useState<Array<Milestone & { previousDues: number }>>([]);
 
@@ -88,6 +89,20 @@ export default function PaymentScheduleDetails() {
       return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Partially Paid</Badge>;
     }
     return <Badge variant="outline" className="text-gray-700">Pending</Badge>;
+  };
+
+  // Function to refresh payment schedule after successful payment
+  const handlePaymentSuccess = async () => {
+    if (projectId) {
+      try {
+        console.log('Refreshing payment schedule for project:', projectId);
+        await getPaymentScheduleByProject(projectId);
+        toast.success('Payment schedule updated successfully!');
+      } catch (error) {
+        console.error('Failed to refresh payment schedule:', error);
+        toast.error('Payment successful but failed to update schedule. Please refresh the page.');
+      }
+    }
   };
 
   if (loading) {
@@ -430,6 +445,7 @@ export default function PaymentScheduleDetails() {
           projectId={projectId!}
           projectTitle={currentSchedule?.projectId?.title ?? ''}
           totalRemaining={currentSchedule?.totalRemaining ?? 0}
+          onPaymentSuccess={handlePaymentSuccess}
         />
       )}
     </div>

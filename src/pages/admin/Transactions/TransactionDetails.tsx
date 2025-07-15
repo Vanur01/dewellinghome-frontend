@@ -72,6 +72,12 @@ export function TransactionDetailsModal() {
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <div className="font-semibold">Method:</div>
+            <div className="col-span-3">
+              {selectedTransaction?.method === 'manual' ? 'Manual' : 'Razorpay'}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">User:</div>
             <div className="col-span-3">
               {selectedTransaction?.userId?.name || "N/A"}

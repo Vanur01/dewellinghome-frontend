@@ -109,6 +109,9 @@ const Footer = () => {
                   <Link to="/terms-and-conditions" className="text-gray-600 hover:text-gray-900 transition-colors">Terms and Conditions</Link>
                 </li>
                 <li>
+                  <Link to="/refund-cancellation" className="text-gray-600 hover:text-gray-900 transition-colors">Refund & Cancellation Policy</Link>
+                </li>
+                <li>
                   <a 
                     href="/DEWELLING_HOMES_PO_2...pdf (1).pdf" 
                     download

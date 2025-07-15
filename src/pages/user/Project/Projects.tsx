@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
 
 const getStatusBadgeStyle = (status: string) => {
   const baseStyle = "px-3 py-1 rounded-full text-xs font-medium";
@@ -66,14 +67,15 @@ const Projects = () => {
   } = useProjectStore();
 
   const [limit] = useState(9); // Number of items per page
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    fetchUserProjects({ page: 1, limit });
-  }, [fetchUserProjects, limit]);
+    fetchUserProjects({userId:user._id, page: 1, limit });
+  }, [ limit]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      fetchUserProjects({ page: newPage, limit });
+      fetchUserProjects({userId: user._id, page: newPage, limit });
     }
   };
 
@@ -90,7 +92,7 @@ const Projects = () => {
       <div className="text-center py-12">
         <p className="text-red-600">Error: {error}</p>
         <button
-          onClick={() => fetchUserProjects({ page: 1, limit })}
+          onClick={() => fetchUserProjects({userId: user._id, page: 1, limit })}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
         >
           Try Again

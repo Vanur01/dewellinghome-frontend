@@ -83,7 +83,7 @@ const TrustedPartners: React.FC = () => {
                 <img
                   src={partner.logo}
                   alt={partner.name}
-                  className="w-[150px] h-20 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                  className="w-[150px] h-20 object-contain transition-all duration-300"
                 />
               </div>
             </div>

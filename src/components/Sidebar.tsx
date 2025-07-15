@@ -11,7 +11,8 @@ import {
   Star,
   Wallet,
   LogOut,
-  Building2
+  Building2,
+  Home
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
@@ -43,6 +44,7 @@ const Sidebar = () => {
   ];
 
   const adminMenuItems = [
+    { name: 'Dashboard', path: '/admin/dashboard', icon: Home },
     { name: 'Warranty Claims', path: '/admin/warranty', icon: Shield },
     { name: 'Orders', path: '/admin/projects', icon: Target },
     { name: 'Users', path: '/admin/users', icon: Users },
@@ -52,6 +54,7 @@ const Sidebar = () => {
     { name: 'Gallery', path: '/admin/gallery', icon: Image },
     { name: 'Testimonials', path: '/admin/testimonials', icon: Star },
     { name: 'Partners', path: '/admin/partners', icon: Building2 },
+    { name: 'Team', path: '/admin/team', icon: Users },
     { name: 'Transactions', path: '/admin/transactions', icon: Wallet },
   ];
 

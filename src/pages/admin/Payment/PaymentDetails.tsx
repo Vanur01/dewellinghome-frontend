@@ -1,20 +1,14 @@
-import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAdminPaymentStore } from '@/store/admin/adminPayment.store';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Loader2, ArrowLeft, AlertCircle, History } from "lucide-react";
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, History, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { ManualPaymentModal } from './ManualPaymentModal';
+import { useAdminPaymentStore } from '@/store/admin/adminPayment.store';
 
 export default function PaymentDetails() {
   const { projectId } = useParams();
@@ -29,6 +23,7 @@ export default function PaymentDetails() {
   } = useAdminPaymentStore();
 
   const [editMode, setEditMode] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [editedValues, setEditedValues] = useState({
     projectValue: 0,
     milestones: [] as Array<{ timeline: string; percentage: number }>,
@@ -141,6 +136,13 @@ export default function PaymentDetails() {
     }
   };
 
+  const handlePaymentSuccess = () => {
+    // Refresh the payment schedule
+    if (projectId) {
+      fetchScheduleById(projectId);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[600px]">
@@ -197,6 +199,14 @@ export default function PaymentDetails() {
                 >
                   <History className="h-4 w-4" />
                   View Transaction History
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Manual Payment
                 </Button>
               </div>
               <div className={cn(
@@ -504,6 +514,15 @@ export default function PaymentDetails() {
           </div>
         </div>
       </Card>
+
+      {/* Add Payment Modal */}
+      <ManualPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        projectId={currentSchedule?.projectId?._id ?? ''}
+        userId={currentSchedule?.projectId?.clientId?._id ?? ''}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 }

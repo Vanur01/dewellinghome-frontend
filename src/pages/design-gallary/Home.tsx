@@ -19,6 +19,7 @@ const estimateCards = [
     image:
       "https://images.livspace-cdn.com/w:3840/plain/https://d3gq2merok8n5r.cloudfront.net/abhinav/ond-1634120396-Obfdc/1-2025-1736068988-NDPD1/jfm-1736069001-9OxTK/kitchen-1736069015-B2aEs/ki-24-1-1742205308-oWEt9.jpg",
     alt: "Kitchen",
+    link: "/kitchen-estimate",
   },
   {
     title: "Full Home Interior Cost",
@@ -26,6 +27,7 @@ const estimateCards = [
     image:
       "https://images.livspace-cdn.com/w:1080/plain/https://d3gq2merok8n5r.cloudfront.net/abhinav/ond-1634120396-Obfdc/1-2025-1736068988-NDPD1/jfm-1736069001-9OxTK/living-room-1736166426-6jNnL/lr-2m-1-1739858661-fXh6J.jpg",
     alt: "Full Home Interior",
+    link: "/get-estimate",
   },
 ];
 
@@ -115,7 +117,7 @@ const DesignGallary = () => {
                     {card.title}
                   </h3>
                   <p className="text-gray-600 mb-4">{card.description}</p>
-                  <Link to="/get-estimate">
+                  <Link to={card.link}>
                     <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition">
                       Get Free Estimate
                     </button>

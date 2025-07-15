@@ -26,6 +26,7 @@ const usePartnerStore = create<PartnerStore>((set, get) => ({
       set({ loading: true, error: null });
       const response = await partnerApi.getAllPartnersAdmin();
       set({ partners: response.data.data, loading: false });
+      console.log('Fetched partners:', response.data.data);
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Failed to fetch partners',

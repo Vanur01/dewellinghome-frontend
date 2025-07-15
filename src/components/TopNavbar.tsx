@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth.store';
 const Navbar = () => {
   const {accessToken,user} = useAuthStore();
 
-  const redirectTo = user?.role === 'admin' ? '/admin/projects' : 'dashboard/projects';
+  const redirectTo = user?.role === 'admin' ? '/admin/dashboard' : 'dashboard/profile';
 
   return (
     <nav className="bg-white w-full border-b border-gray-200">

@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAdminPaymentStore } from '@/store/admin/adminPayment.store';
-import type { PaymentSchedule } from '@/store/admin/adminPayment.store';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAdminPaymentStore } from "@/store/admin/adminPayment.store";
+import type { PaymentSchedule } from "@/store/admin/adminPayment.store";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus } from "lucide-react";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 
 export default function AdminPayment() {
   const navigate = useNavigate();
@@ -32,36 +32,36 @@ export default function AdminPayment() {
   } = useAdminPaymentStore();
 
   useEffect(() => {
-    if (paymentSchedules?.length === 0) {
-      fetchAllSchedules();
-    }
+    fetchAllSchedules();
   }, []);
 
   const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined) return '₹ 0';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount).replace('₹', '₹ ');
+    if (amount === undefined) return "₹ 0";
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    })
+      .format(amount)
+      .replace("₹", "₹ ");
   };
 
   const getPaymentStatus = (schedule: PaymentSchedule) => {
-    if (schedule?.totalRemaining === 0) return 'completed';
-    if (schedule?.totalPaid > 0) return 'partial';
-    return 'pending';
+    if (schedule?.totalRemaining === 0) return "completed";
+    if (schedule?.totalPaid > 0) return "partial";
+    return "pending";
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-500';
-      case 'partial':
-        return 'bg-yellow-500';
-      case 'pending':
-        return 'bg-red-500';
+      case "completed":
+        return "bg-green-500";
+      case "partial":
+        return "bg-yellow-500";
+      case "pending":
+        return "bg-red-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
@@ -87,12 +87,15 @@ export default function AdminPayment() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className='text-xl mb-3'>Payment Management</CardTitle>
+              <CardTitle className="text-xl mb-3">Payment Management</CardTitle>
               <CardDescription>
                 Manage and track all project payments
               </CardDescription>
             </div>
-            <Button className='bg-red-500 hover:bg-red-600' onClick={() => navigate('/admin/payments/new')}>
+            <Button
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => navigate("/admin/payments/new")}
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Payment Schedule
             </Button>
@@ -116,27 +119,33 @@ export default function AdminPayment() {
               {paymentSchedules?.map((schedule) => (
                 <TableRow key={schedule?._id ?? Math.random()}>
                   <TableCell className="font-medium">
-                    {schedule?.projectId?.title ?? 'Untitled Project'}
+                    {schedule?.projectId?.title ?? "Untitled Project"}
                   </TableCell>
                   <TableCell>
-                    {schedule?.projectId?.clientId?.name ?? 'N/A'}
+                    {schedule?.projectId?.clientId?.name ?? "N/A"}
                   </TableCell>
                   <TableCell>
                     {formatCurrency(schedule?.totalProjectValue)}
                   </TableCell>
-                  <TableCell>
-                    {formatCurrency(schedule?.totalPaid)}
-                  </TableCell>
+                  <TableCell>{formatCurrency(schedule?.totalPaid)}</TableCell>
                   <TableCell>
                     {formatCurrency(schedule?.totalRemaining)}
                   </TableCell>
                   <TableCell>
-                    {schedule?.lastUpdated ? format(new Date(schedule.lastUpdated), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                    {schedule?.lastUpdated
+                      ? format(
+                          new Date(schedule.lastUpdated),
+                          "dd/MM/yyyy HH:mm"
+                        )
+                      : "N/A"}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge 
-                      variant="secondary" 
-                      className={getStatusColor(getPaymentStatus(schedule)) + ' text-white'}
+                    <Badge
+                      variant="secondary"
+                      className={
+                        getStatusColor(getPaymentStatus(schedule)) +
+                        " text-white"
+                      }
                     >
                       {getPaymentStatus(schedule)}
                     </Badge>
@@ -145,7 +154,10 @@ export default function AdminPayment() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => schedule?.projectId?._id && navigate(`/admin/payments/${schedule.projectId._id}`)}
+                      onClick={() =>
+                        schedule?.projectId?._id &&
+                        navigate(`/admin/payments/${schedule.projectId._id}`)
+                      }
                     >
                       View Details
                     </Button>
@@ -154,7 +166,10 @@ export default function AdminPayment() {
               ))}
               {paymentSchedules?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-gray-500"
+                  >
                     No payment schedules found
                   </TableCell>
                 </TableRow>

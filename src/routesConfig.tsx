@@ -15,6 +15,7 @@ import Payment from './pages/user/Payment/Payment';
 import PaymentScheduleDetails from './pages/user/Payment/PaymentScheduleDetails';
 import Transactions from './pages/user/Transactions/Transactions';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLayout from './components/AdminLayout';
 import AdminWarranty from './pages/admin/Warranty/AdminWarranty';
 import AdminProjects from './pages/admin/Projects/AdminProjects';
 import ViewProject from './pages/admin/Projects/ViewProject';
@@ -44,12 +45,14 @@ import TeamPage from './pages/TeamPage';
 import ContactUsPage from './pages/ContactUsPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsAndConditions from './pages/TermsandConditions';
+import RefundCancellation from './pages/RefundCancellation';
 import Unauthorized from './pages/Unauthorized';
 import ProtectedRoute from './components/ProtectedRoutes';
 import UserInfo from './pages/admin/Users/UserInfo';
 import AdminPartners from './pages/admin/AdminPartners';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AdminTeam from './pages/admin/Team/AdminTeam';
 
 export const routes = [
   {
@@ -209,14 +212,18 @@ export const routes = [
       {
         element: <ProtectedRoute allowedRoles={['admin']} />,
         children: [
-          {
-            path: '/admin',
-            element: <AdminDashboard />,
-            meta: {
-              title: 'Admin Dashboard | Dewelling',
-              description: 'Dewelling admin portal for managing projects and users.',
+                  {
+          path: '/admin',
+          element: <AdminLayout />,
+          children: [
+            {
+              path:"dashboard",
+              element: <AdminDashboard />,
+              meta: {
+                title: 'Admin Dashboard | Dewelling',
+                description: 'Dewelling admin portal for managing projects and users.',
+              },
             },
-            children: [
               {
                 path: 'warranty',
                 element: <AdminWarranty />,
@@ -370,6 +377,14 @@ export const routes = [
                 },
               },
               {
+                path: 'team',
+                element: <AdminTeam />,
+                meta: {
+                  title: 'Team Management | Admin',
+                  description: 'Manage leadership and employees for Dewelling.',
+                },
+              },
+              {
                 path: 'projects/:id/transactions',
                 element: <ProjectTransactions />,
                 meta: {
@@ -467,6 +482,14 @@ export const routes = [
         meta: {
           title: 'Terms and Conditions | Dewelling',
           description: 'Our terms of service and conditions of use.',
+        },
+      },
+      {
+        path: '/refund-cancellation',
+        element: <RefundCancellation />,
+        meta: {
+          title: 'Refund & Cancellation Policy | Dewelling',
+          description: 'Our refund and cancellation policy for interior design services.',
         },
       },
       {

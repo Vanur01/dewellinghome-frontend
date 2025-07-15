@@ -19,6 +19,7 @@ interface PaymentModalProps {
   projectId: string;
   projectTitle: string;
   totalRemaining: number;
+  onPaymentSuccess?: () => void; // Add callback for payment success
 }
 
 // Define Razorpay response type
@@ -31,23 +32,23 @@ interface RazorpayResponse {
   userId: string;
 }
 
-interface RazorpayOrder {
-  id: string;
-  amount: number;
-  currency: string;
-  receipt: string;
-  status: string;
-  notes: {
-    projectId: string;
-    userId: string;
-  };
-  amount_due: number;
-  amount_paid: number;
-  attempts: number;
-  created_at: number;
-  entity: string;
-  offer_id: null;
-}
+// interface RazorpayOrder {
+//   id: string;
+//   amount: number;
+//   currency: string;
+//   receipt: string;
+//   status: string;
+//   notes: {
+//     projectId: string;
+//     userId: string;
+//   };
+//   amount_due: number;
+//   amount_paid: number;
+//   attempts: number;
+//   created_at: number;
+//   entity: string;
+//   offer_id: null;
+// }
 
 // Define Razorpay interface
 interface RazorpayOptions {
@@ -84,6 +85,7 @@ export default function PaymentModal({
   projectId,
   projectTitle,
   totalRemaining,
+  onPaymentSuccess,
 }: PaymentModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -146,6 +148,24 @@ export default function PaymentModal({
     setAmount(value);
   };
 
+
+  const checkTransactionStatus = async (orderId: string): Promise<boolean> => {
+    try {
+      const response = await paymentApi.checkTransactionStatus(orderId);
+      const { status } = response.data.data;
+  
+      if (status === 'success') return true;
+      if (status === 'failed') throw new Error('Payment failed');
+      if (status === 'not_found') throw new Error('Transaction not found');
+      if (status === 'error') throw new Error('Transaction status check failed');
+  
+      throw new Error('Payment still processing');
+    } catch (err) {
+      console.error('Status check error:', err);
+      throw err;
+    }
+  };
+  
   const initializePayment = async () => {
     if (!isScriptLoaded) {
       toast.error('Payment system is still loading. Please try again.');
@@ -180,6 +200,8 @@ export default function PaymentModal({
         order_id: order.id,
         handler: async function (response: RazorpayResponse) {
           try {
+            console.log('Razorpay payment response:', response);
+            
             // Verify payment using our API instance
             const verifyResponse = await paymentApi.verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
@@ -191,12 +213,29 @@ export default function PaymentModal({
             });
             
             const verifyResult = verifyResponse.data;
-            console.log(verifyResponse)
+            console.log('Payment verification response:', verifyResponse);
+            
             if (verifyResult.success) {
-              toast.success('Payment successful!');
-              onClose();
-              // Optionally refresh the payment schedule
-              // window.location.reload();
+              // Check transaction status with polling
+              toast.loading('Verifying payment status...');
+              
+              try {
+                console.log('Checking transaction status for order:', order.id);
+                await checkTransactionStatus(order.id);
+                toast.dismiss();
+                toast.success('Payment successful!');
+                onClose();
+                
+                // Call the success callback to refresh payment schedule
+                if (onPaymentSuccess) {
+                  console.log('Calling payment success callback');
+                  onPaymentSuccess();
+                }
+              } catch (statusError) {
+                toast.dismiss();
+                console.error('Payment status check failed:', statusError);
+                toast.error('Payment verification failed. Please contact support.');
+              }
             } else {
               throw new Error('Payment verification failed');
             }
@@ -278,7 +317,7 @@ export default function PaymentModal({
             </Button>
             <Button 
               type="submit" 
-              disabled={loading || !amount || !isScriptLoaded}
+              disabled={loading || !parseInt(amount) || !isScriptLoaded}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {!isScriptLoaded ? 'Loading...' : 'Pay Now'}
