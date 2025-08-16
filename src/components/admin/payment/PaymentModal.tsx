@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { IndianRupee, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { paymentApi } from '@/utils/api';
-import { useAuthStore } from '@/store/auth.store';
+import { IndianRupee, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { paymentApi } from "@/utils/api";
+import { useAuthStore } from "@/store/auth.store";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -87,7 +87,7 @@ export default function PaymentModal({
   totalRemaining,
   onPaymentSuccess,
 }: PaymentModalProps) {
-  const [amount, setAmount] = useState<string>('');
+  const [amount, setAmount] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const { user } = useAuthStore();
@@ -96,23 +96,27 @@ export default function PaymentModal({
   useEffect(() => {
     const loadRazorpayScript = () => {
       return new Promise<void>((resolve, reject) => {
-        if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+        if (
+          document.querySelector(
+            'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+          )
+        ) {
           setIsScriptLoaded(true);
           resolve();
           return;
         }
 
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.async = true;
-        
+
         script.onload = () => {
           setIsScriptLoaded(true);
           resolve();
         };
         script.onerror = () => {
           script.remove();
-          reject(new Error('Failed to load Razorpay SDK'));
+          reject(new Error("Failed to load Razorpay SDK"));
         };
 
         document.body.appendChild(script);
@@ -120,13 +124,15 @@ export default function PaymentModal({
     };
 
     loadRazorpayScript().catch((error) => {
-      console.error('Razorpay script loading failed:', error);
-      toast.error('Failed to load payment system. Please try again later.');
+      console.error("Razorpay script loading failed:", error);
+      toast.error("Failed to load payment system. Please try again later.");
     });
 
     // Cleanup function
     return () => {
-      const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      const script = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
       if (script && !isOpen) {
         script.remove();
         setIsScriptLoaded(false);
@@ -136,56 +142,58 @@ export default function PaymentModal({
 
   // Format currency to Indian Rupee format
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount).replace('₹', '₹ ');
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    })
+      .format(amount)
+      .replace("₹", "₹ ");
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
+    const value = e.target.value.replace(/[^0-9]/g, "");
     setAmount(value);
   };
-
 
   const checkTransactionStatus = async (orderId: string): Promise<boolean> => {
     try {
       const response = await paymentApi.checkTransactionStatus(orderId);
       const { status } = response.data.data;
-  
-      if (status === 'success') return true;
-      if (status === 'failed') throw new Error('Payment failed');
-      if (status === 'not_found') throw new Error('Transaction not found');
-      if (status === 'error') throw new Error('Transaction status check failed');
-  
-      throw new Error('Payment still processing');
+
+      if (status === "success") return true;
+      if (status === "failed") throw new Error("Payment failed");
+      if (status === "not_found") throw new Error("Transaction not found");
+      if (status === "error")
+        throw new Error("Transaction status check failed");
+
+      throw new Error("Payment still processing");
     } catch (err) {
-      console.error('Status check error:', err);
+      console.error("Status check error:", err);
       throw err;
     }
   };
-  
+
   const initializePayment = async () => {
     if (!isScriptLoaded) {
-      toast.error('Payment system is still loading. Please try again.');
+      toast.error("Payment system is still loading. Please try again.");
       return;
     }
 
     try {
       setLoading(true);
-      
+
       // Create order using our API instance
       const response = await paymentApi.createOrder({
         amount: parseInt(amount),
         projectId,
-        userId: user?._id || ""
+        userId: user?._id || "",
       });
 
       const orderResponse = response.data;
-      console.log(orderResponse)
+      console.log(orderResponse);
       if (!orderResponse.success || !orderResponse.data.order) {
-        throw new Error('Failed to create order');
+        throw new Error("Failed to create order");
       }
 
       const { order } = orderResponse.data;
@@ -200,8 +208,8 @@ export default function PaymentModal({
         order_id: order.id,
         handler: async function (response: RazorpayResponse) {
           try {
-            console.log('Razorpay payment response:', response);
-            
+            console.log("Razorpay payment response:", response);
+
             // Verify payment using our API instance
             const verifyResponse = await paymentApi.verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
@@ -209,45 +217,47 @@ export default function PaymentModal({
               razorpay_signature: response.razorpay_signature,
               amount: order.amount,
               projectId,
-              userId: user?._id || ""
+              userId: user?._id || "",
             });
-            
+
             const verifyResult = verifyResponse.data;
-            console.log('Payment verification response:', verifyResponse);
-            
+            console.log("Payment verification response:", verifyResponse);
+
             if (verifyResult.success) {
               // Check transaction status with polling
-              toast.loading('Verifying payment status...');
-              
+              toast.loading("Verifying payment status...");
+
               try {
-                console.log('Checking transaction status for order:', order.id);
+                console.log("Checking transaction status for order:", order.id);
                 await checkTransactionStatus(order.id);
                 toast.dismiss();
-                toast.success('Payment successful!');
+                toast.success("Payment successful!");
                 onClose();
-                
+
                 // Call the success callback to refresh payment schedule
                 if (onPaymentSuccess) {
-                  console.log('Calling payment success callback');
+                  console.log("Calling payment success callback");
                   onPaymentSuccess();
                 }
               } catch (statusError) {
                 toast.dismiss();
-                console.error('Payment status check failed:', statusError);
-                toast.error('Payment verification failed. Please contact support.');
+                console.error("Payment status check failed:", statusError);
+                toast.error(
+                  "Payment verification failed. Please contact support."
+                );
               }
             } else {
-              throw new Error('Payment verification failed');
+              throw new Error("Payment verification failed");
             }
           } catch (error) {
-            console.error('Payment verification error:', error);
-            toast.error('Payment verification failed. Please contact support.');
+            console.error("Payment verification error:", error);
+            toast.error("Payment verification failed. Please contact support.");
           }
         },
         prefill: {
           name: user?.name || "",
           email: user?.email || "",
-          contact: user?.phone || ""
+          contact: user?.phone || "",
         },
         theme: {
           color: "#ef4444",
@@ -257,11 +267,11 @@ export default function PaymentModal({
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error('Payment initialization error:', error);
+      console.error("Payment initialization error:", error);
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error('Failed to initialize payment. Please try again.');
+        toast.error("Failed to initialize payment. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -270,11 +280,11 @@ export default function PaymentModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate amount
     const numAmount = parseInt(amount);
     if (!numAmount || numAmount <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error("Please enter a valid amount");
       return;
     }
 
@@ -308,23 +318,26 @@ export default function PaymentModal({
               />
             </div>
             <p className="text-sm text-gray-500">
-              Remaining to be paid: {formatCurrency(totalRemaining)}
+              Remaining to be paid: 
+              <span className="font-medium text-red-600">
+              {formatCurrency(totalRemaining)}
+              </span>
             </p>
           </div>
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading || !parseInt(amount) || !isScriptLoaded}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {!isScriptLoaded ? 'Loading...' : 'Pay Now'}
+              {!isScriptLoaded ? "Loading..." : "Pay Now"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   );
-} 
+}

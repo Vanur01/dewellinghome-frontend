@@ -134,7 +134,7 @@ const Footer = () => {
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
               >
                 <MdEmail className="text-xl group-hover:scale-110 transition-transform" />
-                <span>Hello@dewellinghome.com</span>
+                <span>hello@dewellinghome.com</span>
               </a>
               <a
                 href="tel:8328973166"

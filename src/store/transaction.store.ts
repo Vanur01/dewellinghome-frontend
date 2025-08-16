@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import { Transaction, transactionApi } from '../utils/api';
+import { 
+  Transaction, 
+  transactionApi, 
+  UpdateTransactionData,
+  TransactionSummary 
+} from '../utils/api';
 
 interface TransactionState {
   transactions: Transaction[];
@@ -13,6 +18,7 @@ interface TransactionState {
   error: string | null;
   selectedTransaction: Transaction | null;
   isViewModalOpen: boolean;
+  projectSummary: TransactionSummary | null;
 
   // Actions
   getProjectTransactions: (projectId: string, params?: {
@@ -21,9 +27,10 @@ interface TransactionState {
     status?: string;
   }) => Promise<void>;
   getTransactionById: (id: string) => Promise<void>;
+  getProjectTransactionSummary: (projectId: string) => Promise<void>;
   clearSelectedTransaction: () => void;
   clearError: () => void;
-  updateTransaction: (id: string, amount: number) => Promise<{ transaction: Transaction } | void>;
+  updateTransaction: (id: string, data: UpdateTransactionData) => Promise<{ transaction: Transaction } | void>;
 }
 
 export const useTransactionStore = create<TransactionState>((set) => ({
@@ -38,6 +45,7 @@ export const useTransactionStore = create<TransactionState>((set) => ({
   error: null,
   selectedTransaction: null,
   isViewModalOpen: false,
+  projectSummary: null,
 
   getProjectTransactions: async (projectId, params) => {
     try {
@@ -80,13 +88,30 @@ export const useTransactionStore = create<TransactionState>((set) => ({
     }
   },
 
+  getProjectTransactionSummary: async (projectId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await transactionApi.getProjectTransactionSummary(projectId);
+      set({
+        projectSummary: response.data.data,
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        projectSummary: null,
+        error: error instanceof Error ? error.message : 'Failed to fetch project summary',
+        loading: false,
+      });
+    }
+  },
+
   clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
   clearError: () => set({ error: null }),
 
-  updateTransaction: async (id, amount) => {
+  updateTransaction: async (id, data) => {
     set({ loading: true, error: null });
     try {
-      const response = await transactionApi.updateTransaction(id, amount);
+      const response = await transactionApi.updateTransaction(id, data);
       const { transaction } = response.data.data;
       set((state) => ({
         transactions: state.transactions.map((txn) =>

@@ -4,10 +4,8 @@ import { toast } from 'sonner';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, History, Plus, AlertCircle, Loader2 } from 'lucide-react';
-import { ManualPaymentModal } from './ManualPaymentModal';
+import { ArrowLeft, History, AlertCircle, Loader2 } from 'lucide-react';
 import { useAdminPaymentStore } from '@/store/admin/adminPayment.store';
 
 export default function PaymentDetails() {
@@ -23,10 +21,9 @@ export default function PaymentDetails() {
   } = useAdminPaymentStore();
 
   const [editMode, setEditMode] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [editedValues, setEditedValues] = useState({
     projectValue: 0,
-    milestones: [] as Array<{ timeline: string; percentage: number }>,
+    milestones: [] as Array<{ timeline: string; percentage: number; actualPaid: number }>,
     currentMilestone: 1
   });
 
@@ -44,7 +41,8 @@ export default function PaymentDetails() {
         projectValue: currentSchedule?.totalProjectValue ?? 0,
         milestones: currentSchedule?.milestones?.map(m => ({
           timeline: m?.timeline ?? '',
-          percentage: m?.percentage ?? 0
+          percentage: m?.percentage ?? 0,
+          actualPaid: m?.actualPaid ?? 0
         })) ?? [],
         currentMilestone: currentSchedule?.currentMilestone ?? 1
       });
@@ -61,6 +59,11 @@ export default function PaymentDetails() {
     }).format(amount).replace('₹', '₹ ');
   };
 
+  // Calculate milestone amount based on percentage and project value
+  const calculateMilestoneAmount = (percentage: number, projectValue: number) => {
+    return (projectValue * percentage) / 100;
+  };
+
   // Handle project value change
   const handleProjectValueChange = (value: string) => {
     setEditedValues(prev => ({
@@ -70,12 +73,17 @@ export default function PaymentDetails() {
   };
 
   // Handle milestone update
-  const handleMilestoneUpdate = (index: number, field: 'timeline' | 'percentage', value: string) => {
+  const handleMilestoneUpdate = (index: number, field: 'timeline' | 'percentage' | 'actualPaid', value: string) => {
     setEditedValues(prev => ({
       ...prev,
       milestones: prev.milestones.map((m, i) => 
         i === index 
-          ? { ...m, [field]: field === 'percentage' ? parseFloat(value) || 0 : value }
+          ? { 
+              ...m, 
+              [field]: field === 'percentage' || field === 'actualPaid' 
+                ? parseFloat(value) || 0 
+                : value 
+            }
           : m
       )
     }));
@@ -107,15 +115,32 @@ export default function PaymentDetails() {
         return;
       }
 
+      // Validate actualPaid amounts don't exceed milestone amounts
+      for (let i = 0; i < editedValues.milestones.length; i++) {
+        const milestone = editedValues.milestones[i];
+        const milestoneAmount = calculateMilestoneAmount(milestone.percentage, editedValues.projectValue);
+        
+        if (milestone.actualPaid > milestoneAmount) {
+          toast.error(`Actual paid amount for milestone ${i + 1} cannot exceed milestone amount (${formatCurrency(milestoneAmount)})`);
+          return;
+        }
+        
+        if (milestone.actualPaid < 0) {
+          toast.error(`Actual paid amount for milestone ${i + 1} cannot be negative`);
+          return;
+        }
+      }
+
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
         await updateProjectValue(currentSchedule._id, editedValues.projectValue);
       }
 
-      // Update milestone structure if changed
+      // Update milestone structure if changed (including actualPaid)
       const structureChanged = editedValues.milestones.some((m, i) => 
         m?.timeline !== currentSchedule?.milestones?.[i]?.timeline ||
-        m?.percentage !== currentSchedule?.milestones?.[i]?.percentage
+        m?.percentage !== currentSchedule?.milestones?.[i]?.percentage ||
+        m?.actualPaid !== currentSchedule?.milestones?.[i]?.actualPaid
       );
 
       if (structureChanged) {
@@ -133,13 +158,6 @@ export default function PaymentDetails() {
     } catch (error) {
       toast.error('Failed to update payment schedule');
       console.error('Error updating payment schedule:', error);
-    }
-  };
-
-  const handlePaymentSuccess = () => {
-    // Refresh the payment schedule
-    if (projectId) {
-      fetchScheduleById(projectId);
     }
   };
 
@@ -174,7 +192,6 @@ export default function PaymentDetails() {
 
   const totalPaid = currentSchedule?.totalPaid ?? 0;
   const totalRemaining = currentSchedule?.totalRemaining ?? 0;
-  const totalOverpayment = currentSchedule?.totalOverpayment ?? 0;
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -199,14 +216,6 @@ export default function PaymentDetails() {
                 >
                   <History className="h-4 w-4" />
                   View Transaction History
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={() => setIsPaymentModalOpen(true)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Manual Payment
                 </Button>
               </div>
               <div className={cn(
@@ -316,133 +325,124 @@ export default function PaymentDetails() {
                   </div>
                 </div>
               </div>
-              {totalOverpayment > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <AlertCircle className="h-4 w-4" />
-                    <span className="font-medium">Overpayment Detected</span>
-                  </div>
-                  <p className="text-sm text-green-600 mt-1">
-                    Client has overpaid by {formatCurrency(totalOverpayment)}, applied to future milestones.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Milestones Table */}
           <div className="mt-8 rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="w-16">Sl No.</TableHead>
-                  <TableHead>Payments Timelines and Services</TableHead>
-                  <TableHead className="text-center w-24">Percentage</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actual Paid</TableHead>
-                  <TableHead className="text-right">Effective Paid</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentSchedule?.milestones?.map((milestone, index) => (
-                  <TableRow 
-                    key={milestone?.slNo ?? index} 
-                    className={cn(
-                      "hover:bg-gray-50/50 transition-colors relative",
-                      milestone?.slNo === currentSchedule?.currentMilestone && "bg-red-100 hover:bg-red-100"
-                    )}
-                  >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {milestone?.slNo === currentSchedule?.currentMilestone && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs rounded-full">
-                            Current
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-16">Sl No.</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payments Timelines and Services</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24">Percentage</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Amount</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Actual Paid</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Remaining</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {currentSchedule?.milestones?.map((milestone, index) => (
+                    <tr 
+                      key={milestone?.slNo ?? index} 
+                      className={cn(
+                        "hover:bg-gray-50/50 transition-colors",
+                        milestone?.slNo === currentSchedule?.currentMilestone && "bg-red-100 hover:bg-red-100"
+                      )}
+                    >
+                      <td className="px-4 py-4 font-medium">
+                        <div className="flex items-center gap-2">
+                          {milestone?.slNo === currentSchedule?.currentMilestone && (
+                            <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs rounded-full">
+                              C
+                            </div>
+                          )}
+                          {milestone?.slNo ?? index + 1}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {editMode ? (
+                          <textarea 
+                            value={editedValues.milestones[index]?.timeline ?? ''}
+                            onChange={(e) => handleMilestoneUpdate(index, 'timeline', e.target.value)}
+                            className="w-full min-h-[60px] p-2 border border-gray-300 rounded-md resize-none text-sm"
+                            rows={3}
+                          />
+                        ) : (
+                          <div className="font-medium break-words leading-relaxed text-sm max-w-xs">
+                            {milestone?.timeline ?? 'N/A'}
                           </div>
                         )}
-                        {milestone?.slNo ?? index + 1}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {editMode ? (
-                        <Input 
-                          value={editedValues.milestones[index]?.timeline ?? ''}
-                          onChange={(e) => handleMilestoneUpdate(index, 'timeline', e.target.value)}
-                          className="w-full"
-                        />
-                      ) : (
-                        <div className="font-medium">{milestone?.timeline ?? 'N/A'}</div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {editMode ? (
-                        <Input 
-                          type="number"
-                          value={editedValues.milestones[index]?.percentage ?? 0}
-                          onChange={(e) => handleMilestoneUpdate(index, 'percentage', e.target.value)}
-                          className="w-20 text-center mx-auto"
-                        />
-                      ) : (
-                        `${milestone?.percentage ?? 0}%`
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(milestone?.amount)}</TableCell>
-                    <TableCell className="text-right">
-                      <span className={cn(
-                        "font-medium",
-                        (milestone?.actualPaid ?? 0) > 0 ? "text-green-600" : "text-muted-foreground"
-                      )}>
-                        {(milestone?.actualPaid ?? 0) > 0 ? formatCurrency(milestone?.actualPaid) : '-'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {(milestone?.effectivePaid ?? 0) > 0 ? (
-                        <div>
-                          <span className="font-medium">
-                            {formatCurrency(Math.min(milestone?.effectivePaid ?? 0, milestone?.amount ?? 0))}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {editMode ? (
+                          <Input 
+                            type="number"
+                            value={editedValues.milestones[index]?.percentage ?? 0}
+                            onChange={(e) => handleMilestoneUpdate(index, 'percentage', e.target.value)}
+                            className="w-20 text-center mx-auto"
+                          />
+                        ) : (
+                          `${milestone?.percentage ?? 0}%`
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-right font-medium">{formatCurrency(milestone?.amount)}</td>
+                      <td className="px-4 py-4 text-right">
+                        {editMode ? (
+                          <Input 
+                            type="number"
+                            min="0"
+                            max={calculateMilestoneAmount(milestone?.percentage ?? 0, editedValues.projectValue)}
+                            value={editedValues.milestones[index]?.actualPaid ?? 0}
+                            onChange={(e) => handleMilestoneUpdate(index, 'actualPaid', e.target.value)}
+                            className="w-32 text-right mx-auto"
+                            placeholder="0"
+                          />
+                        ) : (
+                          <span className={cn(
+                            "font-medium",
+                            (milestone?.actualPaid ?? 0) > 0 ? "text-green-600" : "text-muted-foreground"
+                          )}>
+                            {(milestone?.actualPaid ?? 0) > 0 ? formatCurrency(milestone?.actualPaid) : '-'}
                           </span>
-                          {(milestone?.overpayment ?? 0) > 0 && (
-                            <span className="text-green-600 text-sm ml-1">
-                              (+{formatCurrency(milestone?.overpayment)})
-                            </span>
-                          )}
-                        </div>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className={cn(
-                        "px-2 py-1 rounded-full text-sm font-medium",
-                        (milestone?.toBePaid ?? 0) > 0 
-                          ? "bg-yellow-100 text-yellow-700" 
-                          : "bg-green-100 text-green-700"
-                      )}>
-                        {(milestone?.toBePaid ?? 0) > 0 ? formatCurrency(milestone?.toBePaid) : 'Paid'}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              {editMode && (
-                <tfoot>
-                  <tr className="border-t">
-                    <td colSpan={2} className="px-4 py-3 text-right font-medium">
-                      Total Percentage:
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={cn(
-                        "font-bold",
-                        Math.abs(editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0) - 100) < 0.01
-                          ? "text-green-600"
-                          : "text-red-600"
-                      )}>
-                        {editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0).toFixed(2)}%
-                      </span>
-                    </td>
-                    <td colSpan={4}></td>
-                  </tr>
-                </tfoot>
-              )}
-            </Table>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <span className={cn(
+                          "px-2 py-1 rounded-full text-sm font-medium",
+                          (milestone?.toBePaid ?? 0) > 0 
+                            ? "bg-yellow-100 text-yellow-700" 
+                            : "bg-green-100 text-green-700"
+                        )}>
+                          {(milestone?.toBePaid ?? 0) > 0 ? formatCurrency(milestone?.toBePaid) : 'Paid'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                {editMode && (
+                  <tfoot>
+                    <tr className="border-t">
+                      <td colSpan={2} className="px-4 py-3 text-right font-medium">
+                        Total Percentage:
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={cn(
+                          "font-bold",
+                          Math.abs(editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0) - 100) < 0.01
+                            ? "text-green-600"
+                            : "text-red-600"
+                        )}>
+                          {editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0).toFixed(2)}%
+                        </span>
+                      </td>
+                      <td colSpan={3}></td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
           </div>
 
           {/* Summary and Actions */}
@@ -463,12 +463,6 @@ export default function PaymentDetails() {
                     <span className="text-muted-foreground">Total Remaining</span>
                     <span className="font-medium text-blue-600">{formatCurrency(totalRemaining)}</span>
                   </div>
-                  {totalOverpayment > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Overpayment</span>
-                      <span className="font-medium text-green-600">{formatCurrency(totalOverpayment)}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -514,15 +508,6 @@ export default function PaymentDetails() {
           </div>
         </div>
       </Card>
-
-      {/* Add Payment Modal */}
-      <ManualPaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        projectId={currentSchedule?.projectId?._id ?? ''}
-        userId={currentSchedule?.projectId?.clientId?._id ?? ''}
-        onSuccess={handlePaymentSuccess}
-      />
     </div>
   );
 }

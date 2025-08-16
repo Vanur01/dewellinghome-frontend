@@ -32,7 +32,7 @@ export default function Payment() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="mx-auto md:p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Payment Schedules</h1>
 
       <div className="grid gap-6">
@@ -72,12 +72,6 @@ export default function Payment() {
                   <span className="text-gray-500">Amount Remaining</span>
                   <span className="font-medium text-blue-600">{formatCurrency(schedule?.totalRemaining ?? 0)}</span>
                 </div>
-                {schedule?.totalOverpayment > 0 && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Overpayment</span>
-                    <span className="font-medium text-green-600">{formatCurrency(schedule?.totalOverpayment ?? 0)}</span>
-                  </div>
-                )}
 
                 {/* Progress bar */}
                 <div className="mt-4">

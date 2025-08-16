@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAdminTransactionStore } from "@/store/admin/adminTransaction.store"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,7 +23,9 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Plus,
+  Edit
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -41,20 +44,17 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TransactionDetailsModal } from './TransactionDetails'
-import EditTransactionModal from './EditTransactionModal';
 
 export default function AdminTransactionsTable() {
   const [filterValue, setFilterValue] = useState("")
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editTransaction, setEditTransaction] = useState(null);
+  const navigate = useNavigate();
   
   const { 
     transactions = [], 
     pagination = { currentPage: 1, totalPages: 1, totalItems: 0 }, 
     loading = false, 
     getAllTransactions,
-    setSelectedTransaction,
-    editTransaction: editTransactionApi
+    setSelectedTransaction
   } = useAdminTransactionStore();
 
   // Initial data load
@@ -71,7 +71,7 @@ export default function AdminTransactionsTable() {
       getAllTransactions({
         page: 1,
         limit: 10,
-        paymentId: filterValue || undefined
+        transactionId: filterValue || undefined
       })
     }, 500)
 
@@ -82,7 +82,7 @@ export default function AdminTransactionsTable() {
     getAllTransactions({
       page,
       limit: 10,
-      paymentId: filterValue || undefined
+      transactionId: filterValue || undefined
     })
   }
 
@@ -112,28 +112,8 @@ export default function AdminTransactionsTable() {
   }
 
   const handleEditClick = (transaction) => {
-    setEditTransaction(transaction);
-    setEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (amount) => {
-    if (!editTransaction) return;
-    await editTransactionApi(editTransaction._id, amount);
-    setEditModalOpen(false);
-    setEditTransaction(null);
-    // Optionally refresh the list
-    const limit = typeof (pagination as { limit?: number }).limit === 'number' ? (pagination as { limit: number }).limit : 10;
-    getAllTransactions({
-      page: pagination.currentPage,
-      limit,
-      paymentId: filterValue || undefined
-    });
-  };
-
-  const handleEditModalClose = () => {
-    setEditModalOpen(false);
-    setEditTransaction(null);
-  };
+    navigate(`/admin/transactions/edit/${transaction._id}`)
+  }
 
   return (
     <Card className="w-full">
@@ -143,7 +123,7 @@ export default function AdminTransactionsTable() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-between space-x-2">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -153,6 +133,13 @@ export default function AdminTransactionsTable() {
                 className="pl-8"
               />
             </div>
+            <Button 
+              onClick={() => navigate('/admin/transactions/create')}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Transaction
+            </Button>
           </div>
 
           <div className="rounded-md border">
@@ -183,7 +170,7 @@ export default function AdminTransactionsTable() {
                   transactions.map((transaction) => (
                     <TableRow key={transaction?._id ?? Math.random()} className="hover:bg-muted/50">
                       <TableCell className="font-mono text-xs">
-                        {transaction?.razorpay_payment_id ?? 'N/A'}
+                        {transaction?.transactionId ?? 'N/A'}
                       </TableCell>
                       <TableCell>{transaction?.userId?.name ?? "N/A"}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={transaction?.projectId?.title ?? "N/A"}>
@@ -196,7 +183,7 @@ export default function AdminTransactionsTable() {
                         {getStatusBadge(transaction?.status)}
                       </TableCell>
                       <TableCell>
-                        {transaction?.method === 'manual' ? 'Manual' : 'Razorpay'}
+                        {transaction?.method}
                       </TableCell>
                       <TableCell>
                         {transaction?.paidAt ? new Date(transaction.paidAt).toLocaleDateString('en-IN', {
@@ -217,7 +204,7 @@ export default function AdminTransactionsTable() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => navigator.clipboard.writeText(transaction?.razorpay_payment_id ?? "")}
+                              onClick={() => navigator.clipboard.writeText(transaction?.transactionId ?? "")}
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy ID
@@ -228,10 +215,10 @@ export default function AdminTransactionsTable() {
                               <FileText className="mr-2 h-4 w-4" />
                               View details
                             </DropdownMenuItem>
-                           {transaction?.method === 'manual' && (
+                           {transaction?.method !== 'razorpay' && (
                              <DropdownMenuItem onClick={() => handleEditClick(transaction)}>
-                               <span className="mr-2">✏️</span>
-                               Edit amount
+                               <Edit className="mr-2 h-4 w-4" />
+                               Edit
                              </DropdownMenuItem>
                            )}
                           </DropdownMenuContent>
@@ -286,12 +273,6 @@ export default function AdminTransactionsTable() {
         </div>
       </CardContent>
       <TransactionDetailsModal />
-      <EditTransactionModal
-        open={editModalOpen}
-        onClose={handleEditModalClose}
-        transaction={editTransaction}
-        onSubmit={handleEditSubmit}
-      />
     </Card>
   )
 }

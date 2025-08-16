@@ -22,12 +22,12 @@ interface AdminPaymentState {
   createSchedule: (data: {
     projectId: string;
     totalProjectValue: number;
-    milestones: Array<{ timeline: string; percentage: number }>;
+    milestones: Array<{ timeline: string; percentage: number; actualPaid?: number }>;
   }) => Promise<PaymentSchedule>;
   updateProjectValue: (id: string, totalProjectValue: number) => Promise<PaymentSchedule>;
   updatePaymentStructure: (
     id: string,
-    milestones: Array<{ timeline: string; percentage: number }>
+    milestones: Array<{ timeline: string; percentage: number; actualPaid?: number }>
   ) => Promise<PaymentSchedule>;
   updateCurrentMilestone: (id: string, currentMilestone: number) => Promise<PaymentSchedule>;
   resetStore: () => void;

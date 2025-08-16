@@ -33,6 +33,7 @@ import CreateProject from './pages/admin/Projects/CreateProject';
 import GalleryList from './pages/admin/Gallery/GalleryList';
 import Designs from './pages/admin/Gallery/Designs';
 import AdminTransactionsTable from './pages/admin/Transactions/AdminTransactions';
+import CreateTransaction from './pages/admin/Transactions/CreateTransaction';
 import AdminTestimonial from './pages/admin/AdminTestimonial';
 import ModularKitchen from './pages/modular-kitchen/Home';
 import DesignGallary from './pages/design-gallary/Home';
@@ -53,6 +54,7 @@ import AdminPartners from './pages/admin/AdminPartners';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminTeam from './pages/admin/Team/AdminTeam';
+import EditTransaction from './pages/admin/Transactions/EditTransaction';
 
 export const routes = [
   {
@@ -366,6 +368,22 @@ export const routes = [
                 meta: {
                   title: 'Transactions | Admin',
                   description: 'View and manage all financial transactions.',
+                },
+              },
+              {
+                path: 'transactions/create/:projectId?',
+                element: <CreateTransaction />,
+                meta: {
+                  title: 'Create Transaction | Admin',
+                  description: 'Create a new manual transaction.',
+                },
+              },
+              {
+                path: 'transactions/edit/:transactionId',
+                element: <EditTransaction />,
+                meta: {
+                  title: 'Edit Transaction | Admin',
+                  description: 'Edit an existing transaction.',
                 },
               },
               {

@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { transactionApi, Transaction } from '../../utils/api';
+import { 
+  transactionApi, 
+  Transaction, 
+  CreateManualTransactionData, 
+  UpdateTransactionData,
+  TransactionSummary 
+} from '../../utils/api';
 
 interface Pagination {
   currentPage: number;
@@ -15,19 +21,25 @@ interface AdminTransactionState {
   error: string | null;
   selectedTransaction: Transaction | null;
   isViewModalOpen: boolean;
+  projectSummary: TransactionSummary | null;
 
   // Actions
   getAllTransactions: (params?: {
     page?: number;
     limit?: number;
     status?: string;
-    paymentId?: string;
+    transactionId?: string;
     orderId?: string;
+    paymentId?: string;
   }) => Promise<void>;
+  getTransactionById: (id: string) => Promise<Transaction | null>;
+  createManualTransaction: (data: CreateManualTransactionData) => Promise<{ transaction: Transaction } | void>;
+  updateTransaction: (id: string, data: UpdateTransactionData) => Promise<{ transaction: Transaction } | void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  getProjectTransactionSummary: (projectId: string) => Promise<void>;
   setSelectedTransaction: (transaction: Transaction) => void;
   clearSelectedTransaction: () => void;
   clearError: () => void;
-  editTransaction: (id: string, amount: number) => Promise<{ transaction: Transaction } | void>;
 }
 
 export const useAdminTransactionStore = create<AdminTransactionState>((set) => ({
@@ -42,6 +54,7 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
   error: null,
   selectedTransaction: null,
   isViewModalOpen: false,
+  projectSummary: null,
 
   getAllTransactions: async (params) => {
     try {
@@ -67,15 +80,56 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
     }
   },
 
-  setSelectedTransaction: (transaction) => set({ selectedTransaction: transaction, isViewModalOpen: true }),
-  clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
-  clearError: () => set({ error: null }),
+  getTransactionById: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await transactionApi.getTransactionById(id);
+      const transaction = response.data.data.transaction;
+      set({
+        selectedTransaction: transaction,
+        loading: false,
+      });
+      return transaction;
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to fetch transaction',
+        loading: false,
+      });
+      return null;
+    }
+  },
 
-  editTransaction: async (id, amount) => {
+  createManualTransaction: async (data) => {
     set({ loading: true, error: null });
     try {
-      const response = await transactionApi.updateTransaction(id, amount);
+      const response = await transactionApi.createManualTransaction(data);
       const { transaction } = response.data.data;
+      
+      // Add the new transaction to the beginning of the list
+      set((state) => ({
+        transactions: [transaction, ...state.transactions],
+        pagination: {
+          ...state.pagination,
+          totalTransactions: state.pagination.totalTransactions + 1
+        },
+        loading: false,
+      }));
+      
+      return { transaction };
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to create transaction',
+        loading: false,
+      });
+    }
+  },
+
+  updateTransaction: async (id, data) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await transactionApi.updateTransaction(id, data);
+      const { transaction } = response.data.data;
+      
       // Update transactions array if present
       set((state) => ({
         transactions: state.transactions.map((txn) =>
@@ -87,6 +141,7 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
             : state.selectedTransaction,
         loading: false,
       }));
+      
       return { transaction };
     } catch (error) {
       set({
@@ -95,4 +150,55 @@ export const useAdminTransactionStore = create<AdminTransactionState>((set) => (
       });
     }
   },
+
+  deleteTransaction: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await transactionApi.deleteTransaction(id);
+      
+      // Remove the transaction from the list
+      set((state) => ({
+        transactions: state.transactions.filter((txn) => txn._id !== id),
+        pagination: {
+          ...state.pagination,
+          totalTransactions: Math.max(0, state.pagination.totalTransactions - 1)
+        },
+        selectedTransaction: 
+          state.selectedTransaction && state.selectedTransaction._id === id 
+            ? null 
+            : state.selectedTransaction,
+        isViewModalOpen: 
+          state.selectedTransaction && state.selectedTransaction._id === id 
+            ? false 
+            : state.isViewModalOpen,
+        loading: false,
+      }));
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to delete transaction',
+        loading: false,
+      });
+    }
+  },
+
+  getProjectTransactionSummary: async (projectId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await transactionApi.getProjectTransactionSummary(projectId);
+      set({
+        projectSummary: response.data.data,
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        projectSummary: null,
+        error: error instanceof Error ? error.message : 'Failed to fetch project summary',
+        loading: false,
+      });
+    }
+  },
+
+  setSelectedTransaction: (transaction) => set({ selectedTransaction: transaction, isViewModalOpen: true }),
+  clearSelectedTransaction: () => set({ selectedTransaction: null, isViewModalOpen: false }),
+  clearError: () => set({ error: null }),
 }));

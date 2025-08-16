@@ -45,7 +45,7 @@ export function TransactionDetailsModal() {
 
   return (
     <Dialog open={isViewModalOpen} onOpenChange={() => clearSelectedTransaction()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="">
         <DialogHeader>
           <DialogTitle>Transaction Details</DialogTitle>
           <DialogDescription>
@@ -53,10 +53,10 @@ export function TransactionDetailsModal() {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <div className="font-semibold">Payment ID:</div>
+            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="font-semibold">Transaction ID:</div>
             <div className="col-span-3 font-mono text-sm">
-              {selectedTransaction?.razorpay_payment_id}
+              {selectedTransaction?.transactionId || "N/A"}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

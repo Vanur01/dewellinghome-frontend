@@ -47,7 +47,7 @@ export default function Transactions() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Payment ID</TableHead>
+                  <TableHead>Transaction ID</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment Method</TableHead>
@@ -71,7 +71,7 @@ export default function Transactions() {
                       key={transaction?._id}
                       className="hover:bg-muted/50"
                     >
-                      <TableCell>{transaction?.razorpay_payment_id}</TableCell>
+                      <TableCell>{transaction?.transactionId}</TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat("en-IN", {
                           style: "currency",

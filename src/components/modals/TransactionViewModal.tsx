@@ -26,8 +26,8 @@ const TransactionViewModal = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-2 items-center gap-4">
-            <span className="font-semibold">Payment ID:</span>
-            <span className="break-all">{transaction.razorpay_payment_id}</span>
+            <span className="font-semibold">Transaction ID:</span>
+            <span className="break-all">{transaction.transactionId || 'N/A'}</span>
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Order ID:</span>

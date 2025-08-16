@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTransactionStore } from "@/store/transaction.store";
+import { useAuthStore } from "@/store/auth.store";
 import {
   Table,
   TableBody,
@@ -19,7 +20,14 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, MoreHorizontal, Pencil, Eye } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  MoreHorizontal,
+  Pencil,
+  Eye,
+  Plus,
+} from "lucide-react";
 import { formatDateToLocal, formatPrice } from "@/lib/utils";
 import TransactionViewModal from "@/components/modals/TransactionViewModal";
 import {
@@ -39,15 +47,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import EditTransactionModal from "@/pages/admin/Transactions/EditTransactionModal";
 
 const ProjectTransactions = () => {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState<string>("");
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editTransaction, setEditTransaction] = useState(null);
+  const { user } = useAuthStore();
 
   const {
     transactions,
@@ -59,7 +65,6 @@ const ProjectTransactions = () => {
     selectedTransaction,
     isViewModalOpen,
     clearSelectedTransaction,
-    updateTransaction,
   } = useTransactionStore();
 
   useEffect(() => {
@@ -86,28 +91,7 @@ const ProjectTransactions = () => {
   };
 
   const handleEditClick = (transaction) => {
-    setEditTransaction(transaction);
-    setEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (amount) => {
-    if (!editTransaction) return;
-    await updateTransaction(editTransaction._id, amount);
-    setEditModalOpen(false);
-    setEditTransaction(null);
-    // Refresh the list
-    if (id) {
-      getProjectTransactions(id, {
-        page: currentPage,
-        limit: 10,
-        status: status === "all" ? undefined : status,
-      });
-    }
-  };
-
-  const handleEditModalClose = () => {
-    setEditModalOpen(false);
-    setEditTransaction(null);
+    navigate(`/admin/transactions/edit/${transaction._id}`);
   };
 
   if (!id) {
@@ -135,7 +119,7 @@ const ProjectTransactions = () => {
     <div className="p-4 space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap mb-4 gap-4">
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
@@ -147,17 +131,26 @@ const ProjectTransactions = () => {
               </Button>
               <CardTitle>Project Transactions</CardTitle>
             </div>
-            <Select value={status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                onClick={() => navigate(`/admin/transactions/create/${id}`)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Transaction
+              </Button>
+              <Select value={status} onValueChange={handleStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="success">Success</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -193,18 +186,18 @@ const ProjectTransactions = () => {
                       transactions.map((transaction) => (
                         <TableRow key={transaction._id}>
                           <TableCell className="font-medium">
-                            {transaction.razorpay_payment_id ?? "N/A"}
+                            {transaction.transactionId ?? "N/A"}
                           </TableCell>
                           <TableCell>
                             {formatPrice(transaction.amount)}
                           </TableCell>
-                          <TableCell>
-                            {transaction.method === 'manual' ? 'Manual' : 'Razorpay'}
-                          </TableCell>
+                          <TableCell>{transaction.method}</TableCell>
                           <TableCell>
                             <Badge
                               variant="secondary"
-                              className={getStatusBadgeColor(transaction.status)}
+                              className={getStatusBadgeColor(
+                                transaction.status
+                              )}
                             >
                               {transaction.status}
                             </Badge>
@@ -215,25 +208,41 @@ const ProjectTransactions = () => {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
                                   <span className="sr-only">Open menu</span>
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-[160px]">
+                              <DropdownMenuContent
+                                align="end"
+                                className="w-[160px]"
+                              >
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleViewTransaction(transaction._id)}>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleViewTransaction(transaction._id)
+                                  }
+                                >
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </DropdownMenuItem>
                                 {/* Only show edit for admin and manual transactions */}
-                                {transaction.method === 'manual' && (
-                                  <DropdownMenuItem onClick={() => handleEditClick(transaction)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit Amount
-                                  </DropdownMenuItem>
-                                )}
+                                {user?.role === "admin" &&
+                                  transaction.method !== "razorpay" && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleEditClick(transaction)
+                                      }
+                                    >
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                  )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -248,7 +257,7 @@ const ProjectTransactions = () => {
                 <div className="mt-4 flex justify-between items-center">
                   <div className="text-sm text-muted-foreground">
                     Showing{" "}
-                    {((pagination.currentPage - 1) * pagination.limit) + 1} to{" "}
+                    {(pagination.currentPage - 1) * pagination.limit + 1} to{" "}
                     {Math.min(
                       pagination.currentPage * pagination.limit,
                       pagination.totalTransactions
@@ -329,7 +338,9 @@ const ProjectTransactions = () => {
                               e.preventDefault();
                               handlePageChange(pagination.totalPages);
                             }}
-                            isActive={pagination.currentPage === pagination.totalPages}
+                            isActive={
+                              pagination.currentPage === pagination.totalPages
+                            }
                           >
                             {pagination.totalPages}
                           </PaginationLink>
@@ -341,7 +352,9 @@ const ProjectTransactions = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (pagination.currentPage < pagination.totalPages) {
+                            if (
+                              pagination.currentPage < pagination.totalPages
+                            ) {
                               handlePageChange(pagination.currentPage + 1);
                             }
                           }}
@@ -368,12 +381,6 @@ const ProjectTransactions = () => {
           transaction={selectedTransaction}
         />
       )}
-      <EditTransactionModal
-        open={editModalOpen}
-        onClose={handleEditModalClose}
-        transaction={editTransaction}
-        onSubmit={handleEditSubmit}
-      />
     </div>
   );
 };

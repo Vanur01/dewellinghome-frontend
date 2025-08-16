@@ -45,12 +45,12 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData & { remember: boolean }) => {
     try {
       setError("");
+      await login(data.email, data.password);
       if (data.remember) {
         localStorage.setItem("rememberedEmail", data.email);
       } else {
         localStorage.removeItem("rememberedEmail");
       }
-      await login(data.email, data.password);
       toast.success("Login successful");
     } catch (err) {
       toast.error("Login failed");

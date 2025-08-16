@@ -15,9 +15,7 @@ interface Milestone {
   timeline: string;
   percentage: number;
   amount: number;
-  effectivePaid: number;
   actualPaid: number;
-  overpayment: number;
   toBePaid: number;
   paymentDate?: Date;
   paymentMethod?: string;
@@ -30,8 +28,6 @@ export default function PaymentScheduleDetails() {
   const navigate = useNavigate();
   const { currentSchedule, loading, getPaymentScheduleByProject, clearSchedule } = usePaymentStore();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [milestonesWithPreviousDues, setMilestonesWithPreviousDues] = useState<Array<Milestone & { previousDues: number }>>([]);
-
   useEffect(() => {
     clearSchedule();
     if (projectId) {
@@ -40,27 +36,7 @@ export default function PaymentScheduleDetails() {
         clearSchedule();
       });
     }
-  }, [projectId]);
-
-  // Calculate previous dues for each milestone
-  useEffect(() => {
-    if (currentSchedule) {
-      const enrichedMilestones = currentSchedule.milestones.map((milestone, index) => {
-        // Calculate total dues from all previous milestones
-        let previousDues = 0;
-        for (let i = 0; i < index; i++) {
-          previousDues += currentSchedule.milestones[i].toBePaid;
-        }
-        
-        return {
-          ...milestone,
-          previousDues
-        };
-      });
-      
-      setMilestonesWithPreviousDues(enrichedMilestones);
-    }
-  }, [currentSchedule]);
+  }, [projectId, clearSchedule, getPaymentScheduleByProject]);
 
   // Format currency to Indian Rupee format
   const formatCurrency = (amount: number) => {
@@ -72,23 +48,31 @@ export default function PaymentScheduleDetails() {
   };
 
   const getMilestoneStatus = (milestone: Milestone) => {
-    if (milestone.effectivePaid >= milestone.amount) {
-      return { label: 'Completed', icon: CheckCircle2, className: 'text-green-600' };
+    if (milestone.actualPaid >= milestone.amount) {
+      return { 
+        label: 'Completed', 
+        icon: CheckCircle2, 
+        className: 'text-emerald-600', 
+        bgClassName: 'bg-emerald-50',
+        borderClassName: 'border-emerald-200'
+      };
     }
-    if (milestone.effectivePaid > 0) {
-      return { label: 'Partial', icon: Clock, className: 'text-yellow-600' };
+    if (milestone.actualPaid > 0) {
+      return { 
+        label: 'Partial', 
+        icon: Clock, 
+        className: 'text-amber-600', 
+        bgClassName: 'bg-amber-50',
+        borderClassName: 'border-amber-200'
+      };
     }
-    return { label: 'Pending', icon: AlertCircle, className: 'text-gray-500' };
-  };
-
-  const getStatusBadge = (milestone: Milestone) => {
-    if (milestone.effectivePaid >= milestone.amount) {
-      return <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Paid</Badge>;
-    }
-    if (milestone.effectivePaid > 0) {
-      return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Partially Paid</Badge>;
-    }
-    return <Badge variant="outline" className="text-gray-700">Pending</Badge>;
+    return { 
+      label: 'Pending', 
+      icon: AlertCircle, 
+      className: 'text-slate-500', 
+      bgClassName: 'bg-slate-50',
+      borderClassName: 'border-slate-200'
+    };
   };
 
   // Function to refresh payment schedule after successful payment
@@ -125,15 +109,32 @@ export default function PaymentScheduleDetails() {
 
   const completionPercentage = ((currentSchedule?.totalPaid ?? 0) / (currentSchedule?.totalProjectValue ?? 1)) * 100;
   const currentMilestone = currentSchedule?.milestones?.find(m => m.slNo === currentSchedule?.currentMilestone);
+  
+  // Calculate cumulative amounts up to current milestone
+  const getCurrentMilestoneCumulative = () => {
+    if (!currentSchedule?.milestones || !currentSchedule?.currentMilestone) return { totalDue: 0, totalPaid: 0, amountDue: 0 };
+    
+    const milestonesUpToCurrent = currentSchedule.milestones.filter(
+      m => m.slNo <= currentSchedule.currentMilestone
+    );
+    
+    const totalDue = milestonesUpToCurrent.reduce((sum, m) => sum + m.amount, 0);
+    const totalPaid = milestonesUpToCurrent.reduce((sum, m) => sum + m.actualPaid, 0);
+    const amountDue = totalDue - totalPaid;
+    
+    return { totalDue, totalPaid, amountDue };
+  };
+  
+  const cumulativePayment = getCurrentMilestoneCumulative();
   const paymentActions = [];
 
   // Add Pay Now button if there's remaining amount
-  if (currentSchedule?.totalRemaining > 0) {
+  if (cumulativePayment.amountDue > 0) {
     paymentActions.push(
       <Button 
         key="pay"
         onClick={() => setIsPaymentModalOpen(true)}
-        className="bg-red-500 hover:bg-red-600"
+        className="bg-rose-600 hover:bg-rose-700 text-white shadow-sm w-full sm:w-auto"
       >
         <IndianRupee className="h-4 w-4 mr-2" />
         Pay Now
@@ -147,7 +148,7 @@ export default function PaymentScheduleDetails() {
       key="transactions"
       variant="outline"
       onClick={() => navigate(`/dashboard/projects/${projectId}/transactions`)}
-      className="border-gray-200"
+      className="border-slate-300 text-slate-700 hover:bg-slate-50 w-full sm:w-auto"
     >
       <History className="h-4 w-4 mr-2" />
       View Transactions
@@ -155,46 +156,48 @@ export default function PaymentScheduleDetails() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-6">
+    <div className="sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Clean Header Section */}
       <div className="bg-white rounded-lg border shadow-sm">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Navigation */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="hover:bg-gray-100 text-gray-600 p-0"
+                className="hover:bg-slate-100 text-slate-600 p-0"
                 onClick={() => window.history.back()}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-slate-700">
                 <Building className="h-5 w-5" />
-                <span className="text-lg font-medium">Project Payment Details</span>
+                <span className="text-base sm:text-lg font-semibold">Project Payment Details</span>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               {paymentActions}
             </div>
           </div>
 
           {/* Project Info */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-3">
                 {currentSchedule?.projectId?.title}
               </h1>
-              <div className="flex gap-3">
-                <Badge variant="secondary" className="py-1.5 px-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Badge variant="secondary" className="py-1.5 px-3 bg-slate-100 text-slate-700 w-fit">
                   Project ID: {currentSchedule?.projectId?._id?.slice(-8)?.toUpperCase()}
                 </Badge>
                 <Badge 
                   variant="secondary" 
                   className={cn(
-                    "py-1.5 px-3",
-                    completionPercentage >= 100 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                    "py-1.5 px-3 w-fit",
+                    completionPercentage >= 100 
+                      ? "bg-emerald-100 text-emerald-700 border-emerald-200" 
+                      : "bg-amber-100 text-amber-700 border-amber-200"
                   )}
                 >
                   {completionPercentage >= 100 ? 'Payment Completed' : 'Payment In Progress'}
@@ -204,36 +207,36 @@ export default function PaymentScheduleDetails() {
 
             {/* Current Milestone Info */}
             {currentMilestone && (
-              <div className="bg-red-50 rounded-lg p-6 border border-red-100">
+              <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg p-4 sm:p-6 border border-rose-200">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-                  <h3 className="text-lg font-semibold text-gray-900">Current Stage</h3>
+                  <div className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse" />
+                  <h3 className="text-base sm:text-lg font-semibold text-slate-900">Current Stage</h3>
                 </div>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Timeline</p>
-                    <p className="text-lg font-medium text-gray-900">{currentMilestone.timeline}</p>
+                    <p className="text-sm text-slate-600 mb-1">Timeline</p>
+                    <p className="text-base sm:text-lg font-medium text-slate-900 break-words">{currentMilestone.timeline}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Payment Status</p>
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-medium text-gray-900">
-                        {formatCurrency(currentMilestone.effectivePaid)} / {formatCurrency(currentMilestone.amount)}
+                    <p className="text-sm text-slate-600 mb-1">Stage Payment Status</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <span className="text-base sm:text-lg font-medium text-slate-900 break-all">
+                        {formatCurrency(currentMilestone.actualPaid)} / {formatCurrency(currentMilestone.amount)}
                       </span>
                       <Badge 
                         variant="secondary" 
                         className={cn(
-                          "py-1 px-2",
+                          "py-1 px-2 w-fit",
                           currentMilestone.toBePaid === 0 
-                            ? "bg-green-100 text-green-700" 
-                            : currentMilestone.effectivePaid > 0 
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-700"
+                            ? "bg-emerald-100 text-emerald-700 border-emerald-200" 
+                            : currentMilestone.actualPaid > 0 
+                              ? "bg-amber-100 text-amber-700 border-amber-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
                         )}
                       >
                         {currentMilestone.toBePaid === 0 
                           ? 'Paid' 
-                          : currentMilestone.effectivePaid > 0 
+                          : currentMilestone.actualPaid > 0 
                             ? 'Partially Paid'
                             : 'Pending'}
                       </Badge>
@@ -241,11 +244,11 @@ export default function PaymentScheduleDetails() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/70 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-red-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-full transition-all duration-500"
                       style={{ 
-                        width: `${((currentMilestone?.effectivePaid ?? 0) / (currentMilestone?.amount ?? 1)) * 100}%`
+                        width: `${((currentMilestone?.actualPaid ?? 0) / (currentMilestone?.amount ?? 1)) * 100}%`
                       }}
                     />
                   </div>
@@ -254,22 +257,22 @@ export default function PaymentScheduleDetails() {
             )}
 
             {/* Payment Stats */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500 mb-1">Total Value</p>
-                <p className="text-2xl font-semibold text-gray-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+                <p className="text-sm text-slate-600 mb-1">Total Value</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900 break-all">
                    {formatCurrency(currentSchedule?.totalProjectValue ?? 0)}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500 mb-1">Paid Amount</p>
-                <p className="text-2xl font-semibold text-green-600">
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+                <p className="text-sm text-emerald-700 mb-1">Paid Amount</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-700 break-all">
                    {formatCurrency(currentSchedule?.totalPaid ?? 0)}
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500 mb-1">Remaining</p>
-                <p className="text-2xl font-semibold text-blue-600">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 sm:col-span-2 lg:col-span-1">
+                <p className="text-sm text-blue-700 mb-1">Remaining</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-700 break-all">
                    {formatCurrency(currentSchedule?.totalRemaining ?? 0)}
                 </p>
               </div>
@@ -277,15 +280,17 @@ export default function PaymentScheduleDetails() {
 
             {/* Progress Bar */}
             <div className="space-y-2">
-              <div className="flex justify-between text-gray-600">
-                <span>Overall Progress</span>
-                <span>{Math.round(completionPercentage)}% Complete</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-slate-700">
+                <span className="font-medium">Overall Progress</span>
+                <span className="font-semibold">{Math.round(completionPercentage)}% Complete</span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner">
                 <div 
                   className={cn(
-                    "h-full rounded-full transition-all duration-500",
-                    completionPercentage >= 100 ? "bg-green-500" : "bg-blue-500"
+                    "h-full rounded-full transition-all duration-700 ease-out",
+                    completionPercentage >= 100 
+                      ? "bg-gradient-to-r from-emerald-500 to-emerald-600" 
+                      : "bg-gradient-to-r from-blue-500 to-blue-600"
                   )}
                   style={{ width: `${completionPercentage}%` }}
                 />
@@ -296,51 +301,59 @@ export default function PaymentScheduleDetails() {
       </div>
 
       {/* Milestones Table Card */}
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>Payment Milestones</CardTitle>
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader className="border-b border-slate-200 bg-slate-50">
+          <CardTitle className="text-slate-900">Payment Milestones</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Milestone</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Status</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Payment Status</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-500">Percentage</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Amount</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Paid</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Remaining</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Previous Dues</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-500">Total To Pay</th>
+                <tr className="bg-slate-100 border-b border-slate-200">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700">Milestone</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Status</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-slate-700">Percentage</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">Amount</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">Paid</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">To Be Paid</th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-slate-700">Total Due</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {milestonesWithPreviousDues.map((milestone) => {
+                {currentSchedule?.milestones?.map((milestone, index) => {
                   const status = getMilestoneStatus(milestone);
                   const StatusIcon = status.icon;
                   const isCurrent = milestone.slNo === currentSchedule?.currentMilestone;
-                  const totalToPay = milestone.toBePaid + milestone.previousDues;
+                  
+                  // Calculate cumulative due up to current milestone (only show for current)
+                  let cumulativeDue = 0;
+                  if (isCurrent) {
+                    cumulativeDue = currentSchedule.milestones
+                      .slice(0, index + 1)
+                      .reduce((sum, m) => sum + m.toBePaid, 0);
+                  }
                   
                   return (
                     <tr 
                       key={milestone.slNo} 
                       className={cn(
-                        "hover:bg-gray-50/50 transition-colors",
-                        isCurrent && "bg-red-50/80 hover:bg-red-50/80"
+                        "hover:bg-slate-50 transition-colors border-b border-slate-100",
+                        isCurrent && "bg-gradient-to-r from-rose-50 to-rose-100 hover:from-rose-100 hover:to-rose-150"
                       )}
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
                           {isCurrent && (
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">
-                              C
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-600 text-white text-xs rounded-full font-medium">
+                              CURRENT
                             </div>
                           )}
-                          <span className="font-medium text-gray-900">{milestone.slNo}</span>
+                          <span className="font-semibold text-slate-900">{milestone.slNo}</span>
                           <Separator orientation="vertical" className="h-4" />
-                          <span className="text-gray-600">{milestone?.timeline?.length > 10 ? milestone?.timeline?.slice(0,10) : milestone?.timeline}</span>
+                          <span className="text-slate-700 max-w-xs break-words leading-relaxed">
+                            {milestone?.timeline}
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -352,57 +365,38 @@ export default function PaymentScheduleDetails() {
                         </div>
                       </td>
                       <td className="px-4 py-4 text-center">
-                        {getStatusBadge(milestone)}
+                        <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                          {milestone.percentage}%
+                        </Badge>
                       </td>
-                      <td className="px-4 py-4 text-center text-gray-600">{milestone.percentage}%</td>
-                      <td className="px-4 py-4 text-right font-medium text-gray-900">
+                      <td className="px-4 py-4 text-right font-semibold text-slate-900">
                         {formatCurrency(milestone.amount)}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <div>
-                          <span className="font-medium text-green-600">
-                            {milestone.effectivePaid > 0 ? formatCurrency(Math.min(milestone.effectivePaid, milestone.amount)) : '-'}
-                          </span>
-                          {milestone.overpayment > 0 && (
-                            <span className="text-green-600 text-sm block">
-                              +{formatCurrency(milestone.overpayment)}
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-semibold text-emerald-600">
+                          {milestone.actualPaid > 0 ? formatCurrency(milestone.actualPaid) : '-'}
+                        </span>
                       </td>
                       <td className="px-4 py-4 text-right">
                         <span className={cn(
-                          "font-medium",
-                          milestone.toBePaid > 0 ? "text-blue-600" : "text-green-600"
+                          "font-semibold",
+                          milestone.toBePaid > 0 ? "text-blue-600" : "text-emerald-600"
                         )}>
                         {formatCurrency(milestone.toBePaid)} 
                         </span>
                       </td>
                       <td className="px-4 py-4 text-right">
-                        {milestone.previousDues > 0 ? (
-                          <span className="font-medium text-red-600">
-                            {formatCurrency(milestone.previousDues)}
-                          </span>
-                        ) : (
-                          <span className="text-gray-600">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        {totalToPay > 0 ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="font-semibold text-red-600">
-                              {formatCurrency(totalToPay)}
+                        {isCurrent && cumulativeDue > 0 ? (
+                          <div>
+                            <span className="font-bold text-rose-600">
+                              {formatCurrency(cumulativeDue)}
                             </span>
-                            {milestone.previousDues > 0 && (
-                              <div className="group relative">
-                                <div className="absolute right-0 bottom-full mb-2 w-52 p-2 bg-white shadow-lg rounded-md border border-gray-200 text-xs text-gray-700 invisible group-hover:visible z-10">
-                                  Includes ₹{(milestone.previousDues).toLocaleString('en-IN')} from previous unpaid milestones
-                                </div>
-                              </div>
-                            )}
+                            <div className="text-xs text-rose-500 mt-1 font-medium">Due Now</div>
                           </div>
+                        ) : isCurrent && cumulativeDue === 0 ? (
+                          <span className="font-semibold text-emerald-600">✓ Cleared</span>
                         ) : (
-                          <span className="font-medium text-green-600">Paid</span>
+                          <span className="text-slate-400">-</span>
                         )}
                       </td>
                     </tr>
@@ -411,27 +405,109 @@ export default function PaymentScheduleDetails() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden divide-y divide-slate-200">
+            {currentSchedule?.milestones?.map((milestone, index) => {
+              const status = getMilestoneStatus(milestone);
+              const StatusIcon = status.icon;
+              const isCurrent = milestone.slNo === currentSchedule?.currentMilestone;
+              
+              // Calculate cumulative due up to current milestone (only show for current)
+              let cumulativeDue = 0;
+              if (isCurrent) {
+                cumulativeDue = currentSchedule.milestones
+                  .slice(0, index + 1)
+                  .reduce((sum, m) => sum + m.toBePaid, 0);
+              }
+              
+              return (
+                <div 
+                  key={milestone.slNo}
+                  className={cn(
+                    "p-4 space-y-3",
+                    isCurrent && "bg-gradient-to-r from-rose-50 to-rose-100"
+                  )}
+                >
+                  {/* Simplified Milestone Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {isCurrent && (
+                        <div className="px-2 py-0.5 bg-rose-600 text-white text-xs rounded-full font-medium">
+                          CURRENT
+                        </div>
+                      )}
+                      <span className="font-semibold text-slate-900">Milestone {milestone.slNo}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusIcon className={cn("h-4 w-4", status.className)} />
+                      <span className={cn("text-sm font-medium", status.className)}>
+                        {status.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Full Timeline Display */}
+                  <div>
+                    <p className="font-medium text-slate-900 text-sm break-words leading-relaxed">
+                      {milestone.timeline}
+                    </p>
+                  </div>
+
+                  {/* Simplified Payment Details - Only show key information */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Amount</span>
+                      <span className="font-semibold text-slate-900">{formatCurrency(milestone.amount)}</span>
+                    </div>
+                    
+                    {milestone.actualPaid > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-600">Paid</span>
+                        <span className="font-semibold text-emerald-600">
+                          {formatCurrency(milestone.actualPaid)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {milestone.toBePaid > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-600">Remaining</span>
+                        <span className="font-semibold text-blue-600">
+                          {formatCurrency(milestone.toBePaid)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {isCurrent && cumulativeDue > 0 && (
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                        <span className="text-sm font-medium text-rose-600">Total Due Now</span>
+                        <span className="font-bold text-rose-600">
+                          {formatCurrency(cumulativeDue)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
       {/* Payment Instructions Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <IndianRupee className="h-6 w-6 text-gray-400 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Instructions</h3>
-              <p className="text-gray-600">
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start gap-4">
+            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+              <IndianRupee className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Payment Instructions</h3>
+              <p className="text-sm sm:text-base text-slate-700 leading-relaxed">
                 Please ensure timely payments according to the schedule above to avoid any delay in project completion.
                 For any payment-related queries, contact our finance department.
               </p>
-              {currentSchedule?.totalOverpayment > 0 && (
-                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-green-700 font-medium">
-                    Your advance payment of {formatCurrency(currentSchedule?.totalOverpayment ?? 0)} has been applied to future milestones as shown in the table above.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </CardContent>
@@ -444,7 +520,7 @@ export default function PaymentScheduleDetails() {
           onClose={() => setIsPaymentModalOpen(false)}
           projectId={projectId!}
           projectTitle={currentSchedule?.projectId?.title ?? ''}
-          totalRemaining={currentSchedule?.totalRemaining ?? 0}
+          totalRemaining={cumulativePayment.amountDue > 0 ? cumulativePayment.amountDue : currentSchedule?.totalRemaining ?? 0}
           onPaymentSuccess={handlePaymentSuccess}
         />
       )}

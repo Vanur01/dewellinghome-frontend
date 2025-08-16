@@ -61,8 +61,8 @@ export function ViewTransaction({ isOpen, onClose, transactionId }: ViewTransact
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Payment ID</p>
-                <p className="text-sm font-medium">{selectedTransaction?.razorpay_payment_id}</p>
+                <p className="text-sm font-medium text-muted-foreground">Transaction ID</p>
+                <p className="text-sm font-medium">{selectedTransaction?.transactionId}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Amount</p>
