@@ -1,30 +1,34 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, History, AlertCircle, Loader2 } from 'lucide-react';
-import { useAdminPaymentStore } from '@/store/admin/adminPayment.store';
+import { ArrowLeft, History, AlertCircle, Loader2 } from "lucide-react";
+import { useAdminPaymentStore } from "@/store/admin/adminPayment.store";
 
 export default function PaymentDetails() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { 
+  const {
     currentSchedule = null,
     loading = false,
     fetchScheduleById,
     updateProjectValue,
     updatePaymentStructure,
-    updateCurrentMilestone
+    updateCurrentMilestone,
   } = useAdminPaymentStore();
 
   const [editMode, setEditMode] = useState(false);
   const [editedValues, setEditedValues] = useState({
     projectValue: 0,
-    milestones: [] as Array<{ timeline: string; percentage: number; actualPaid: number }>,
-    currentMilestone: 1
+    milestones: [] as Array<{
+      timeline: string;
+      percentage: number;
+      actualPaid: number;
+    }>,
+    currentMilestone: 1,
   });
 
   // Fetch payment schedule on mount
@@ -39,53 +43,56 @@ export default function PaymentDetails() {
     if (currentSchedule) {
       setEditedValues({
         projectValue: currentSchedule?.totalProjectValue ?? 0,
-        milestones: currentSchedule?.milestones?.map(m => ({
-          timeline: m?.timeline ?? '',
-          percentage: m?.percentage ?? 0,
-          actualPaid: m?.actualPaid ?? 0
-        })) ?? [],
-        currentMilestone: currentSchedule?.currentMilestone ?? 1
+        milestones:
+          currentSchedule?.milestones?.map((m) => ({
+            timeline: m?.timeline ?? "",
+            percentage: m?.percentage ?? 0,
+            actualPaid: m?.actualPaid ?? 0,
+          })) ?? [],
+        currentMilestone: currentSchedule?.currentMilestone ?? 1,
       });
     }
   }, [currentSchedule]);
 
   // Format currency to Indian Rupee format
   const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined) return '₹ 0';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount).replace('₹', '₹ ');
-  };
-
-  // Calculate milestone amount based on percentage and project value
-  const calculateMilestoneAmount = (percentage: number, projectValue: number) => {
-    return (projectValue * percentage) / 100;
+    if (amount === undefined) return "₹ 0";
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    })
+      .format(amount)
+      .replace("₹", "₹ ");
   };
 
   // Handle project value change
   const handleProjectValueChange = (value: string) => {
-    setEditedValues(prev => ({
+    setEditedValues((prev) => ({
       ...prev,
-      projectValue: parseFloat(value) || 0
+      projectValue: parseFloat(value) || 0,
     }));
   };
 
   // Handle milestone update
-  const handleMilestoneUpdate = (index: number, field: 'timeline' | 'percentage' | 'actualPaid', value: string) => {
-    setEditedValues(prev => ({
+  const handleMilestoneUpdate = (
+    index: number,
+    field: "timeline" | "percentage" | "actualPaid",
+    value: string
+  ) => {
+    setEditedValues((prev) => ({
       ...prev,
-      milestones: prev.milestones.map((m, i) => 
-        i === index 
-          ? { 
-              ...m, 
-              [field]: field === 'percentage' || field === 'actualPaid' 
-                ? parseFloat(value) || 0 
-                : value 
+      milestones: prev.milestones.map((m, i) =>
+        i === index
+          ? {
+              ...m,
+              [field]:
+                field === "percentage" || field === "actualPaid"
+                  ? parseFloat(value) || 0
+                  : value,
             }
           : m
-      )
+      ),
     }));
   };
 
@@ -93,10 +100,10 @@ export default function PaymentDetails() {
   const handleCurrentMilestoneUpdate = (value: string) => {
     const milestone = parseInt(value);
     if (!currentSchedule) return;
-    
-    setEditedValues(prev => ({
+
+    setEditedValues((prev) => ({
       ...prev,
-      currentMilestone: milestone || 1
+      currentMilestone: milestone || 1,
     }));
   };
 
@@ -104,60 +111,69 @@ export default function PaymentDetails() {
   const handleSaveChanges = async () => {
     try {
       if (!currentSchedule?._id) {
-        toast.error('Invalid payment schedule');
+        toast.error("Invalid payment schedule");
         return;
       }
 
       // Validate total percentage equals 100
-      const totalPercentage = editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0);
+      const totalPercentage = editedValues.milestones.reduce(
+        (sum, m) => sum + (m?.percentage ?? 0),
+        0
+      );
       if (Math.abs(totalPercentage - 100) >= 0.01) {
-        toast.error('Total milestone percentages must equal 100%');
+        toast.error("Total milestone percentages must equal 100%");
         return;
       }
 
-      // Validate actualPaid amounts don't exceed milestone amounts
+      // Validate actualPaid amounts are not negative
       for (let i = 0; i < editedValues.milestones.length; i++) {
         const milestone = editedValues.milestones[i];
-        const milestoneAmount = calculateMilestoneAmount(milestone.percentage, editedValues.projectValue);
-        
-        if (milestone.actualPaid > milestoneAmount) {
-          toast.error(`Actual paid amount for milestone ${i + 1} cannot exceed milestone amount (${formatCurrency(milestoneAmount)})`);
-          return;
-        }
-        
+
         if (milestone.actualPaid < 0) {
-          toast.error(`Actual paid amount for milestone ${i + 1} cannot be negative`);
+          toast.error(
+            `Actual paid amount for milestone ${i + 1} cannot be negative`
+          );
           return;
         }
       }
 
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
-        await updateProjectValue(currentSchedule._id, editedValues.projectValue);
+        await updateProjectValue(
+          currentSchedule._id,
+          editedValues.projectValue
+        );
       }
 
       // Update milestone structure if changed (including actualPaid)
-      const structureChanged = editedValues.milestones.some((m, i) => 
-        m?.timeline !== currentSchedule?.milestones?.[i]?.timeline ||
-        m?.percentage !== currentSchedule?.milestones?.[i]?.percentage ||
-        m?.actualPaid !== currentSchedule?.milestones?.[i]?.actualPaid
+      const structureChanged = editedValues.milestones.some(
+        (m, i) =>
+          m?.timeline !== currentSchedule?.milestones?.[i]?.timeline ||
+          m?.percentage !== currentSchedule?.milestones?.[i]?.percentage ||
+          m?.actualPaid !== currentSchedule?.milestones?.[i]?.actualPaid
       );
 
       if (structureChanged) {
-        await updatePaymentStructure(currentSchedule._id, editedValues.milestones);
+        await updatePaymentStructure(
+          currentSchedule._id,
+          editedValues.milestones
+        );
       }
 
       // Update current milestone if changed
       if (editedValues.currentMilestone !== currentSchedule?.currentMilestone) {
-        await updateCurrentMilestone(currentSchedule._id, editedValues.currentMilestone);
+        await updateCurrentMilestone(
+          currentSchedule._id,
+          editedValues.currentMilestone
+        );
       }
 
       setEditMode(false);
-      toast.success('Payment schedule updated successfully');
+      toast.success("Payment schedule updated successfully");
       fetchScheduleById(projectId);
     } catch (error) {
-      toast.error('Failed to update payment schedule');
-      console.error('Error updating payment schedule:', error);
+      toast.error("Failed to update payment schedule");
+      console.error("Error updating payment schedule:", error);
     }
   };
 
@@ -176,8 +192,12 @@ export default function PaymentDetails() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] space-y-4">
         <AlertCircle className="h-12 w-12 text-muted-foreground" />
-        <h2 className="text-2xl font-semibold text-gray-800">No Schedule Exists</h2>
-        <p className="text-muted-foreground mb-4">The requested payment schedule does not exist.</p>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          No Schedule Exists
+        </h2>
+        <p className="text-muted-foreground mb-4">
+          The requested payment schedule does not exist.
+        </p>
         <Button
           onClick={() => navigate(-1)}
           variant="outline"
@@ -211,20 +231,28 @@ export default function PaymentDetails() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/admin/projects/${currentSchedule?.projectId?._id ?? ''}/transactions`)}
+                  onClick={() =>
+                    navigate(
+                      `/admin/projects/${
+                        currentSchedule?.projectId?._id ?? ""
+                      }/transactions`
+                    )
+                  }
                   className="flex items-center gap-2"
                 >
                   <History className="h-4 w-4" />
                   View Transaction History
                 </Button>
               </div>
-              <div className={cn(
-                "px-3 py-1 rounded-full text-sm font-medium",
-                totalRemaining === 0 
-                  ? "bg-green-100 text-green-700" 
-                  : "bg-yellow-100 text-yellow-700"
-              )}>
-                {totalRemaining === 0 ? 'Completed' : 'In Progress'}
+              <div
+                className={cn(
+                  "px-3 py-1 rounded-full text-sm font-medium",
+                  totalRemaining === 0
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                )}
+              >
+                {totalRemaining === 0 ? "Completed" : "In Progress"}
               </div>
             </div>
 
@@ -234,10 +262,12 @@ export default function PaymentDetails() {
                 <div className="flex items-center gap-3 text-gray-500 text-sm">
                   <span>Payment Schedule</span>
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                  <span className="font-mono">#{currentSchedule?._id ?? 'N/A'}</span>
+                  <span className="font-mono">
+                    #{currentSchedule?._id ?? "N/A"}
+                  </span>
                 </div>
                 <h1 className="text-2xl font-semibold text-gray-900 mt-1">
-                  {currentSchedule?.projectId?.title ?? 'Untitled Project'}
+                  {currentSchedule?.projectId?.title ?? "Untitled Project"}
                 </h1>
               </div>
 
@@ -246,14 +276,22 @@ export default function PaymentDetails() {
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-gray-500">Overall Progress</span>
                   <span className="font-medium">
-                    {Math.round((totalPaid / (currentSchedule?.totalProjectValue ?? 1)) * 100)}%
+                    {Math.round(
+                      (totalPaid / (currentSchedule?.totalProjectValue ?? 1)) *
+                        100
+                    )}
+                    %
                   </span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-red-600 rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${(totalPaid / (currentSchedule?.totalProjectValue ?? 1)) * 100}%`
+                    style={{
+                      width: `${
+                        (totalPaid /
+                          (currentSchedule?.totalProjectValue ?? 1)) *
+                        100
+                      }%`,
                     }}
                   ></div>
                 </div>
@@ -267,35 +305,47 @@ export default function PaymentDetails() {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-muted-foreground">Project Name</label>
-                <h2 className="text-xl font-semibold">{currentSchedule?.projectId?.title ?? 'Untitled Project'}</h2>
+                <label className="text-sm text-muted-foreground">
+                  Project Name
+                </label>
+                <h2 className="text-xl font-semibold">
+                  {currentSchedule?.projectId?.title ?? "Untitled Project"}
+                </h2>
               </div>
               <div>
-                <label className="text-sm text-muted-foreground">Total Project Value</label>
+                <label className="text-sm text-muted-foreground">
+                  Total Project Value
+                </label>
                 <div className="flex items-center gap-4">
                   {editMode ? (
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       value={editedValues.projectValue}
                       onChange={(e) => handleProjectValueChange(e.target.value)}
                       className="w-64 text-right font-medium"
                     />
                   ) : (
-                    <span className="text-xl font-semibold">{formatCurrency(currentSchedule?.totalProjectValue)}</span>
+                    <span className="text-xl font-semibold">
+                      {formatCurrency(currentSchedule?.totalProjectValue)}
+                    </span>
                   )}
                 </div>
               </div>
               {editMode && (
                 <div>
-                  <label className="text-sm text-muted-foreground">Current Milestone</label>
+                  <label className="text-sm text-muted-foreground">
+                    Current Milestone
+                  </label>
                   <div className="flex items-center gap-4">
                     <div className="relative w-32">
-                      <Input 
+                      <Input
                         type="number"
                         min={1}
                         max={currentSchedule?.milestones?.length ?? 1}
                         value={editedValues.currentMilestone}
-                        onChange={(e) => handleCurrentMilestoneUpdate(e.target.value)}
+                        onChange={(e) =>
+                          handleCurrentMilestoneUpdate(e.target.value)
+                        }
                         className="w-full pr-12"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -303,8 +353,10 @@ export default function PaymentDetails() {
                       </div>
                     </div>
                     <div className="text-sm">
-                      <span className="font-medium">Timeline:</span>{' '}
-                      {currentSchedule?.milestones?.find(m => m?.slNo === editedValues.currentMilestone)?.timeline ?? 'Invalid milestone'}
+                      <span className="font-medium">Timeline:</span>{" "}
+                      {currentSchedule?.milestones?.find(
+                        (m) => m?.slNo === editedValues.currentMilestone
+                      )?.timeline ?? "Invalid milestone"}
                     </div>
                   </div>
                 </div>
@@ -313,15 +365,25 @@ export default function PaymentDetails() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-muted-foreground">Payment Status</label>
+                <label className="text-sm text-muted-foreground">
+                  Payment Status
+                </label>
                 <div className="flex items-center gap-4 mt-1">
                   <div className="flex-1 bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-muted-foreground">Received</div>
-                    <div className="text-xl font-semibold text-green-600">{formatCurrency(totalPaid)}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Received
+                    </div>
+                    <div className="text-xl font-semibold text-green-600">
+                      {formatCurrency(totalPaid)}
+                    </div>
                   </div>
                   <div className="flex-1 bg-gray-50 rounded-lg p-4">
-                    <div className="text-sm text-muted-foreground">Remaining</div>
-                    <div className="text-xl font-semibold text-blue-600">{formatCurrency(totalRemaining)}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Remaining
+                    </div>
+                    <div className="text-xl font-semibold text-blue-600">
+                      {formatCurrency(totalRemaining)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -334,26 +396,40 @@ export default function PaymentDetails() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-16">Sl No.</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Payments Timelines and Services</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24">Percentage</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Amount</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Actual Paid</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">Remaining</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-16">
+                      Sl No.
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                      Payments Timelines and Services
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 w-24">
+                      Percentage
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
+                      Actual Paid
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
+                      Remaining
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {currentSchedule?.milestones?.map((milestone, index) => (
-                    <tr 
-                      key={milestone?.slNo ?? index} 
+                    <tr
+                      key={milestone?.slNo ?? index}
                       className={cn(
                         "hover:bg-gray-50/50 transition-colors",
-                        milestone?.slNo === currentSchedule?.currentMilestone && "bg-red-100 hover:bg-red-100"
+                        milestone?.slNo === currentSchedule?.currentMilestone &&
+                          "bg-red-100 hover:bg-red-100"
                       )}
                     >
                       <td className="px-4 py-4 font-medium">
                         <div className="flex items-center gap-2">
-                          {milestone?.slNo === currentSchedule?.currentMilestone && (
+                          {milestone?.slNo ===
+                            currentSchedule?.currentMilestone && (
                             <div className="flex items-center gap-1 px-2 py-1 bg-red-600 text-white text-xs rounded-full">
                               C
                             </div>
@@ -363,59 +439,94 @@ export default function PaymentDetails() {
                       </td>
                       <td className="px-4 py-4">
                         {editMode ? (
-                          <textarea 
-                            value={editedValues.milestones[index]?.timeline ?? ''}
-                            onChange={(e) => handleMilestoneUpdate(index, 'timeline', e.target.value)}
+                          <textarea
+                            value={
+                              editedValues.milestones[index]?.timeline ?? ""
+                            }
+                            onChange={(e) =>
+                              handleMilestoneUpdate(
+                                index,
+                                "timeline",
+                                e.target.value
+                              )
+                            }
                             className="w-full min-h-[60px] p-2 border border-gray-300 rounded-md resize-none text-sm"
                             rows={3}
                           />
                         ) : (
                           <div className="font-medium break-words leading-relaxed text-sm max-w-xs">
-                            {milestone?.timeline ?? 'N/A'}
+                            {milestone?.timeline ?? "N/A"}
                           </div>
                         )}
                       </td>
                       <td className="px-4 py-4 text-center">
                         {editMode ? (
-                          <Input 
+                          <Input
                             type="number"
-                            value={editedValues.milestones[index]?.percentage ?? 0}
-                            onChange={(e) => handleMilestoneUpdate(index, 'percentage', e.target.value)}
+                            value={
+                              editedValues.milestones[index]?.percentage ?? 0
+                            }
+                            onChange={(e) =>
+                              handleMilestoneUpdate(
+                                index,
+                                "percentage",
+                                e.target.value
+                              )
+                            }
                             className="w-20 text-center mx-auto"
                           />
                         ) : (
                           `${milestone?.percentage ?? 0}%`
                         )}
                       </td>
-                      <td className="px-4 py-4 text-right font-medium">{formatCurrency(milestone?.amount)}</td>
+                      <td className="px-4 py-4 text-right font-medium">
+                        {formatCurrency(milestone?.amount)}
+                      </td>
                       <td className="px-4 py-4 text-right">
                         {editMode ? (
-                          <Input 
+                          <Input
                             type="number"
                             min="0"
-                            max={calculateMilestoneAmount(milestone?.percentage ?? 0, editedValues.projectValue)}
-                            value={editedValues.milestones[index]?.actualPaid ?? 0}
-                            onChange={(e) => handleMilestoneUpdate(index, 'actualPaid', e.target.value)}
+                            value={
+                              editedValues.milestones[index]?.actualPaid ?? 0
+                            }
+                            onChange={(e) =>
+                              handleMilestoneUpdate(
+                                index,
+                                "actualPaid",
+                                e.target.value
+                              )
+                            }
                             className="w-32 text-right mx-auto"
                             placeholder="0"
                           />
                         ) : (
-                          <span className={cn(
-                            "font-medium",
-                            (milestone?.actualPaid ?? 0) > 0 ? "text-green-600" : "text-muted-foreground"
-                          )}>
-                            {(milestone?.actualPaid ?? 0) > 0 ? formatCurrency(milestone?.actualPaid) : '-'}
+                          <span
+                            className={cn(
+                              "font-medium",
+                              (milestone?.actualPaid ?? 0) > 0
+                                ? "text-green-600"
+                                : "text-muted-foreground"
+                            )}
+                          >
+                            {(milestone?.actualPaid ?? 0) > 0
+                              ? formatCurrency(milestone?.actualPaid)
+                              : "-"}
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <span className={cn(
-                          "px-2 py-1 rounded-full text-sm font-medium",
-                          (milestone?.toBePaid ?? 0) > 0 
-                            ? "bg-yellow-100 text-yellow-700" 
-                            : "bg-green-100 text-green-700"
-                        )}>
-                          {(milestone?.toBePaid ?? 0) > 0 ? formatCurrency(milestone?.toBePaid) : 'Paid'}
+                        <span
+                          className={cn(
+                            "px-2 py-1 rounded-full text-sm font-medium",
+                            (milestone?.toBePaid ?? 0) > 0
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
+                          )}
+                        >
+                          {(milestone?.toBePaid ?? 0) > 0
+                            ? formatCurrency(milestone?.toBePaid)
+                            : "Paid"}
                         </span>
                       </td>
                     </tr>
@@ -424,17 +535,30 @@ export default function PaymentDetails() {
                 {editMode && (
                   <tfoot>
                     <tr className="border-t">
-                      <td colSpan={2} className="px-4 py-3 text-right font-medium">
+                      <td
+                        colSpan={2}
+                        className="px-4 py-3 text-right font-medium"
+                      >
                         Total Percentage:
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={cn(
-                          "font-bold",
-                          Math.abs(editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0) - 100) < 0.01
-                            ? "text-green-600"
-                            : "text-red-600"
-                        )}>
-                          {editedValues.milestones.reduce((sum, m) => sum + (m?.percentage ?? 0), 0).toFixed(2)}%
+                        <span
+                          className={cn(
+                            "font-bold",
+                            Math.abs(
+                              editedValues.milestones.reduce(
+                                (sum, m) => sum + (m?.percentage ?? 0),
+                                0
+                              ) - 100
+                            ) < 0.01
+                              ? "text-green-600"
+                              : "text-red-600"
+                          )}
+                        >
+                          {editedValues.milestones
+                            .reduce((sum, m) => sum + (m?.percentage ?? 0), 0)
+                            .toFixed(2)}
+                          %
                         </span>
                       </td>
                       <td colSpan={3}></td>
@@ -452,16 +576,28 @@ export default function PaymentDetails() {
                 <h3 className="text-lg font-semibold mb-4">Payment Summary</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Total Project Value</span>
-                    <span className="font-medium">{formatCurrency(currentSchedule?.totalProjectValue)}</span>
+                    <span className="text-muted-foreground">
+                      Total Project Value
+                    </span>
+                    <span className="font-medium">
+                      {formatCurrency(currentSchedule?.totalProjectValue)}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Total Received</span>
-                    <span className="font-medium text-green-600">{formatCurrency(totalPaid)}</span>
+                    <span className="text-muted-foreground">
+                      Total Received
+                    </span>
+                    <span className="font-medium text-green-600">
+                      {formatCurrency(totalPaid)}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Total Remaining</span>
-                    <span className="font-medium text-blue-600">{formatCurrency(totalRemaining)}</span>
+                    <span className="text-muted-foreground">
+                      Total Remaining
+                    </span>
+                    <span className="font-medium text-blue-600">
+                      {formatCurrency(totalRemaining)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -473,12 +609,12 @@ export default function PaymentDetails() {
                       <Button
                         variant="outline"
                         className="w-full flex items-center justify-center gap-2 border-red-600 text-red-600 hover:bg-red-50"
-                        onClick={() => navigate('/admin/payments')}
+                        onClick={() => navigate("/admin/payments")}
                       >
                         <ArrowLeft className="h-4 w-4" />
                         Back to Payments
                       </Button>
-                      <Button 
+                      <Button
                         onClick={() => setEditMode(true)}
                         className="w-full bg-red-600 hover:bg-red-700 text-white"
                       >
@@ -487,14 +623,14 @@ export default function PaymentDetails() {
                     </div>
                   ) : (
                     <div className="flex gap-3">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="flex-1 border-red-600 text-red-600 hover:bg-red-50"
                         onClick={() => setEditMode(false)}
                       >
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                         onClick={handleSaveChanges}
                       >
