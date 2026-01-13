@@ -40,6 +40,8 @@ import {
   RefreshCw,
   UserPlus,
   Edit,
+  Eye,
+  KeyRound,
 } from "lucide-react";
 import {
   Dialog,
@@ -61,6 +63,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
+import ViewPasswordModal from "@/components/modals/ViewPasswordModal";
+import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 
 type RoleType = "client" | "admin";
 
@@ -85,6 +89,12 @@ const AdminUsersPage = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewPasswordOpen, setViewPasswordOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [selectedPasswordUser, setSelectedPasswordUser] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   // Form states
@@ -114,11 +124,11 @@ const AdminUsersPage = () => {
   useEffect(() => {
     if (selectedUser && editDialogOpen) {
       setEditFormData({
-        name: selectedUser?.name ?? '',
-        email: selectedUser?.email ?? '',
-        phone: selectedUser?.phone ?? '',
-        address: selectedUser?.address ?? '',
-        role: selectedUser?.role ?? 'client',
+        name: selectedUser?.name ?? "",
+        email: selectedUser?.email ?? "",
+        phone: selectedUser?.phone ?? "",
+        address: selectedUser?.address ?? "",
+        role: selectedUser?.role ?? "client",
       });
     }
   }, [selectedUser, editDialogOpen]);
@@ -188,7 +198,8 @@ const AdminUsersPage = () => {
       toast.success("User created successfully");
       fetchAllUsers(1, pagination?.limit ?? 10);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create user';
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create user";
       toast.error(errorMessage);
     }
   };
@@ -202,7 +213,8 @@ const AdminUsersPage = () => {
         toast.success("User updated successfully");
         fetchAllUsers(pagination?.currentPage ?? 1, pagination?.limit ?? 10);
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to update user';
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to update user";
         toast.error(errorMessage);
       }
     }
@@ -329,7 +341,7 @@ const AdminUsersPage = () => {
                 <Input
                   type="text"
                   placeholder={`Search by ${filterType}...`}
-                  value={filterValue ?? ''}
+                  value={filterValue ?? ""}
                   onChange={(e) => setFilterValue(e.target.value)}
                   className="pl-10"
                 />
@@ -387,13 +399,15 @@ const AdminUsersPage = () => {
                     users?.map((user) => (
                       <TableRow key={user?._id ?? Math.random()}>
                         <TableCell className="font-medium">
-                          {user?.name ?? 'N/A'}
+                          {user?.name ?? "N/A"}
                         </TableCell>
-                        <TableCell>{user?.email ?? 'N/A'}</TableCell>
-                        <TableCell>{user?.phone ?? 'N/A'}</TableCell>
-                        <TableCell>{user?.role ?? 'N/A'}</TableCell>
+                        <TableCell>{user?.email ?? "N/A"}</TableCell>
+                        <TableCell>{user?.phone ?? "N/A"}</TableCell>
+                        <TableCell>{user?.role ?? "N/A"}</TableCell>
                         <TableCell>
-                          {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                          {user?.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString()
+                            : "N/A"}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -404,6 +418,7 @@ const AdminUsersPage = () => {
                               onClick={() =>
                                 navigate(`/admin/users/${user?._id}`)
                               }
+                              title="View User Details"
                             >
                               <UserCog className="h-4 w-4" />
                             </Button>
@@ -412,9 +427,42 @@ const AdminUsersPage = () => {
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleEditClick(user?._id ?? '')}
+                              onClick={() => handleEditClick(user?._id ?? "")}
+                              title="Edit User"
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                setSelectedPasswordUser({
+                                  id: user?._id ?? "",
+                                  name: user?.name ?? "",
+                                });
+                                setViewPasswordOpen(true);
+                              }}
+                              title="View Password"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                setSelectedPasswordUser({
+                                  id: user?._id ?? "",
+                                  name: user?.name ?? "",
+                                });
+                                setChangePasswordOpen(true);
+                              }}
+                              title="Change Password"
+                            >
+                              <KeyRound className="h-4 w-4" />
                             </Button>
 
                             {canDeleteUser(user) && (
@@ -422,7 +470,10 @@ const AdminUsersPage = () => {
                                 variant="outline"
                                 size="sm"
                                 className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => handleDeleteClick(user?._id ?? '')}
+                                onClick={() =>
+                                  handleDeleteClick(user?._id ?? "")
+                                }
+                                title="Delete User"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -440,7 +491,11 @@ const AdminUsersPage = () => {
           {!loading && users?.length > 0 && (
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-gray-500">
-                Showing {((pagination?.currentPage ?? 1) - 1) * (pagination?.limit ?? 10) + 1} to{" "}
+                Showing{" "}
+                {((pagination?.currentPage ?? 1) - 1) *
+                  (pagination?.limit ?? 10) +
+                  1}{" "}
+                to{" "}
                 {Math.min(
                   (pagination?.currentPage ?? 1) * (pagination?.limit ?? 10),
                   pagination?.totalRecords ?? 0
@@ -469,11 +524,13 @@ const AdminUsersPage = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() =>
-                        (pagination?.currentPage ?? 1) < (pagination?.totalPages ?? 1) &&
+                        (pagination?.currentPage ?? 1) <
+                          (pagination?.totalPages ?? 1) &&
                         handlePageChange((pagination?.currentPage ?? 1) + 1)
                       }
                       className={
-                        (pagination?.currentPage ?? 1) === (pagination?.totalPages ?? 1)
+                        (pagination?.currentPage ?? 1) ===
+                        (pagination?.totalPages ?? 1)
                           ? "pointer-events-none opacity-50"
                           : ""
                       }
@@ -726,6 +783,30 @@ const AdminUsersPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Management Modals */}
+      {selectedPasswordUser && (
+        <>
+          <ViewPasswordModal
+            open={viewPasswordOpen}
+            onClose={() => {
+              setViewPasswordOpen(false);
+              setSelectedPasswordUser(null);
+            }}
+            userId={selectedPasswordUser.id}
+            userName={selectedPasswordUser.name}
+          />
+          <ChangePasswordModal
+            open={changePasswordOpen}
+            onClose={() => {
+              setChangePasswordOpen(false);
+              setSelectedPasswordUser(null);
+            }}
+            userId={selectedPasswordUser.id}
+            userName={selectedPasswordUser.name}
+          />
+        </>
+      )}
     </div>
   );
 };

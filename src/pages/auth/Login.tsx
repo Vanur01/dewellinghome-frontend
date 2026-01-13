@@ -198,12 +198,12 @@ const Login: React.FC = () => {
                   Remember me
                 </label>
               </div>
-              <Link
+              {/* <Link
                 to="/forgot-password"
                 className="text-sm font-medium text-red-600 hover:text-red-500 transition-colors"
               >
                 Forgot your password?
-              </Link>
+              </Link> */}
             </div>
 
             <motion.button

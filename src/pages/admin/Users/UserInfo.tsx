@@ -17,9 +17,12 @@ import {
   Building2,
   Clock,
   Users,
+  KeyRound,
 } from "lucide-react";
 import { projectApi, referralApi, warrantyApi } from "@/utils/api";
 import { FaRupeeSign } from "react-icons/fa";
+import ViewPasswordModal from "@/components/modals/ViewPasswordModal";
+import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 
 const UserInfo = () => {
   const { fetchUserById, selectedUser } = useAdminUsersStore();
@@ -29,6 +32,8 @@ const UserInfo = () => {
   const [claims, setClaims] = useState([]);
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewPasswordOpen, setViewPasswordOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,18 +42,19 @@ const UserInfo = () => {
         await fetchUserById(userId);
 
         if (userId) {
-          const [projectsResponse, claimsResponse, referralsResponse] = await Promise.all([
-            projectApi.getUserProjects({ userId }),
-            warrantyApi.getUserClaims({ userId }),
-            referralApi.getReferrals({ userId })
-          ]);
+          const [projectsResponse, claimsResponse, referralsResponse] =
+            await Promise.all([
+              projectApi.getUserProjects({ userId }),
+              warrantyApi.getUserClaims({ userId }),
+              referralApi.getReferrals({ userId }),
+            ]);
 
           setProjects(projectsResponse?.data?.projects ?? []);
           setClaims(claimsResponse?.data?.data?.claims ?? []);
           setReferrals(referralsResponse?.data?.data ?? []);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -143,25 +149,43 @@ const UserInfo = () => {
         {/* User Info Card */}
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="bg-white text-black rounded-t-lg">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-16 h-16 border-4 border-white/20">
-                {selectedUser?.image ? (
-                  <img
-                    src={selectedUser?.image}
-                    alt={selectedUser?.name}
-                  />
-                ) : (
-                  <AvatarFallback className="bg-gray-100 text-gray-600 text-xl font-semibold">
-                    {selectedUser?.name?.slice(0,1)
-                      ?.toUpperCase() ?? "U"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <CardTitle className="text-2xl font-bold">
-                  {selectedUser?.name}
-                </CardTitle>
-                <p className="text-gray-600">User ID: {selectedUser?._id}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Avatar className="w-16 h-16 border-4 border-white/20">
+                  {selectedUser?.image ? (
+                    <img src={selectedUser?.image} alt={selectedUser?.name} />
+                  ) : (
+                    <AvatarFallback className="bg-gray-100 text-gray-600 text-xl font-semibold">
+                      {selectedUser?.name?.slice(0, 1)?.toUpperCase() ?? "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <CardTitle className="text-2xl font-bold">
+                    {selectedUser?.name}
+                  </CardTitle>
+                  <p className="text-gray-600">User ID: {selectedUser?._id}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setViewPasswordOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Password
+                </Button>
+                <Button
+                  onClick={() => setChangePasswordOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Change Password
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -253,7 +277,7 @@ const UserInfo = () => {
                           (sum, project) => sum + (project?.budget ?? 0),
                           0
                         )
-                        ?.toLocaleString() ?? '0'}
+                        ?.toLocaleString() ?? "0"}
                     </p>
                   </div>
                   <FaRupeeSign className="w-10 h-10 text-green-600/60" />
@@ -310,7 +334,9 @@ const UserInfo = () => {
                             <Calendar className="w-4 h-4" />
                             <span>
                               Started:{" "}
-                              {new Date(project?.startDate ?? '').toLocaleDateString()}
+                              {new Date(
+                                project?.startDate ?? ""
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -405,7 +431,9 @@ const UserInfo = () => {
                             <Calendar className="w-4 h-4" />
                             <span>
                               Created:{" "}
-                              {new Date(claim?.createdAt ?? '').toLocaleDateString()}
+                              {new Date(
+                                claim?.createdAt ?? ""
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -454,19 +482,26 @@ const UserInfo = () => {
             {referrals?.length > 0 ? (
               <div className="grid gap-6">
                 {referrals.map((referral) => (
-                  <div key={referral?._id} className="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50">
+                  <div
+                    key={referral?._id}
+                    className="p-6 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-gray-50"
+                  >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-lg font-semibold text-gray-900">
                             {referral?.referralName}
                           </h4>
-                          <Badge className={`${getStatusColor(referral?.status)} text-xs font-medium`}>
+                          <Badge
+                            className={`${getStatusColor(
+                              referral?.status
+                            )} text-xs font-medium`}
+                          >
                             {referral?.status}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Mail className="w-4 h-4" />
                             <span>Ref ID: {referral?.refId}</span>
                           </div>
@@ -480,7 +515,12 @@ const UserInfo = () => {
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-600">
                             <Calendar className="w-4 h-4" />
-                            <span>Created: {new Date(referral?.createdAt ?? '').toLocaleDateString()}</span>
+                            <span>
+                              Created:{" "}
+                              {new Date(
+                                referral?.createdAt ?? ""
+                              ).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -495,11 +535,25 @@ const UserInfo = () => {
                 <p className="text-gray-400">
                   This user hasn't made any referrals yet.
                 </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Modals */}
+      <ViewPasswordModal
+        open={viewPasswordOpen}
+        onClose={() => setViewPasswordOpen(false)}
+        userId={userId ?? ""}
+        userName={selectedUser?.name ?? ""}
+      />
+      <ChangePasswordModal
+        open={changePasswordOpen}
+        onClose={() => setChangePasswordOpen(false)}
+        userId={userId ?? ""}
+        userName={selectedUser?.name ?? ""}
+      />
     </div>
   );
 };

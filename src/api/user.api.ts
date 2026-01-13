@@ -39,6 +39,12 @@ export const userApi = {
     }
   ) => api.put(`/users/${userId}`, data),
 
+  viewUserPassword: (userId: string) =>
+    api.get(`/users/${userId}/view-password`),
+
+  changeUserPassword: (userId: string, data: { newPassword: string }) =>
+    api.put(`/users/${userId}/change-password`, data),
+
   // Profile endpoints
   getProfile: () => api.get("/users/profile"),
 
