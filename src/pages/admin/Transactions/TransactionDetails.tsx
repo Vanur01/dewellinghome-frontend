@@ -73,8 +73,8 @@ export function TransactionDetailsModal() {
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <div className="font-semibold">Method:</div>
-            <div className="col-span-3">
-              {selectedTransaction?.method === 'manual' ? 'Manual' : 'Razorpay'}
+            <div className="col-span-3 capitalize">
+              {selectedTransaction?.method || 'N/A'}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

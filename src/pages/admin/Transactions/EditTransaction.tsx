@@ -7,7 +7,7 @@ import { useAdminTransactionStore } from "@/store/admin/adminTransaction.store"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { UpdateTransactionData, Transaction } from "@/api/types"
-import EditTransactionForm from "@/components/forms/EditTransactionForm"
+import EditTransactionForm from "@/components/Forms/EditTransactionForm"
 import {  transactionApi } from "@/api"
 
 export default function EditTransaction() {

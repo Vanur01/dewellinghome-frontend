@@ -5,7 +5,7 @@ import { useAdminTransactionStore } from "@/store/admin/adminTransaction.store"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { CreateManualTransactionData } from "@/api/types"
-import CreateTransactionForm from "@/components/forms/CreateTransactionForm"
+import CreateTransactionForm from "@/components/Forms/CreateTransactionForm"
 
 export default function CreateTransaction() {
   const navigate = useNavigate()

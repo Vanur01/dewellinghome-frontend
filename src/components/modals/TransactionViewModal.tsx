@@ -39,7 +39,7 @@ const TransactionViewModal = ({
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Method:</span>
-            <span>{transaction.method === 'manual' ? 'Manual' : 'Razorpay'}</span>
+            <span className="capitalize">{transaction.method}</span>
           </div>
           <div className="grid grid-cols-2 items-center gap-4">
             <span className="font-semibold">Status:</span>
