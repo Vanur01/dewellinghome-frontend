@@ -1,132 +1,238 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Slider from 'react-slick';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTestimonialsStore } from '../../store/public/Testimonials.store';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import './Reviews.css';
 
-interface ArrowProps {
-  onClick?: () => void;
-}
-
 const Reviews: React.FC = () => {
   const { testimonials, loading, fetchPublishedTestimonials } = useTestimonialsStore();
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
+  const sliderRef = useRef<Slider>(null);
 
   useEffect(() => {
     fetchPublishedTestimonials();
   }, [fetchPublishedTestimonials]);
 
-
-  const CustomPrevArrow: React.FC<ArrowProps> = ({ onClick }) => {
-    return (
-      <button
-        className="custom-arrow prev-arrow shadow-md"
-        onClick={onClick}
-        aria-label="Previous slide"
-      >
-        <ArrowLeft size={20} />
-      </button>
+  const getYoutubeId = (url: string): string | null => {
+    const match = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
     );
+    return match ? match[1] : null;
   };
 
-  const CustomNextArrow: React.FC<ArrowProps> = ({ onClick }) => {
-    return (
-      <button
-        className="custom-arrow next-arrow shadow-md"
-        onClick={onClick}
-        aria-label="Next slide"
-      >
-        <ArrowRight size={20} />
-      </button>
-    );
+  const getYoutubeThumbnail = (url: string): string | null => {
+    const id = getYoutubeId(url);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
   };
+
+  const published = testimonials.filter((t) => t.showOnWebsite);
+  const slidesToShow = Math.min(published.length, 4);
 
   const settings = {
-    dots: true,
+    dots: false,
     infinite: true,
     speed: 500,
-    slidesToShow: 3,
+    slidesToShow: slidesToShow,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 4000,
     pauseOnHover: true,
-    prevArrow: <CustomPrevArrow />,
-    nextArrow: <CustomNextArrow />,
+    arrows: false,
     responsive: [
-      {
-        breakpoint: 1280,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
+      { breakpoint: 1280, settings: { slidesToShow: Math.min(published.length, 4) } },
+      { breakpoint: 1024, settings: { slidesToShow: Math.min(published.length, 3) } },
+      { breakpoint: 768,  settings: { slidesToShow: Math.min(published.length, 2) } },
+      { breakpoint: 480,  settings: { slidesToShow: 1 } },
     ],
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      <div className="py-20 flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-red-500" />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center bg-gray-50">
-      <div className="container mx-auto">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-16">
-          Topi Nahi Pehenaya. Bas Ghar Sajaya.
-        </h2>
-        
-        <div className="relative">
-          <Slider {...settings} className="reviews-slider">
-            {testimonials.map((testimonial) => (
-              testimonial.showOnWebsite && (
-              <div key={testimonial._id} className="px-3 h-full">
-                <div className="overflow-hidden h-full flex flex-col">
-                  <div className="aspect-w-16 aspect-h-9 flex-shrink-0">
-                    <img
-                      src={testimonial.image || 'https://via.placeholder.com/400x300?text=No+Image'}
-                      alt={testimonial.name}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="flex-grow flex flex-col py-2">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                      {testimonial.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {testimonial.address || 'Happy Customer'}
-                    </p>
-                    <p className="text-sm leading-relaxed flex-grow">
-                      "{testimonial.feedback}"
-                    </p>
-                    {testimonial.youtubeLink && (
-                      <a
-                        href={testimonial.youtubeLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 text-sm text-red-600 hover:text-red-700"
-                      >
-                        Watch Video Review
-                      </a>
-                    )}
-                  </div>
+  if (published.length === 0) return null;
+
+  // Single testimonial — show centered card without slider
+  if (published.length === 1) {
+    const t = published[0];
+    const ytThumb = t.youtubeLink ? getYoutubeThumbnail(t.youtubeLink) : null;
+    const thumbnail = ytThumb || t.image || null;
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-semibold text-gray-900 mb-3">
+              Topi Nahi Pehenaya. Bas Ghar Sajaya.
+            </h2>
+            <p className="text-gray-500 text-base max-w-2xl mx-auto">
+              Unke ghar, unki khushi, unki kahani — seedha unhi ki zubaan se.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div
+              className="hl-card"
+              style={{ width: '100%' }}
+              onClick={() => t.youtubeLink && setActiveVideo(t.youtubeLink)}
+            >
+              {thumbnail ? (
+                <img src={thumbnail} alt={t.name} className="hl-card-img" />
+              ) : (
+                <div className="hl-card-img hl-card-no-img"><span>{t.name[0]}</span></div>
+              )}
+              <div className="hl-overlay" />
+              {t.youtubeLink && (
+                <div className="hl-play-btn">
+                  <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
                 </div>
+              )}
+              <div className="hl-name-bar">
+                <p className="hl-name">{t.name}</p>
               </div>
-           ) ))}
-          </Slider>
+            </div>
+          </div>
+        </div>
+
+        {activeVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setActiveVideo(null)}>
+            <div className="relative w-full max-w-3xl mx-4" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setActiveVideo(null)} className="absolute -top-10 right-0 text-white hover:text-gray-300 transition" aria-label="Close">
+                <X size={28} />
+              </button>
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe className="absolute inset-0 w-full h-full rounded-lg"
+                  src={`https://www.youtube.com/embed/${getYoutubeId(activeVideo)}?autoplay=1`}
+                  title="Customer Testimonial"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen />
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-16 bg-white overflow-hidden">
+      <div className="max-w-5xl mx-auto px-4">
+
+        {/* Heading */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-3">
+            Topi Nahi Pehenaya. Bas Ghar Sajaya.
+          </h2>
+          <p className="text-gray-500 text-base max-w-2xl mx-auto">
+            Unke ghar, unki khushi, unki kahani — seedha unhi ki zubaan se.
+          </p>
+        </div>
+
+        {/* Slider + Manual Arrows wrapper */}
+        <div className="hl-slider-outer">
+
+          {/* LEFT ARROW — outside slider, vertically centered */}
+          <button
+            className="hl-ext-arrow hl-ext-prev"
+            onClick={() => sliderRef.current?.slickPrev()}
+            aria-label="Previous"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          {/* Slider */}
+          <div className="hl-slider-inner">
+            <Slider ref={sliderRef} {...settings} className="hl-testimonial-slider">
+              {published.map((testimonial) => {
+                const ytThumb = testimonial.youtubeLink
+                  ? getYoutubeThumbnail(testimonial.youtubeLink)
+                  : null;
+                const thumbnail = ytThumb || testimonial.image || null;
+
+                return (
+                  <div key={testimonial._id} className="hl-slide-wrapper">
+                    <div
+                      className="hl-card"
+                      onClick={() =>
+                        testimonial.youtubeLink && setActiveVideo(testimonial.youtubeLink)
+                      }
+                    >
+                      {thumbnail ? (
+                        <img src={thumbnail} alt={testimonial.name} className="hl-card-img" />
+                      ) : (
+                        <div className="hl-card-img hl-card-no-img">
+                          <span>{testimonial.name[0]}</span>
+                        </div>
+                      )}
+
+                      <div className="hl-overlay" />
+
+                      {testimonial.youtubeLink && (
+                        <div className="hl-play-btn">
+                          <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        </div>
+                      )}
+
+                      <div className="hl-name-bar">
+                        <p className="hl-name">{testimonial.name}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Slider>
+          </div>
+
+          {/* RIGHT ARROW — outside slider, vertically centered */}
+          <button
+            className="hl-ext-arrow hl-ext-next"
+            onClick={() => sliderRef.current?.slickNext()}
+            aria-label="Next"
+          >
+            <ChevronRight size={20} />
+          </button>
+
         </div>
       </div>
-    </div>
+
+      {/* YouTube Modal */}
+      {activeVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setActiveVideo(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActiveVideo(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition"
+              aria-label="Close"
+            >
+              <X size={28} />
+            </button>
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                className="absolute inset-0 w-full h-full rounded-lg"
+                src={`https://www.youtube.com/embed/${getYoutubeId(activeVideo)}?autoplay=1`}
+                title="Customer Testimonial"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 };
 
