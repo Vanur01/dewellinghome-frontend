@@ -11,6 +11,8 @@ import ServiceSection from "../modular-kitchen/ServiceSection";
 // import GoogleReview from "./GoogleReview";
 import { ScrollReveal } from "../../components/ScrollReveal";
 import { Link } from "react-router-dom";
+import GoogleReview from "./GoogleReview";
+import Reviews from "../homepage/Reviews";
 
 const estimateCards = [
   {
@@ -136,6 +138,9 @@ const DesignGallary = () => {
       {/* <ScrollReveal>
         <GoogleReview />
       </ScrollReveal> */}
+       <ScrollReveal>
+       <Reviews />
+      </ScrollReveal>
     </div>
   );
 };

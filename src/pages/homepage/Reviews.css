@@ -32,20 +32,27 @@
   color: #374151;
 }
 
-/* ── Each slide padding ── */
+/* ── Each slide: white container wrapping video + text ── */
 .hl-slide-wrapper {
   padding: 0 6px;
 }
 
-/* ── Card ── */
+.hl-slide-container {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Card (video part only — no border-radius, sits inside container) ── */
 .hl-card {
   position: relative;
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   display: block;
   width: 100%;
-  height: 340px;
+  height: 240px;
   background: #d1d5db;
 }
 
@@ -148,4 +155,33 @@
 
 .hl-testimonial-slider .slick-slide > div {
   height: 100%;
+}
+
+/* ── Info section inside white container ── */
+.hl-card-info {
+  padding: 16px 16px 20px;
+}
+
+.hl-card-quote {
+  font-size: 0.88rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hl-card-customer {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 3px;
+}
+
+.hl-card-address {
+  font-size: 0.80rem;
+  color: #9ca3af;
+  margin: 0;
 }

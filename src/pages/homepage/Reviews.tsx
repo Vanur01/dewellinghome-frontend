@@ -29,6 +29,7 @@ const Reviews: React.FC = () => {
 
   const published = testimonials.filter((t) => t.showOnWebsite);
   const slidesToShow = Math.min(published.length, 4);
+  const showArrows = published.length > slidesToShow;
 
   const settings = {
     dots: false,
@@ -64,7 +65,7 @@ const Reviews: React.FC = () => {
     const ytThumb = t.youtubeLink ? getYoutubeThumbnail(t.youtubeLink) : null;
     const thumbnail = ytThumb || t.image || null;
     return (
-      <section className="py-16 bg-white">
+      <section className="py-10 bg-white">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-semibold text-gray-900 mb-3">
@@ -75,26 +76,40 @@ const Reviews: React.FC = () => {
             </p>
           </div>
           <div className="flex justify-center">
-            <div
-              className="hl-card"
-              style={{ width: '100%' }}
-              onClick={() => t.youtubeLink && setActiveVideo(t.youtubeLink)}
-            >
-              {thumbnail ? (
-                <img src={thumbnail} alt={t.name} className="hl-card-img" />
-              ) : (
-                <div className="hl-card-img hl-card-no-img"><span>{t.name[0]}</span></div>
-              )}
-              <div className="hl-overlay" />
-              {t.youtubeLink && (
-                <div className="hl-play-btn">
-                  <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+            <div className="hl-slide-wrapper" style={{ width: '100%' }}>
+              <div className="hl-slide-container">
+                <div
+                  className="hl-card"
+                  onClick={() => t.youtubeLink && setActiveVideo(t.youtubeLink)}
+                >
+                  {thumbnail ? (
+                    <img src={thumbnail} alt={t.name} className="hl-card-img" />
+                  ) : (
+                    <div className="hl-card-img hl-card-no-img"><span>{t.name[0]}</span></div>
+                  )}
+                  <div className="hl-overlay" />
+                  {t.youtubeLink && (
+                    <div className="hl-play-btn">
+                      <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="hl-name-bar">
+                    <p className="hl-name">{t.name}</p>
+                  </div>
                 </div>
-              )}
-              <div className="hl-name-bar">
-                <p className="hl-name">{t.name}</p>
+
+                {/* Info below video inside white container */}
+                <div className="hl-card-info">
+                  {t.feedback && (
+                    <p className="hl-card-quote">"{t.feedback}"</p>
+                  )}
+                  <p className="hl-card-customer">{t.name}</p>
+                  {t.address && (
+                    <p className="hl-card-address">{t.address}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -121,7 +136,7 @@ const Reviews: React.FC = () => {
   }
 
   return (
-    <section className="py-16 bg-white overflow-hidden">
+    <section className="py-10 bg-gray-50 overflow-hidden">
       <div className="max-w-5xl mx-auto px-4">
 
         {/* Heading */}
@@ -137,14 +152,16 @@ const Reviews: React.FC = () => {
         {/* Slider + Manual Arrows wrapper */}
         <div className="hl-slider-outer">
 
-          {/* LEFT ARROW — outside slider, vertically centered */}
-          <button
-            className="hl-ext-arrow hl-ext-prev"
-            onClick={() => sliderRef.current?.slickPrev()}
-            aria-label="Previous"
-          >
-            <ChevronLeft size={20} />
-          </button>
+          {/* LEFT ARROW — only when more cards than visible */}
+          {showArrows && (
+            <button
+              className="hl-ext-arrow hl-ext-prev"
+              onClick={() => sliderRef.current?.slickPrev()}
+              aria-label="Previous"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
 
           {/* Slider */}
           <div className="hl-slider-inner">
@@ -157,32 +174,45 @@ const Reviews: React.FC = () => {
 
                 return (
                   <div key={testimonial._id} className="hl-slide-wrapper">
-                    <div
-                      className="hl-card"
-                      onClick={() =>
-                        testimonial.youtubeLink && setActiveVideo(testimonial.youtubeLink)
-                      }
-                    >
-                      {thumbnail ? (
-                        <img src={thumbnail} alt={testimonial.name} className="hl-card-img" />
-                      ) : (
-                        <div className="hl-card-img hl-card-no-img">
-                          <span>{testimonial.name[0]}</span>
+                    <div className="hl-slide-container">
+                      <div
+                        className="hl-card"
+                        onClick={() =>
+                          testimonial.youtubeLink && setActiveVideo(testimonial.youtubeLink)
+                        }
+                      >
+                        {thumbnail ? (
+                          <img src={thumbnail} alt={testimonial.name} className="hl-card-img" />
+                        ) : (
+                          <div className="hl-card-img hl-card-no-img">
+                            <span>{testimonial.name[0]}</span>
+                          </div>
+                        )}
+
+                        <div className="hl-overlay" />
+
+                        {testimonial.youtubeLink && (
+                          <div className="hl-play-btn">
+                            <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </div>
+                        )}
+
+                        <div className="hl-name-bar">
+                          <p className="hl-name">{testimonial.name}</p>
                         </div>
-                      )}
+                      </div>
 
-                      <div className="hl-overlay" />
-
-                      {testimonial.youtubeLink && (
-                        <div className="hl-play-btn">
-                          <svg fill="white" viewBox="0 0 24 24" width="28" height="28">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      )}
-
-                      <div className="hl-name-bar">
-                        <p className="hl-name">{testimonial.name}</p>
+                      {/* Info below video inside white container */}
+                      <div className="hl-card-info">
+                        {testimonial.feedback && (
+                          <p className="hl-card-quote">"{testimonial.feedback}"</p>
+                        )}
+                        <p className="hl-card-customer">{testimonial.name}</p>
+                        {testimonial.address && (
+                          <p className="hl-card-address">{testimonial.address}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -191,14 +221,16 @@ const Reviews: React.FC = () => {
             </Slider>
           </div>
 
-          {/* RIGHT ARROW — outside slider, vertically centered */}
-          <button
-            className="hl-ext-arrow hl-ext-next"
-            onClick={() => sliderRef.current?.slickNext()}
-            aria-label="Next"
-          >
-            <ChevronRight size={20} />
-          </button>
+          {/* RIGHT ARROW — only when more cards than visible */}
+          {showArrows && (
+            <button
+              className="hl-ext-arrow hl-ext-next"
+              onClick={() => sliderRef.current?.slickNext()}
+              aria-label="Next"
+            >
+              <ChevronRight size={20} />
+            </button>
+          )}
 
         </div>
       </div>
