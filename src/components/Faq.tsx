@@ -71,7 +71,7 @@ const FaqItem: React.FC<{ item: FaqItem }> = ({ item }) => {
 const Faq: React.FC = () => {
   return (
     <div className="bg-gradient-to-b from-white to-gray-50">
-      <div className="pt-20 md:py-32 px-4 max-w-6xl mx-auto min-h-[80vh]">
+      <div className="pt-10 md:py-16 px-4 max-w-6xl mx-auto min-h-[80vh]">
         <div className="text-center mb-12 md:mb-16">
           <h2 className="text-3xl font-semibold text-gray-900 mb-4">
             Frequently Asked Questions
