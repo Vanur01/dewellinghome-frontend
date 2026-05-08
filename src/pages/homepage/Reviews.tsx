@@ -86,7 +86,10 @@ const Reviews: React.FC = () => {
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="hl-slide-wrapper" style={{ width: "100%" }}>
+            <div
+              className="hl-slide-wrapper"
+              style={{ width: "100%", maxWidth: "1000px" }}
+            >
               <div className="hl-slide-container">
                 <div
                   className="hl-card"
