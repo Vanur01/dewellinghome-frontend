@@ -76,7 +76,7 @@ const Reviews: React.FC = () => {
     const thumbnail = ytThumb || t.image || null;
     return (
       <section className="py-10 bg-white">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-semibold text-gray-900 mb-3">
               Topi Nahi Pehenaya. Bas Ghar Sajaya.
@@ -169,7 +169,7 @@ const Reviews: React.FC = () => {
 
   return (
     <section className="py-10 bg-gray-50 overflow-hidden">
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center mb-10">
           <h2 className="text-3xl font-semibold text-gray-900 mb-3">

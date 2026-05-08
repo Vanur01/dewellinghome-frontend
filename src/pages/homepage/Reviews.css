@@ -34,7 +34,7 @@
 
 /* ── Each slide: white container wrapping video + text ── */
 .hl-slide-wrapper {
-  padding: 0 6px;
+  padding: 0 8px;
   height: 100%;
 }
 
