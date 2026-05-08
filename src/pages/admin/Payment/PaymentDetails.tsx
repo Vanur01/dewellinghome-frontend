@@ -80,14 +80,17 @@ export default function PaymentDetails() {
   const handleMilestoneUpdate = (
     index: number,
     field: "timeline" | "percentage" | "actualPaid",
-    value: string
+    value: string,
   ) => {
     setEditedValues((prev) => {
-      const phaseAmount = Math.round((prev.projectValue * (prev.milestones[index]?.percentage ?? 0)) / 100);
+      const phaseAmount = Math.round(
+        (prev.projectValue * (prev.milestones[index]?.percentage ?? 0)) / 100,
+      );
 
-      let parsedValue: string | number = field === "percentage" || field === "actualPaid"
-        ? parseFloat(value) || 0
-        : value;
+      let parsedValue: string | number =
+        field === "percentage" || field === "actualPaid"
+          ? parseFloat(value) || 0
+          : value;
 
       // Cap actualPaid to phase amount
       if (field === "actualPaid" && typeof parsedValue === "number") {
@@ -95,19 +98,26 @@ export default function PaymentDetails() {
       }
 
       const updatedMilestones = prev.milestones.map((m, i) =>
-        i === index ? { ...m, [field]: parsedValue } : m
+        i === index ? { ...m, [field]: parsedValue } : m,
       );
 
       // If actualPaid changed, check if total paid now exceeds projectValue
       let newProjectValue = prev.projectValue;
       if (field === "actualPaid") {
-        const totalPaidNow = updatedMilestones.reduce((sum, m) => sum + (m.actualPaid ?? 0), 0);
+        const totalPaidNow = updatedMilestones.reduce(
+          (sum, m) => sum + (m.actualPaid ?? 0),
+          0,
+        );
         if (totalPaidNow > newProjectValue) {
           newProjectValue = totalPaidNow;
         }
       }
 
-      return { ...prev, projectValue: newProjectValue, milestones: updatedMilestones };
+      return {
+        ...prev,
+        projectValue: newProjectValue,
+        milestones: updatedMilestones,
+      };
     });
   };
 
@@ -136,17 +146,29 @@ export default function PaymentDetails() {
 
         if (milestone.actualPaid < 0) {
           toast.error(
-            `Actual paid amount for milestone ${i + 1} cannot be negative`
+            `Actual paid amount for milestone ${i + 1} cannot be negative`,
           );
           return;
         }
+      }
+
+      // Validate: Total Project Value must be >= total paid amount
+      const totalPaidNow = editedValues.milestones.reduce(
+        (sum, m) => sum + (m.actualPaid ?? 0),
+        0,
+      );
+      if (editedValues.projectValue < totalPaidNow) {
+        toast.error(
+          `Total Project Value (₹${editedValues.projectValue.toLocaleString("en-IN")}) cannot be less than total paid amount (₹${totalPaidNow.toLocaleString("en-IN")})`,
+        );
+        return;
       }
 
       // Update project value if changed
       if (editedValues.projectValue !== currentSchedule?.totalProjectValue) {
         await updateProjectValue(
           currentSchedule._id,
-          editedValues.projectValue
+          editedValues.projectValue,
         );
       }
 
@@ -155,13 +177,13 @@ export default function PaymentDetails() {
         (m, i) =>
           m?.timeline !== currentSchedule?.milestones?.[i]?.timeline ||
           m?.percentage !== currentSchedule?.milestones?.[i]?.percentage ||
-          m?.actualPaid !== currentSchedule?.milestones?.[i]?.actualPaid
+          m?.actualPaid !== currentSchedule?.milestones?.[i]?.actualPaid,
       );
 
       if (structureChanged) {
         await updatePaymentStructure(
           currentSchedule._id,
-          editedValues.milestones
+          editedValues.milestones,
         );
       }
 
@@ -169,7 +191,7 @@ export default function PaymentDetails() {
       if (editedValues.currentMilestone !== currentSchedule?.currentMilestone) {
         await updateCurrentMilestone(
           currentSchedule._id,
-          editedValues.currentMilestone
+          editedValues.currentMilestone,
         );
       }
 
@@ -240,7 +262,7 @@ export default function PaymentDetails() {
                     navigate(
                       `/admin/projects/${
                         currentSchedule?.projectId?._id ?? ""
-                      }/transactions`
+                      }/transactions`,
                     )
                   }
                   className="flex items-center gap-2"
@@ -254,7 +276,7 @@ export default function PaymentDetails() {
                   "px-3 py-1 rounded-full text-sm font-medium",
                   totalRemaining === 0
                     ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
+                    : "bg-yellow-100 text-yellow-700",
                 )}
               >
                 {totalRemaining === 0 ? "Completed" : "In Progress"}
@@ -283,7 +305,7 @@ export default function PaymentDetails() {
                   <span className="font-medium">
                     {Math.round(
                       (totalPaid / (currentSchedule?.totalProjectValue ?? 1)) *
-                        100
+                        100,
                     )}
                     %
                   </span>
@@ -323,12 +345,38 @@ export default function PaymentDetails() {
                 </label>
                 <div className="flex items-center gap-4">
                   {editMode ? (
-                    <Input
-                      type="number"
-                      value={editedValues.projectValue}
-                      onChange={(e) => handleProjectValueChange(e.target.value)}
-                      className="w-64 text-right font-medium"
-                    />
+                    <div className="space-y-1">
+                      <Input
+                        type="number"
+                        value={editedValues.projectValue}
+                        onChange={(e) =>
+                          handleProjectValueChange(e.target.value)
+                        }
+                        className={cn(
+                          "w-64 text-right font-medium",
+                          editedValues.projectValue <
+                            editedValues.milestones.reduce(
+                              (sum, m) => sum + (m.actualPaid ?? 0),
+                              0,
+                            )
+                            ? "border-red-500 focus-visible:ring-red-500"
+                            : "",
+                        )}
+                      />
+                      {editedValues.projectValue <
+                        editedValues.milestones.reduce(
+                          (sum, m) => sum + (m.actualPaid ?? 0),
+                          0,
+                        ) && (
+                        <p className="text-xs text-red-500">
+                          Must be ≥ paid amount (₹
+                          {editedValues.milestones
+                            .reduce((sum, m) => sum + (m.actualPaid ?? 0), 0)
+                            .toLocaleString("en-IN")}
+                          )
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-xl font-semibold">
                       {formatCurrency(currentSchedule?.totalProjectValue)}
@@ -360,7 +408,7 @@ export default function PaymentDetails() {
                     <div className="text-sm">
                       <span className="font-medium">Timeline:</span>{" "}
                       {currentSchedule?.milestones?.find(
-                        (m) => m?.slNo === editedValues.currentMilestone
+                        (m) => m?.slNo === editedValues.currentMilestone,
                       )?.timeline ?? "Invalid milestone"}
                     </div>
                   </div>
@@ -381,8 +429,11 @@ export default function PaymentDetails() {
                     <div className="text-xl font-semibold text-green-600">
                       {formatCurrency(
                         editMode
-                          ? editedValues.milestones.reduce((sum, m) => sum + (m.actualPaid ?? 0), 0)
-                          : totalPaid
+                          ? editedValues.milestones.reduce(
+                              (sum, m) => sum + (m.actualPaid ?? 0),
+                              0,
+                            )
+                          : totalPaid,
                       )}
                     </div>
                   </div>
@@ -393,8 +444,15 @@ export default function PaymentDetails() {
                     <div className="text-xl font-semibold text-blue-600">
                       {formatCurrency(
                         editMode
-                          ? Math.max(0, editedValues.projectValue - editedValues.milestones.reduce((sum, m) => sum + (m.actualPaid ?? 0), 0))
-                          : totalRemaining
+                          ? Math.max(
+                              0,
+                              editedValues.projectValue -
+                                editedValues.milestones.reduce(
+                                  (sum, m) => sum + (m.actualPaid ?? 0),
+                                  0,
+                                ),
+                            )
+                          : totalRemaining,
                       )}
                     </div>
                   </div>
@@ -436,7 +494,7 @@ export default function PaymentDetails() {
                       className={cn(
                         "hover:bg-gray-50/50 transition-colors",
                         milestone?.slNo === currentSchedule?.currentMilestone &&
-                          "bg-red-100 hover:bg-red-100"
+                          "bg-red-100 hover:bg-red-100",
                       )}
                     >
                       <td className="px-4 py-4 font-medium">
@@ -460,7 +518,7 @@ export default function PaymentDetails() {
                               handleMilestoneUpdate(
                                 index,
                                 "timeline",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="w-full min-h-[60px] p-2 border border-gray-300 rounded-md resize-none text-sm"
@@ -483,7 +541,7 @@ export default function PaymentDetails() {
                               handleMilestoneUpdate(
                                 index,
                                 "percentage",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="w-20 text-center mx-auto"
@@ -494,7 +552,14 @@ export default function PaymentDetails() {
                       </td>
                       <td className="px-4 py-4 text-right font-medium">
                         {editMode
-                          ? formatCurrency(Math.round((editedValues.projectValue * (editedValues.milestones[index]?.percentage ?? 0)) / 100))
+                          ? formatCurrency(
+                              Math.round(
+                                (editedValues.projectValue *
+                                  (editedValues.milestones[index]?.percentage ??
+                                    0)) /
+                                  100,
+                              ),
+                            )
                           : formatCurrency(milestone?.amount)}
                       </td>
                       <td className="px-4 py-4 text-right">
@@ -502,7 +567,12 @@ export default function PaymentDetails() {
                           <Input
                             type="number"
                             min="0"
-                            max={Math.round((editedValues.projectValue * (editedValues.milestones[index]?.percentage ?? 0)) / 100)}
+                            max={Math.round(
+                              (editedValues.projectValue *
+                                (editedValues.milestones[index]?.percentage ??
+                                  0)) /
+                                100,
+                            )}
                             value={
                               editedValues.milestones[index]?.actualPaid ?? 0
                             }
@@ -510,7 +580,7 @@ export default function PaymentDetails() {
                               handleMilestoneUpdate(
                                 index,
                                 "actualPaid",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="w-32 text-right mx-auto"
@@ -522,7 +592,7 @@ export default function PaymentDetails() {
                               "font-medium",
                               (milestone?.actualPaid ?? 0) > 0
                                 ? "text-green-600"
-                                : "text-muted-foreground"
+                                : "text-muted-foreground",
                             )}
                           >
                             {(milestone?.actualPaid ?? 0) > 0
@@ -532,25 +602,39 @@ export default function PaymentDetails() {
                         )}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        {editMode ? (() => {
-                          const amt = Math.round((editedValues.projectValue * (editedValues.milestones[index]?.percentage ?? 0)) / 100);
-                          const paid = editedValues.milestones[index]?.actualPaid ?? 0;
-                          const remaining = amt - paid;
-                          return (
-                            <span className={cn(
-                              "px-2 py-1 rounded-full text-sm font-medium",
-                              remaining > 0 ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"
-                            )}>
-                              {remaining > 0 ? formatCurrency(remaining) : "Paid"}
-                            </span>
-                          );
-                        })() : (
+                        {editMode ? (
+                          (() => {
+                            const amt = Math.round(
+                              (editedValues.projectValue *
+                                (editedValues.milestones[index]?.percentage ??
+                                  0)) /
+                                100,
+                            );
+                            const paid =
+                              editedValues.milestones[index]?.actualPaid ?? 0;
+                            const remaining = amt - paid;
+                            return (
+                              <span
+                                className={cn(
+                                  "px-2 py-1 rounded-full text-sm font-medium",
+                                  remaining > 0
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-green-100 text-green-700",
+                                )}
+                              >
+                                {remaining > 0
+                                  ? formatCurrency(remaining)
+                                  : "Paid"}
+                              </span>
+                            );
+                          })()
+                        ) : (
                           <span
                             className={cn(
                               "px-2 py-1 rounded-full text-sm font-medium",
                               (milestone?.toBePaid ?? 0) > 0
                                 ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
+                                : "bg-green-100 text-green-700",
                             )}
                           >
                             {(milestone?.toBePaid ?? 0) > 0
@@ -565,7 +649,10 @@ export default function PaymentDetails() {
                 {editMode && (
                   <tfoot>
                     <tr className="border-t">
-                      <td colSpan={2} className="px-4 py-3 text-right font-medium">
+                      <td
+                        colSpan={2}
+                        className="px-4 py-3 text-right font-medium"
+                      >
                         Total Percentage:
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -595,7 +682,11 @@ export default function PaymentDetails() {
                       Total Project Value
                     </span>
                     <span className="font-medium">
-                      {formatCurrency(editMode ? editedValues.projectValue : currentSchedule?.totalProjectValue)}
+                      {formatCurrency(
+                        editMode
+                          ? editedValues.projectValue
+                          : currentSchedule?.totalProjectValue,
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -605,8 +696,11 @@ export default function PaymentDetails() {
                     <span className="font-medium text-green-600">
                       {formatCurrency(
                         editMode
-                          ? editedValues.milestones.reduce((sum, m) => sum + (m.actualPaid ?? 0), 0)
-                          : totalPaid
+                          ? editedValues.milestones.reduce(
+                              (sum, m) => sum + (m.actualPaid ?? 0),
+                              0,
+                            )
+                          : totalPaid,
                       )}
                     </span>
                   </div>
@@ -617,8 +711,15 @@ export default function PaymentDetails() {
                     <span className="font-medium text-blue-600">
                       {formatCurrency(
                         editMode
-                          ? Math.max(0, editedValues.projectValue - editedValues.milestones.reduce((sum, m) => sum + (m.actualPaid ?? 0), 0))
-                          : totalRemaining
+                          ? Math.max(
+                              0,
+                              editedValues.projectValue -
+                                editedValues.milestones.reduce(
+                                  (sum, m) => sum + (m.actualPaid ?? 0),
+                                  0,
+                                ),
+                            )
+                          : totalRemaining,
                       )}
                     </span>
                   </div>

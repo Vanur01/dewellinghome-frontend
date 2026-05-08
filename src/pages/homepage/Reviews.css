@@ -35,6 +35,7 @@
 /* ── Each slide: white container wrapping video + text ── */
 .hl-slide-wrapper {
   padding: 0 6px;
+  height: 100%;
 }
 
 .hl-slide-container {
@@ -42,6 +43,9 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* ── Card (video part only — no border-radius, sits inside container) ── */
@@ -102,11 +106,13 @@
   height: 56px;
   border-radius: 50%;
   border: 2.5px solid white;
-  background: rgba(0, 0, 0, 0.30);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .hl-card:hover .hl-play-btn {
@@ -121,7 +127,7 @@
   left: 0;
   right: 0;
   padding: 28px 12px 10px;
-  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, transparent 100%);
 }
 
 .hl-name {
@@ -145,7 +151,7 @@
 }
 
 .hl-testimonial-slider .slick-track {
-  display: flex;
+  display: flex !important;
   align-items: stretch;
 }
 
@@ -157,9 +163,21 @@
   height: 100%;
 }
 
+.hl-testimonial-slider .slick-slide .hl-slide-wrapper {
+  height: 100%;
+}
+
 /* ── Info section inside white container ── */
 .hl-card-info {
   padding: 16px 16px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quote wrapper — takes all available space, pushes name/address down */
+.hl-card-quote-wrap {
+  flex: 1;
 }
 
 .hl-card-quote {
@@ -181,7 +199,7 @@
 }
 
 .hl-card-address {
-  font-size: 0.80rem;
+  font-size: 0.8rem;
   color: #9ca3af;
   margin: 0;
 }
