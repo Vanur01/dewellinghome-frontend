@@ -96,13 +96,15 @@ export default function GetEstimate() {
         throw new Error("Missing required information");
       }
 
-      // Strip frontend-only fields (height, width) and exclude items with no size if backend requires it
-      const cleanedItems = (projectDetails.items || []).map(
-        ({ height: _h, width: _w, size, ...item }) => ({
-          ...item,
-          ...(size ? { size } : {}), // omit size if empty string — backend requires non-empty
-        }),
-      );
+      // Map items to InquiryItem shape, ensuring size is always a non-empty string
+      const cleanedItems = (projectDetails.items || [])
+        .filter((item) => item.size) // exclude items with no size since backend requires it
+        .map(({ category, name, units, size }) => ({
+          category,
+          name,
+          units,
+          size: size as string,
+        }));
 
       const payload = {
         name: userDetails.name,
