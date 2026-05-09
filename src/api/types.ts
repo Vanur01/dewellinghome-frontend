@@ -70,6 +70,8 @@ export interface PaymentMilestone {
   slNo: number;
   timeline: string;
   percentage: number;
+  baseAmount: number;
+  carriedOverOutstanding: number;
   amount: number;
   actualPaid: number;
   toBePaid: number;

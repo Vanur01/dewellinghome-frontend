@@ -18,6 +18,7 @@ export default function PaymentDetails() {
     updateProjectValue,
     updatePaymentStructure,
     updateCurrentMilestone,
+    resetStore,
   } = useAdminPaymentStore();
 
   const [editMode, setEditMode] = useState(false);
@@ -27,16 +28,18 @@ export default function PaymentDetails() {
       timeline: string;
       percentage: number;
       actualPaid: number;
+      amount: number; // base + carryover from last save (server-calculated)
     }>,
     currentMilestone: 1,
   });
 
-  // Fetch payment schedule on mount
+  // Clear stale data and fetch fresh schedule on mount
   useEffect(() => {
+    resetStore();
     if (projectId) {
       fetchScheduleById(projectId);
     }
-  }, [projectId, fetchScheduleById]);
+  }, [projectId]);
 
   // Update edited values when schedule changes
   useEffect(() => {
@@ -48,6 +51,7 @@ export default function PaymentDetails() {
             timeline: m?.timeline ?? "",
             percentage: m?.percentage ?? 0,
             actualPaid: m?.actualPaid ?? 0,
+            amount: m?.amount ?? 0,
           })) ?? [],
         currentMilestone: currentSchedule?.currentMilestone ?? 1,
       });
@@ -76,46 +80,33 @@ export default function PaymentDetails() {
   };
 
   // Handle milestone update
-  // If actualPaid in any phase exceeds projectValue, auto-update projectValue
+  // actualPaid is capped to amount (base + carryover from last server save).
+  // Carryover recalculates server-side on save.
   const handleMilestoneUpdate = (
     index: number,
     field: "timeline" | "percentage" | "actualPaid",
     value: string,
   ) => {
     setEditedValues((prev) => {
-      const phaseAmount = Math.round(
-        (prev.projectValue * (prev.milestones[index]?.percentage ?? 0)) / 100,
-      );
+      // Use server-calculated amount (base + carryover) as the cap
+      const maxPayable = prev.milestones[index]?.amount ?? 0;
 
       let parsedValue: string | number =
         field === "percentage" || field === "actualPaid"
           ? parseFloat(value) || 0
           : value;
 
-      // Cap actualPaid to phase amount
+      // Cap actualPaid to total amount due (base + carryover)
       if (field === "actualPaid" && typeof parsedValue === "number") {
-        parsedValue = Math.min(parsedValue, phaseAmount);
+        parsedValue = Math.min(parsedValue, maxPayable);
       }
 
       const updatedMilestones = prev.milestones.map((m, i) =>
         i === index ? { ...m, [field]: parsedValue } : m,
       );
 
-      // If actualPaid changed, check if total paid now exceeds projectValue
-      let newProjectValue = prev.projectValue;
-      if (field === "actualPaid") {
-        const totalPaidNow = updatedMilestones.reduce(
-          (sum, m) => sum + (m.actualPaid ?? 0),
-          0,
-        );
-        if (totalPaidNow > newProjectValue) {
-          newProjectValue = totalPaidNow;
-        }
-      }
-
       return {
         ...prev,
-        projectValue: newProjectValue,
         milestones: updatedMilestones,
       };
     });
@@ -477,7 +468,15 @@ export default function PaymentDetails() {
                       Percentage
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
-                      Amount
+                      Base Amount
+                    </th>
+                    {!editMode && (
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-36">
+                        Carried Over
+                      </th>
+                    )}
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
+                      {editMode ? "Amount" : "Total Due"}
                     </th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
                       Actual Paid
@@ -550,7 +549,44 @@ export default function PaymentDetails() {
                           `${milestone?.percentage ?? 0}%`
                         )}
                       </td>
+                      {/* Base Amount */}
                       <td className="px-4 py-4 text-right font-medium">
+                        {editMode
+                          ? formatCurrency(
+                              Math.round(
+                                (editedValues.projectValue *
+                                  (editedValues.milestones[index]?.percentage ??
+                                    0)) /
+                                  100,
+                              ),
+                            )
+                          : formatCurrency(
+                              milestone?.baseAmount ?? milestone?.amount,
+                            )}
+                      </td>
+                      {/* Carried Over (view mode only) */}
+                      {!editMode && (
+                        <td className="px-4 py-4 text-right">
+                          {(() => {
+                            const carryover =
+                              (milestone?.carriedOverOutstanding ?? 0) > 0
+                                ? milestone.carriedOverOutstanding
+                                : (milestone?.amount ?? 0) -
+                                  (milestone?.baseAmount ?? 0);
+                            return carryover > 0 ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                {`+${formatCurrency(carryover)}`}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">
+                                ₹ 0
+                              </span>
+                            );
+                          })()}
+                        </td>
+                      )}
+                      {/* Total Due = baseAmount + carriedOver (view) or just baseAmount (edit) */}
+                      <td className="px-4 py-4 text-right font-semibold">
                         {editMode
                           ? formatCurrency(
                               Math.round(
@@ -564,28 +600,31 @@ export default function PaymentDetails() {
                       </td>
                       <td className="px-4 py-4 text-right">
                         {editMode ? (
-                          <Input
-                            type="number"
-                            min="0"
-                            max={Math.round(
-                              (editedValues.projectValue *
-                                (editedValues.milestones[index]?.percentage ??
-                                  0)) /
-                                100,
-                            )}
-                            value={
-                              editedValues.milestones[index]?.actualPaid ?? 0
-                            }
-                            onChange={(e) =>
-                              handleMilestoneUpdate(
-                                index,
-                                "actualPaid",
-                                e.target.value,
-                              )
-                            }
-                            className="w-32 text-right mx-auto"
-                            placeholder="0"
-                          />
+                          <div className="flex flex-col items-end gap-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              max={editedValues.milestones[index]?.amount ?? 0}
+                              value={
+                                editedValues.milestones[index]?.actualPaid ?? 0
+                              }
+                              onChange={(e) =>
+                                handleMilestoneUpdate(
+                                  index,
+                                  "actualPaid",
+                                  e.target.value,
+                                )
+                              }
+                              className="w-32 text-right"
+                              placeholder="0"
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              max{" "}
+                              {formatCurrency(
+                                editedValues.milestones[index]?.amount ?? 0,
+                              )}
+                            </span>
+                          </div>
                         ) : (
                           <span
                             className={cn(
@@ -604,15 +643,11 @@ export default function PaymentDetails() {
                       <td className="px-4 py-4 text-right">
                         {editMode ? (
                           (() => {
-                            const amt = Math.round(
-                              (editedValues.projectValue *
-                                (editedValues.milestones[index]?.percentage ??
-                                  0)) /
-                                100,
-                            );
+                            const amt =
+                              editedValues.milestones[index]?.amount ?? 0;
                             const paid =
                               editedValues.milestones[index]?.actualPaid ?? 0;
-                            const remaining = amt - paid;
+                            const remaining = Math.max(0, amt - paid);
                             return (
                               <span
                                 className={cn(
@@ -663,7 +698,7 @@ export default function PaymentDetails() {
                           %
                         </span>
                       </td>
-                      <td colSpan={3}></td>
+                      <td colSpan={4}></td>
                     </tr>
                   </tfoot>
                 )}

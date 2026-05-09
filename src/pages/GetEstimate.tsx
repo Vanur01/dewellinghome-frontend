@@ -1,31 +1,46 @@
-import RequirementForm from '../components/Forms/RequirementForm';
-import ContactStepForm from '../components/Forms/ContactStepForm';
-import enquiryStore from '../store/public/InquiryStore';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useCallback, useState } from 'react';
-import { CheckCircle2, Calendar, PhoneCall, ClipboardList, User, Mail, Phone, MapPin, ChevronRight, ChevronLeft } from 'lucide-react';
-import { inquiryApi } from '../utils/api';
+import RequirementForm from "../components/Forms/RequirementForm";
+import ContactStepForm from "../components/Forms/ContactStepForm";
+import enquiryStore from "../store/public/InquiryStore";
+import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useState } from "react";
+import {
+  CheckCircle2,
+  Calendar,
+  PhoneCall,
+  ClipboardList,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
+import { inquiryApi } from "../utils/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-type FormStage = 'contact' | 'requirements' | 'summary' | 'success';
+type FormStage = "contact" | "requirements" | "summary" | "success";
 
 const steps = [
-  { id: 1, name: 'Contact Information', stage: 'contact' },
-  { id: 2, name: 'Design Requirements', stage: 'requirements' },
-  { id: 3, name: 'Review & Submit', stage: 'summary' },
+  { id: 1, name: "Contact Information", stage: "contact" },
+  { id: 2, name: "Design Requirements", stage: "requirements" },
+  { id: 3, name: "Review & Submit", stage: "summary" },
 ];
 
-const SummarySection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const SummarySection = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <Card>
     <CardHeader>
       <CardTitle className="text-lg">{title}</CardTitle>
     </CardHeader>
-    <CardContent>
-      {children}
-    </CardContent>
+    <CardContent>{children}</CardContent>
   </Card>
 );
 
@@ -33,32 +48,31 @@ export default function GetEstimate() {
   const { userDetails, projectDetails, resetEnquiryData } = enquiryStore();
   const [currentStage, setCurrentStage] = useState<FormStage>(() => {
     if (!userDetails?.name || !userDetails?.email || !userDetails?.phone) {
-      return 'contact';
+      return "contact";
     }
-    return 'requirements';
+    return "requirements";
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRequirementsValid, setIsRequirementsValid] = useState(false);
   const [isUserValid, setIsuservalid] = useState(false);
 
-
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5
-      }
+        duration: 0.5,
+      },
     },
     exit: {
       opacity: 0,
       y: -20,
       transition: {
-        duration: 0.3
-      }
-    }
+        duration: 0.3,
+      },
+    },
   };
 
   // const handleContactComplete = () => {
@@ -72,64 +86,76 @@ export default function GetEstimate() {
   const handleUserValidation = useCallback((isValid: boolean) => {
     setIsuservalid(isValid);
   }, []);
-  
+
   const handleFinalSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
 
       if (!projectDetails || !userDetails) {
-        throw new Error('Missing required information');
+        throw new Error("Missing required information");
       }
+
+      // Strip frontend-only fields (height, width) and exclude items with no size if backend requires it
+      const cleanedItems = (projectDetails.items || []).map(
+        ({ height: _h, width: _w, size, ...item }) => ({
+          ...item,
+          ...(size ? { size } : {}), // omit size if empty string — backend requires non-empty
+        }),
+      );
 
       const payload = {
         name: userDetails.name,
         email: userDetails.email,
         phone: `${userDetails.phone}`,
-        address: userDetails.address || '',
-        message: userDetails.message || '',
-        items: projectDetails.items,
+        address: userDetails.address || "",
+        message: userDetails.message || "",
+        items: cleanedItems,
         countryCode: userDetails.countryCode,
         homeType: projectDetails.homeType,
-        purpose: projectDetails.purpose
+        purpose: projectDetails.purpose,
       };
-      
+
       await inquiryApi.createInquiry(payload);
-      setCurrentStage('success');
+      setCurrentStage("success");
       resetEnquiryData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit inquiry');
-      console.error('Error submitting inquiry:', err);
+      setError(err instanceof Error ? err.message : "Failed to submit inquiry");
+      console.error("Error submitting inquiry:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const canProceedToNextStep = () => {
-    if (currentStage === 'contact') {
-      return isUserValid
+    if (currentStage === "contact") {
+      return isUserValid;
     }
-    if (currentStage === 'requirements') {
-      return isRequirementsValid 
+    if (currentStage === "requirements") {
+      return isRequirementsValid;
     }
     return true;
   };
 
   const getCurrentStepIndex = () => {
-    return steps.findIndex(step => step.stage === currentStage);
+    return steps.findIndex((step) => step.stage === currentStage);
   };
 
   const handleNext = async () => {
     const currentIndex = getCurrentStepIndex();
     if (currentIndex < steps.length - 1 && canProceedToNextStep()) {
-      if (currentStage === 'contact') {
-        setCurrentStage('requirements');
-      } else if (currentStage === 'requirements') {
-        if (projectDetails?.items && projectDetails.items.length > 0 && 
-            projectDetails.homeType && projectDetails.purpose) {
-          setCurrentStage('summary');
+      if (currentStage === "contact") {
+        setCurrentStage("requirements");
+      } else if (currentStage === "requirements") {
+        if (
+          projectDetails?.items &&
+          projectDetails.items.length > 0 &&
+          projectDetails.homeType &&
+          projectDetails.purpose
+        ) {
+          setCurrentStage("summary");
         } else {
-          setError('Please complete all required fields before proceeding');
+          setError("Please complete all required fields before proceeding");
         }
       }
     }
@@ -148,12 +174,20 @@ export default function GetEstimate() {
         <ol role="list" className="space-y-4 md:flex md:space-y-0 md:space-x-8">
           {steps.map((step) => (
             <li key={step.name} className="md:flex-1">
-              <div className={`group pl-4 py-2 flex flex-col border-l-4 ${
-                step.stage === currentStage ? 'border-red-600' : 'border-gray-200'
-              } hover:border-gray-300 md:pl-0 md:pt-4 md:pb-0 md:border-l-0 md:border-t-4`}>
-                <span className={`text-xs font-semibold tracking-wide uppercase ${
-                  step.stage === currentStage ? 'text-red-600' : 'text-gray-500'
-                }`}>
+              <div
+                className={`group pl-4 py-2 flex flex-col border-l-4 ${
+                  step.stage === currentStage
+                    ? "border-red-600"
+                    : "border-gray-200"
+                } hover:border-gray-300 md:pl-0 md:pt-4 md:pb-0 md:border-l-0 md:border-t-4`}
+              >
+                <span
+                  className={`text-xs font-semibold tracking-wide uppercase ${
+                    step.stage === currentStage
+                      ? "text-red-600"
+                      : "text-gray-500"
+                  }`}
+                >
                   Step {step.id}
                 </span>
                 <span className="text-sm font-medium">{step.name}</span>
@@ -166,8 +200,8 @@ export default function GetEstimate() {
   );
 
   const renderNavigationButtons = () => {
-    if (currentStage === 'success') return null;
-    
+    if (currentStage === "success") return null;
+
     const currentIndex = getCurrentStepIndex();
     const showNext = currentIndex < steps.length - 1;
     const showPrev = currentIndex > 0;
@@ -201,7 +235,7 @@ export default function GetEstimate() {
             className="flex-1 bg-red-600 text-white hover:bg-red-700"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Submitting...' : 'Confirm & Submit'}
+            {isSubmitting ? "Submitting..." : "Confirm & Submit"}
           </Button>
         ) : null}
       </div>
@@ -209,13 +243,18 @@ export default function GetEstimate() {
   };
 
   const SummaryScreen = () => {
-    const groupedItems = Object.entries((projectDetails?.items || []).reduce((acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = [];
-      }
-      acc[item.category].push(item);
-      return acc;
-    }, {} as Record<string, typeof projectDetails.items>));
+    const groupedItems = Object.entries(
+      (projectDetails?.items || []).reduce(
+        (acc, item) => {
+          if (!acc[item.category]) {
+            acc[item.category] = [];
+          }
+          acc[item.category].push(item);
+          return acc;
+        },
+        {} as Record<string, typeof projectDetails.items>,
+      ),
+    );
 
     return (
       <div className="space-y-6">
@@ -241,7 +280,9 @@ export default function GetEstimate() {
                 <Phone size={18} />
                 <div>
                   <p className="text-sm font-medium text-gray-500">Phone</p>
-                  <p className="text-base">{userDetails?.countryCode} {userDetails?.phone}</p>
+                  <p className="text-base">
+                    {userDetails?.countryCode} {userDetails?.phone}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 text-gray-600">
@@ -260,11 +301,15 @@ export default function GetEstimate() {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Home Type</p>
-                  <p className="text-base text-gray-800">{projectDetails?.homeType}</p>
+                  <p className="text-base text-gray-800">
+                    {projectDetails?.homeType}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Purpose</p>
-                  <p className="text-base text-gray-800">{projectDetails?.purpose}</p>
+                  <p className="text-base text-gray-800">
+                    {projectDetails?.purpose}
+                  </p>
                 </div>
               </div>
 
@@ -278,9 +323,13 @@ export default function GetEstimate() {
                       <Card key={index} className="p-3">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="font-medium text-gray-800">{item.name}</p>
+                            <p className="font-medium text-gray-800">
+                              {item.name}
+                            </p>
                             {item.size && (
-                              <p className="text-sm text-gray-500">Size: {item.size}</p>
+                              <p className="text-sm text-gray-500">
+                                Size: {item.size}
+                              </p>
                             )}
                           </div>
                           <Badge variant="secondary">
@@ -297,7 +346,6 @@ export default function GetEstimate() {
               ))}
             </div>
           </SummarySection>
-
         </div>
       </div>
     );
@@ -324,33 +372,49 @@ export default function GetEstimate() {
           <h2 className="text-3xl font-bold text-gray-800">
             Requirements Submitted Successfully!
           </h2>
-          
+
           <p className="text-gray-600 max-w-lg mx-auto">
-            Thank you for sharing your design requirements with us. Our team is excited to bring your vision to life!
+            Thank you for sharing your design requirements with us. Our team is
+            excited to bring your vision to life!
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto mt-8">
             <Card className="p-4">
               <CardContent className="text-center pt-4">
                 <PhoneCall size={24} className="text-red-500 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-800 mb-1">Quick Response</h3>
-                <p className="text-sm text-gray-600">We'll contact you within 24 hours</p>
+                <h3 className="font-semibold text-gray-800 mb-1">
+                  Quick Response
+                </h3>
+                <p className="text-sm text-gray-600">
+                  We'll contact you within 24 hours
+                </p>
               </CardContent>
             </Card>
 
             <Card className="p-4">
               <CardContent className="text-center pt-4">
                 <Calendar size={24} className="text-red-500 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-800 mb-1">Free Consultation</h3>
-                <p className="text-sm text-gray-600">Schedule your design consultation</p>
+                <h3 className="font-semibold text-gray-800 mb-1">
+                  Free Consultation
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Schedule your design consultation
+                </p>
               </CardContent>
             </Card>
 
             <Card className="p-4">
               <CardContent className="text-center pt-4">
-                <ClipboardList size={24} className="text-red-500 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-800 mb-1">Custom Design</h3>
-                <p className="text-sm text-gray-600">Personalized design proposal</p>
+                <ClipboardList
+                  size={24}
+                  className="text-red-500 mx-auto mb-3"
+                />
+                <h3 className="font-semibold text-gray-800 mb-1">
+                  Custom Design
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Personalized design proposal
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -363,7 +427,10 @@ export default function GetEstimate() {
           >
             <p className="text-sm text-gray-600">
               Have questions? Contact us at{" "}
-              <a href="tel:+919876543210" className="text-red-600 font-medium hover:text-red-700 transition-colors">
+              <a
+                href="tel:+919876543210"
+                className="text-red-600 font-medium hover:text-red-700 transition-colors"
+              >
                 +91 8328973166
               </a>
             </p>
@@ -371,7 +438,7 @@ export default function GetEstimate() {
             <Button
               onClick={() => {
                 resetEnquiryData();
-                setCurrentStage('contact');
+                setCurrentStage("contact");
                 setIsRequirementsValid(false);
                 setError(null);
               }}
@@ -396,8 +463,8 @@ export default function GetEstimate() {
           variants={containerVariants}
           className="w-full max-w-3xl"
         >
-          {currentStage !== 'success' && renderStepsIndicator()}
-          
+          {currentStage !== "success" && renderStepsIndicator()}
+
           <Card>
             <CardContent className="p-6">
               {error && (
@@ -406,17 +473,19 @@ export default function GetEstimate() {
                 </div>
               )}
 
-              {currentStage === 'contact' && (
-                <ContactStepForm onUserValidationChange={handleUserValidation}/>
+              {currentStage === "contact" && (
+                <ContactStepForm
+                  onUserValidationChange={handleUserValidation}
+                />
               )}
-              {currentStage === 'requirements' && (
-                <RequirementForm 
+              {currentStage === "requirements" && (
+                <RequirementForm
                   onValidationChange={handleRequirementsValidation}
                 />
               )}
-              {currentStage === 'summary' && <SummaryScreen />}
-              {currentStage === 'success' && <SuccessScreen />}
-              
+              {currentStage === "summary" && <SummaryScreen />}
+              {currentStage === "success" && <SuccessScreen />}
+
               {renderNavigationButtons()}
             </CardContent>
           </Card>

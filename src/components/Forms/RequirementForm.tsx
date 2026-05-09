@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import enquiryStore from '../../store/public/InquiryStore';
-import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import enquiryStore from "../../store/public/InquiryStore";
+import { Plus, Trash2, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +47,9 @@ interface ValidationErrors {
   general?: string;
 }
 
-export default function RequirementForm({ onValidationChange }: RequirementFormProps) {
+export default function RequirementForm({
+  onValidationChange,
+}: RequirementFormProps) {
   const FullMenuItems = [
     { name: "Design Gallery", href: "design-gallary" },
     { name: "Modular Kitchen", href: "modular-kitchen" },
@@ -58,18 +60,9 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
     { name: "Space Saving Furniture", href: "space-saving-furniture" },
   ];
 
-  const HomeTypes = [
-    "1 BHK",
-    "2 BHK",
-    "3 BHK",
-    "3+ BHK"
-  ];
+  const HomeTypes = ["1 BHK", "2 BHK", "3 BHK", "3+ BHK"];
 
-  const Purposes = [
-    "Move In",
-    "Rent Out",
-    "Renovate"
-  ];
+  const Purposes = ["Move In", "Rent Out", "Renovate"];
 
   const CategoryItems = {
     "Modular Kitchen": [
@@ -80,24 +73,24 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       "Tall Unit",
       "Corner Unit",
       "Sink Unit",
-      "Appliance Housing"
+      "Appliance Housing",
     ],
-    "Wardrobe": [
+    Wardrobe: [
       "Walk-in Closet",
       "Sliding Door Wardrobe",
       "Hinged Door Wardrobe",
       "Corner Wardrobe",
       "Dresser Unit",
-      "Shoe Cabinet"
+      "Shoe Cabinet",
     ],
-    "Bedroom": [
+    Bedroom: [
       "Bed Frame",
       "Side Tables",
       "Dressing Table",
       "TV Unit",
       "Study Table",
       "Storage Bench",
-      "Wall Shelves"
+      "Wall Shelves",
     ],
     "Living Room": [
       "TV Console",
@@ -106,15 +99,15 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       "Wall Unit",
       "Storage Cabinet",
       "Book Shelf",
-      "Shoe Cabinet"
+      "Shoe Cabinet",
     ],
-    "Bathroom": [
+    Bathroom: [
       "Vanity Unit",
       "Mirror Cabinet",
       "Tall Storage Unit",
       "Wall Cabinet",
       "Linen Cabinet",
-      "Under-sink Cabinet"
+      "Under-sink Cabinet",
     ],
     "Space Saving Furniture": [
       "Murphy Bed",
@@ -122,15 +115,15 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       "Nested Tables",
       "Storage Ottoman",
       "Wall-mounted Desk",
-      "Expandable Dining Table"
+      "Expandable Dining Table",
     ],
     "Design Gallery": [
       "Custom Design",
       "Theme Package",
       "Color Scheme",
       "Material Selection",
-      "Lighting Plan"
-    ]
+      "Lighting Plan",
+    ],
   };
 
   const [items, setItems] = useState<Item[]>([]);
@@ -140,7 +133,7 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
     units: 1,
     size: "",
     height: "",
-    width: ""
+    width: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [showErrors, setShowErrors] = useState(false);
@@ -149,9 +142,9 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
   useEffect(() => {
     if (projectDetails) {
       if (projectDetails.items?.length > 0) {
-        const processedItems = projectDetails.items.map(item => {
+        const processedItems = projectDetails.items.map((item) => {
           if (item.size) {
-            const [width, height] = item.size.split('x').map(s => s.trim());
+            const [width, height] = item.size.split("x").map((s) => s.trim());
             return { ...item, height, width };
           }
           return item;
@@ -160,8 +153,8 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       }
       setProjectDetails({
         ...projectDetails,
-        homeType: projectDetails.homeType || '',
-        purpose: projectDetails.purpose || ''
+        homeType: projectDetails.homeType || "",
+        purpose: projectDetails.purpose || "",
       });
     }
   }, []);
@@ -221,20 +214,26 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
 
   const handleAddItem = () => {
     const itemErrors = validateCurrentItem();
-    
+
     if (Object.keys(itemErrors).length > 0) {
       setErrors({ ...errors, ...itemErrors });
       setShowErrors(true);
       return;
     }
 
-    const size = currentItem.width && currentItem.height 
-      ? `${currentItem.width}x${currentItem.height}`
-      : "";
+    const size =
+      currentItem.width && currentItem.height
+        ? `${currentItem.width}x${currentItem.height}`
+        : "";
 
-    const itemToAdd = {
-      ...currentItem,
-      size
+    // Only include size/height/width if dimensions were actually provided
+    const itemToAdd: Item = {
+      category: currentItem.category,
+      name: currentItem.name,
+      units: currentItem.units,
+      size,
+      ...(currentItem.height ? { height: currentItem.height } : {}),
+      ...(currentItem.width ? { width: currentItem.width } : {}),
     };
 
     const newItems = [...items, itemToAdd];
@@ -246,9 +245,9 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       units: 1,
       size: "",
       height: "",
-      width: ""
+      width: "",
     });
-    
+
     // Clear item-specific errors
     const { category, name, units, width, height, ...remainingErrors } = errors;
     setErrors(remainingErrors);
@@ -270,7 +269,7 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       units: 1,
       size: "",
       height: "",
-      width: ""
+      width: "",
     });
     setProjectDetails({ ...projectDetails, items: [] });
     setErrors({});
@@ -285,7 +284,7 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
       setErrors(newErrors);
     }
 
-    if (field === 'homeType' || field === 'purpose') {
+    if (field === "homeType" || field === "purpose") {
       setProjectDetails({ ...projectDetails, [field]: value });
     } else {
       setCurrentItem({ ...currentItem, [field]: value });
@@ -295,8 +294,10 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="p-6">
-        <h2 className="text-2xl mb-6 font-semibold">Interior Design Requirements</h2>
-        
+        <h2 className="text-2xl mb-6 font-semibold">
+          Interior Design Requirements
+        </h2>
+
         {/* General Form Errors */}
         {(errors.general || errors.items) && (
           <Alert className="mb-6 border-red-200 bg-red-50">
@@ -306,22 +307,30 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
             </AlertDescription>
           </Alert>
         )}
-        
+
         <div className="space-y-6">
           <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-medium mb-4">Project Details</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label className={errors.homeType ? "text-red-600" : ""}>
                     Home Type <span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={projectDetails?.homeType || ''}
-                    onValueChange={(value) => handleFieldChange('homeType', value)}
+                    value={projectDetails?.homeType || ""}
+                    onValueChange={(value) =>
+                      handleFieldChange("homeType", value)
+                    }
                   >
-                    <SelectTrigger className={errors.homeType ? "border-red-500 focus:border-red-500" : ""}>
+                    <SelectTrigger
+                      className={
+                        errors.homeType
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    >
                       <SelectValue placeholder="Select home type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -345,10 +354,18 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                     Purpose <span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={projectDetails?.purpose || ''}
-                    onValueChange={(value) => handleFieldChange('purpose', value)}
+                    value={projectDetails?.purpose || ""}
+                    onValueChange={(value) =>
+                      handleFieldChange("purpose", value)
+                    }
                   >
-                    <SelectTrigger className={errors.purpose ? "border-red-500 focus:border-red-500" : ""}>
+                    <SelectTrigger
+                      className={
+                        errors.purpose
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    >
                       <SelectValue placeholder="Select purpose" />
                     </SelectTrigger>
                     <SelectContent>
@@ -369,9 +386,10 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
               </div>
 
               <h2 className="text-lg font-medium mb-4">
-                Add Items to Your Requirements <span className="text-red-500">*</span>
+                Add Items to Your Requirements{" "}
+                <span className="text-red-500">*</span>
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <Label className={errors.category ? "text-red-600" : ""}>
@@ -380,11 +398,21 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                   <Select
                     value={currentItem.category}
                     onValueChange={(value) => {
-                      handleFieldChange('category', value);
-                      setCurrentItem(prev => ({ ...prev, category: value, name: "" }));
+                      handleFieldChange("category", value);
+                      setCurrentItem((prev) => ({
+                        ...prev,
+                        category: value,
+                        name: "",
+                      }));
                     }}
                   >
-                    <SelectTrigger className={errors.category ? "border-red-500 focus:border-red-500" : ""}>
+                    <SelectTrigger
+                      className={
+                        errors.category
+                          ? "border-red-500 focus:border-red-500"
+                          : ""
+                      }
+                    >
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -409,18 +437,25 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                   </Label>
                   <Select
                     value={currentItem.name}
-                    onValueChange={(value) => handleFieldChange('name', value)}
+                    onValueChange={(value) => handleFieldChange("name", value)}
                     disabled={!currentItem.category}
                   >
-                    <SelectTrigger className={errors.name ? "border-red-500 focus:border-red-500" : ""}>
+                    <SelectTrigger
+                      className={
+                        errors.name ? "border-red-500 focus:border-red-500" : ""
+                      }
+                    >
                       <SelectValue placeholder="Select an item" />
                     </SelectTrigger>
                     <SelectContent>
-                      {currentItem.category && CategoryItems[currentItem.category]?.map((item, index) => (
-                        <SelectItem key={index} value={item}>
-                          {item}
-                        </SelectItem>
-                      ))}
+                      {currentItem.category &&
+                        CategoryItems[currentItem.category]?.map(
+                          (item, index) => (
+                            <SelectItem key={index} value={item}>
+                              {item}
+                            </SelectItem>
+                          ),
+                        )}
                     </SelectContent>
                   </Select>
                   {errors.name && (
@@ -441,8 +476,12 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                     type="number"
                     min="1"
                     value={currentItem.units}
-                    onChange={(e) => handleFieldChange('units', parseInt(e.target.value) || 1)}
-                    className={errors.units ? "border-red-500 focus:border-red-500" : ""}
+                    onChange={(e) =>
+                      handleFieldChange("units", parseInt(e.target.value) || 1)
+                    }
+                    className={
+                      errors.units ? "border-red-500 focus:border-red-500" : ""
+                    }
                   />
                   {errors.units && (
                     <p className="text-sm text-red-600 flex items-center">
@@ -458,24 +497,40 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       <Input
                         type="text"
                         value={currentItem.width}
-                        onChange={(e) => handleFieldChange('width', e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange("width", e.target.value)
+                        }
                         placeholder="Width (ft)"
-                        className={errors.width ? "border-red-500 focus:border-red-500" : ""}
+                        className={
+                          errors.width
+                            ? "border-red-500 focus:border-red-500"
+                            : ""
+                        }
                       />
                       {errors.width && (
-                        <p className="text-xs text-red-600 mt-1">{errors.width}</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          {errors.width}
+                        </p>
                       )}
                     </div>
                     <div>
                       <Input
                         type="text"
                         value={currentItem.height}
-                        onChange={(e) => handleFieldChange('height', e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange("height", e.target.value)
+                        }
                         placeholder="Height (ft)"
-                        className={errors.height ? "border-red-500 focus:border-red-500" : ""}
+                        className={
+                          errors.height
+                            ? "border-red-500 focus:border-red-500"
+                            : ""
+                        }
                       />
                       {errors.height && (
-                        <p className="text-xs text-red-600 mt-1">{errors.height}</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          {errors.height}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -502,17 +557,23 @@ export default function RequirementForm({ onValidationChange }: RequirementFormP
                       <TableHead>Category</TableHead>
                       <TableHead>Item</TableHead>
                       <TableHead>Units</TableHead>
-                      <TableHead className="hidden sm:table-cell">Dimensions (W×H)</TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Dimensions (W×H)
+                      </TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {items.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">{item.category}</TableCell>
+                        <TableCell className="font-medium">
+                          {item.category}
+                        </TableCell>
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.units}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{item.size || '-'}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {item.size || "-"}
+                        </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
