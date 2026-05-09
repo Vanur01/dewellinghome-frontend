@@ -193,9 +193,29 @@ export default function PaymentDetails() {
       );
 
       if (structureChanged) {
+        const milestonesPayload = editedValues.milestones.map((m, i) => ({
+          slNo: currentSchedule.milestones[i]?.slNo ?? i + 1,
+          timeline: m.timeline,
+          percentage: m.percentage,
+        }));
+
+        const updatePayments = editedValues.milestones
+          .map((m, i) => ({ m, i }))
+          .filter(
+            ({ m, i }) =>
+              m.actualPaid !==
+              (currentSchedule?.milestones?.[i]?.actualPaid ?? 0),
+          )
+          .map(({ m, i }) => ({
+            slNo: currentSchedule.milestones[i]?.slNo ?? i + 1,
+            actualPaid: m.actualPaid,
+            paymentDate: new Date().toISOString().split("T")[0],
+          }));
+
         await updatePaymentStructure(
           currentSchedule._id,
-          editedValues.milestones,
+          milestonesPayload,
+          updatePayments.length > 0 ? updatePayments : undefined,
         );
       }
 

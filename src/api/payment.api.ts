@@ -7,21 +7,22 @@ export const paymentScheduleApi = {
     api.get<{ data: PaymentSchedule[] }>("/payments/schedules"),
 
   // Get user's payment schedules
-  getUserPaymentSchedules: (params?:{userId:string}) =>
+  getUserPaymentSchedules: (params?: { userId: string }) =>
     api.get<{ data: (PaymentSchedule & { projectId: Project })[] }>(
-      "/payments/schedules/user-payment-schedules",{params}
+      "/payments/schedules/user-payment-schedules",
+      { params },
     ),
 
   // Get specific payment schedule
   getPaymentScheduleById: (id: string) =>
     api.get<{ data: PaymentSchedule & { projectId: Project } }>(
-      `/payments/schedules/${id}`
+      `/payments/schedules/${id}`,
     ),
 
   // Get payment schedule by project ID
   getPaymentScheduleByProjectId: (projectId: string) =>
     api.get<{ data: PaymentSchedule & { projectId: Project } }>(
-      `/payments/schedules/project/${projectId}`
+      `/payments/schedules/project/${projectId}`,
     ),
 
   // Create new payment schedule (admin)
@@ -40,20 +41,30 @@ export const paymentScheduleApi = {
       `/payments/schedules/${id}/project-value`,
       {
         totalProjectValue,
-      }
+      },
     ),
 
   // Update payment structure/milestones (admin)
   updatePaymentStructure: (
     id: string,
     milestones: Array<{
+      slNo: number;
       timeline: string;
       percentage: number;
-      actualPaid?: number;
-    }>
+    }>,
+    updatePayments?: Array<{
+      slNo: number;
+      actualPaid: number;
+      paymentDate?: string;
+      paymentMethod?: string;
+      paymentReference?: string;
+    }>,
   ) =>
     api.put<{ data: PaymentSchedule }>(`/payments/schedules/${id}/structure`, {
       milestones,
+      ...(updatePayments && updatePayments.length > 0
+        ? { updatePayments }
+        : {}),
     }),
 
   // Update current milestone (admin)
@@ -62,7 +73,7 @@ export const paymentScheduleApi = {
       `/payments/schedules/${id}/current-milestone`,
       {
         currentMilestone,
-      }
+      },
     ),
 
   // Update milestone payment
@@ -73,11 +84,11 @@ export const paymentScheduleApi = {
       amount: number;
       paymentMethod?: string;
       paymentReference?: string;
-    }
+    },
   ) =>
     api.put<{ data: PaymentSchedule }>(
       `/payments/schedules/${scheduleId}/milestone/${milestoneId}`,
-      data
+      data,
     ),
 };
 

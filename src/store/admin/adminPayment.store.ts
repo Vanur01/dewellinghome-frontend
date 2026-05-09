@@ -1,8 +1,12 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { paymentScheduleApi, PaymentMilestone as ApiPaymentMilestone, PaymentSchedule } from '@/utils/api';
-import { AxiosError } from 'axios';
-import { toast } from 'sonner';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import {
+  paymentScheduleApi,
+  PaymentMilestone as ApiPaymentMilestone,
+  PaymentSchedule,
+} from "@/utils/api";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 // Remove duplicate PaymentMilestone interface since we're importing it
 export type { ApiPaymentMilestone as PaymentMilestone };
@@ -22,14 +26,29 @@ interface AdminPaymentState {
   createSchedule: (data: {
     projectId: string;
     totalProjectValue: number;
-    milestones: Array<{ timeline: string; percentage: number; actualPaid?: number }>;
+    milestones: Array<{
+      timeline: string;
+      percentage: number;
+      actualPaid?: number;
+    }>;
   }) => Promise<PaymentSchedule>;
-  updateProjectValue: (id: string, totalProjectValue: number) => Promise<PaymentSchedule>;
+  updateProjectValue: (
+    id: string,
+    totalProjectValue: number,
+  ) => Promise<PaymentSchedule>;
   updatePaymentStructure: (
     id: string,
-    milestones: Array<{ timeline: string; percentage: number; actualPaid?: number }>
+    milestones: Array<{ slNo: number; timeline: string; percentage: number }>,
+    updatePayments?: Array<{
+      slNo: number;
+      actualPaid: number;
+      paymentDate?: string;
+    }>,
   ) => Promise<PaymentSchedule>;
-  updateCurrentMilestone: (id: string, currentMilestone: number) => Promise<PaymentSchedule>;
+  updateCurrentMilestone: (
+    id: string,
+    currentMilestone: number,
+  ) => Promise<PaymentSchedule>;
   resetStore: () => void;
 }
 
@@ -51,7 +70,7 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to fetch payment schedules');
+          toast.error("Failed to fetch payment schedules");
         } finally {
           set({ loading: false });
         }
@@ -60,12 +79,13 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       fetchScheduleById: async (id: string) => {
         try {
           set({ loading: true, error: null });
-          const response = await paymentScheduleApi. getPaymentScheduleByProjectId(id);
+          const response =
+            await paymentScheduleApi.getPaymentScheduleByProjectId(id);
           set({ currentSchedule: response.data.data });
         } catch (err) {
           const error = err as AxiosError;
-          set({ currentSchedule:null ,error: error.message });
-          toast.error('Failed to fetch payment schedule');
+          set({ currentSchedule: null, error: error.message });
+          toast.error("Failed to fetch payment schedule");
         } finally {
           set({ loading: false });
         }
@@ -78,14 +98,14 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
           const newSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: [...state.paymentSchedules, newSchedule],
-            currentSchedule: newSchedule
+            currentSchedule: newSchedule,
           }));
-          toast.success('Payment schedule created successfully');
+          toast.success("Payment schedule created successfully");
           return newSchedule;
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to create payment schedule');
+          toast.error("Failed to create payment schedule");
           throw err;
         } finally {
           set({ loading: false });
@@ -95,43 +115,54 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       updateProjectValue: async (id: string, totalProjectValue: number) => {
         try {
           set({ loading: true, error: null });
-          const response = await paymentScheduleApi.updateProjectValue(id, totalProjectValue);
+          const response = await paymentScheduleApi.updateProjectValue(
+            id,
+            totalProjectValue,
+          );
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
-              schedule._id === id ? updatedSchedule : schedule
+              schedule._id === id ? updatedSchedule : schedule,
             ),
-            currentSchedule: updatedSchedule
+            currentSchedule: updatedSchedule,
           }));
-          toast.success('Project value updated successfully');
+          toast.success("Project value updated successfully");
           return updatedSchedule;
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to update project value');
+          toast.error("Failed to update project value");
           throw err;
         } finally {
           set({ loading: false });
         }
       },
 
-      updatePaymentStructure: async (id: string, milestones) => {
+      updatePaymentStructure: async (
+        id: string,
+        milestones,
+        updatePayments?,
+      ) => {
         try {
           set({ loading: true, error: null });
-          const response = await paymentScheduleApi.updatePaymentStructure(id, milestones);
+          const response = await paymentScheduleApi.updatePaymentStructure(
+            id,
+            milestones,
+            updatePayments,
+          );
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
-              schedule._id === id ? updatedSchedule : schedule
+              schedule._id === id ? updatedSchedule : schedule,
             ),
-            currentSchedule: updatedSchedule
+            currentSchedule: updatedSchedule,
           }));
-          toast.success('Payment structure updated successfully');
+          toast.success("Payment structure updated successfully");
           return updatedSchedule;
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to update payment structure');
+          toast.error("Failed to update payment structure");
           throw err;
         } finally {
           set({ loading: false });
@@ -141,20 +172,23 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
       updateCurrentMilestone: async (id: string, currentMilestone: number) => {
         try {
           set({ loading: true, error: null });
-          const response = await paymentScheduleApi.updateCurrentMilestone(id, currentMilestone);
+          const response = await paymentScheduleApi.updateCurrentMilestone(
+            id,
+            currentMilestone,
+          );
           const updatedSchedule = response.data.data;
           set((state) => ({
             paymentSchedules: state.paymentSchedules.map((schedule) =>
-              schedule._id === id ? updatedSchedule : schedule
+              schedule._id === id ? updatedSchedule : schedule,
             ),
-            currentSchedule: updatedSchedule
+            currentSchedule: updatedSchedule,
           }));
-          toast.success('Current milestone updated successfully');
+          toast.success("Current milestone updated successfully");
           return updatedSchedule;
         } catch (err) {
           const error = err as AxiosError;
           set({ error: error.message });
-          toast.error('Failed to update current milestone');
+          toast.error("Failed to update current milestone");
           throw err;
         } finally {
           set({ loading: false });
@@ -165,12 +199,12 @@ export const useAdminPaymentStore = create<AdminPaymentState>()(
         set({
           paymentSchedules: [],
           currentSchedule: null,
-          error: null
+          error: null,
         });
-      }
+      },
     }),
     {
-      name: 'admin-payment-store'
-    }
-  )
+      name: "admin-payment-store",
+    },
+  ),
 );
