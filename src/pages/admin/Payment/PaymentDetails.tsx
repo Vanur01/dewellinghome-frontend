@@ -70,12 +70,29 @@ export default function PaymentDetails() {
       .replace("₹", "₹ ");
   };
 
-  // Handle project value change — simply recalculate amounts based on percentage
+  // Recalculate all milestone amounts with carry-forward (mirrors backend pre-save hook)
+  const recalculateMilestones = (
+    milestones: typeof editedValues.milestones,
+    projectValue: number,
+  ) => {
+    let runningOutstanding = 0;
+    return milestones.map((m) => {
+      const baseAmount = Math.round(projectValue * (m.percentage / 100));
+      const carriedOver = runningOutstanding;
+      const amount = baseAmount + carriedOver;
+      const toBePaid = Math.max(0, amount - m.actualPaid);
+      runningOutstanding = toBePaid;
+      return { ...m, amount };
+    });
+  };
+
+  // Handle project value change — recalculate all milestones with carry-forward
   const handleProjectValueChange = (value: string) => {
     const newTotal = parseFloat(value) || 0;
     setEditedValues((prev) => ({
       ...prev,
       projectValue: newTotal,
+      milestones: recalculateMilestones(prev.milestones, newTotal),
     }));
   };
 
@@ -88,7 +105,6 @@ export default function PaymentDetails() {
     value: string,
   ) => {
     setEditedValues((prev) => {
-      // Use server-calculated amount (base + carryover) as the cap
       const maxPayable = prev.milestones[index]?.amount ?? 0;
 
       let parsedValue: string | number =
@@ -96,7 +112,6 @@ export default function PaymentDetails() {
           ? parseFloat(value) || 0
           : value;
 
-      // Cap actualPaid to total amount due (base + carryover)
       if (field === "actualPaid" && typeof parsedValue === "number") {
         parsedValue = Math.min(parsedValue, maxPayable);
       }
@@ -105,9 +120,15 @@ export default function PaymentDetails() {
         i === index ? { ...m, [field]: parsedValue } : m,
       );
 
+      // Recascade carry-forward after any change
+      const recascaded = recalculateMilestones(
+        updatedMilestones,
+        prev.projectValue,
+      );
+
       return {
         ...prev,
-        milestones: updatedMilestones,
+        milestones: recascaded,
       };
     });
   };
@@ -339,6 +360,11 @@ export default function PaymentDetails() {
                     <div className="space-y-1">
                       <Input
                         type="number"
+                        min={editedValues.milestones.reduce(
+                          (sum, m) => sum + (m.actualPaid ?? 0),
+                          0,
+                        )}
+                        step={1000}
                         value={editedValues.projectValue}
                         onChange={(e) =>
                           handleProjectValueChange(e.target.value)
@@ -354,6 +380,10 @@ export default function PaymentDetails() {
                             : "",
                         )}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Current:{" "}
+                        {formatCurrency(currentSchedule?.totalProjectValue)}
+                      </p>
                       {editedValues.projectValue <
                         editedValues.milestones.reduce(
                           (sum, m) => sum + (m.actualPaid ?? 0),
@@ -470,11 +500,9 @@ export default function PaymentDetails() {
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
                       Base Amount
                     </th>
-                    {!editMode && (
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-36">
-                        Carried Over
-                      </th>
-                    )}
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-36">
+                      Carried Over
+                    </th>
                     <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 w-32">
                       {editMode ? "Amount" : "Total Due"}
                     </th>
@@ -564,27 +592,25 @@ export default function PaymentDetails() {
                               milestone?.baseAmount ?? milestone?.amount,
                             )}
                       </td>
-                      {/* Carried Over (view mode only) */}
-                      {!editMode && (
-                        <td className="px-4 py-4 text-right">
-                          {(() => {
-                            const carryover =
-                              (milestone?.carriedOverOutstanding ?? 0) > 0
-                                ? milestone.carriedOverOutstanding
-                                : (milestone?.amount ?? 0) -
-                                  (milestone?.baseAmount ?? 0);
-                            return carryover > 0 ? (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                                {`+${formatCurrency(carryover)}`}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">
-                                ₹ 0
-                              </span>
-                            );
-                          })()}
-                        </td>
-                      )}
+                      {/* Carried Over */}
+                      <td className="px-4 py-4 text-right">
+                        {(() => {
+                          const carryover =
+                            (milestone?.carriedOverOutstanding ?? 0) > 0
+                              ? milestone.carriedOverOutstanding
+                              : (milestone?.amount ?? 0) -
+                                (milestone?.baseAmount ?? 0);
+                          return carryover > 0 ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                              {`+${formatCurrency(carryover)}`}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">
+                              ₹ 0
+                            </span>
+                          );
+                        })()}
+                      </td>
                       {/* Total Due = baseAmount + carriedOver (view) or just baseAmount (edit) */}
                       <td className="px-4 py-4 text-right font-semibold">
                         {editMode
@@ -698,7 +724,7 @@ export default function PaymentDetails() {
                           %
                         </span>
                       </td>
-                      <td colSpan={4}></td>
+                      <td colSpan={5}></td>
                     </tr>
                   </tfoot>
                 )}
